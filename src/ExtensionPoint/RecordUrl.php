@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap\ExtensionPoint;
+namespace Klxm\Tiptap\ExtensionPoint;
 
 use Redaxo\Core\ExtensionPoint\ExtensionPoint;
 

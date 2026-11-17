@@ -29,8 +29,8 @@ Entwickler ihn **mit eigenen Werkzeugen** erweitern können.
 3. Im Modul das Feld verwenden:
 
 ```php
-use FriendsOfRedaxo\Tiptap\Field\Editor;
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Field\Editor;
+use Klxm\Tiptap\Tiptap;
 
 #[Editor('Text', profile: 'default')]
 public string $text = '';

@@ -8,7 +8,7 @@
 | Bundle | `assets/tiptap.js` (ES-Modul) | TipTap, `<rex-tiptap>`, Toolbar, Dialoge, `window.RexTiptap` |
 | Nachgeladen | `assets/chunks/` | Quelltext-Ansicht (CodeMirror), erst beim Öffnen |
 | Stile | `assets/tiptap.css` | Editor, Menüs, Dialoge; Variablen `--rex-tiptap-*` |
-| PHP | `FriendsOfRedaxo\Tiptap\*` | Profile, Sanitizer, Ausgabe, Felder |
+| PHP | `Klxm\Tiptap\*` | Profile, Sanitizer, Ausgabe, Felder |
 
 Quellen der Skripte liegen in `resources/js/`. Gebaut wird mit `npm install && npm run build` (esbuild), das
 Ergebnis in `assets/` wird mit eingecheckt.
@@ -16,7 +16,7 @@ Ergebnis in `assets/` wird mit eingecheckt.
 ## PHP-API
 
 ```php
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Tiptap;
 
 Tiptap::render(?string $value, string|Profile|null $profile = null): string    // Ausgabe
 Tiptap::sanitize(?string $value, string|Profile|null $profile = null): string  // vor dem Speichern
@@ -30,8 +30,8 @@ Tiptap::register(Plugin $plugin): void                                         /
 einem eigenen Installationsschritt:
 
 ```php
-use FriendsOfRedaxo\Tiptap\Profile;
-use FriendsOfRedaxo\Tiptap\Profiles;
+use Klxm\Tiptap\Profile;
+use Klxm\Tiptap\Profiles;
 
 // in install() des eigenen AddOns – idempotent
 if (!Profiles::exists('shop')) {
@@ -55,9 +55,9 @@ Eine Erweiterung besteht aus zwei Hälften:
 ### PHP (in `boot()` des eigenen AddOns)
 
 ```php
-use FriendsOfRedaxo\Tiptap\Item;
-use FriendsOfRedaxo\Tiptap\Plugin;
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Item;
+use Klxm\Tiptap\Plugin;
+use Klxm\Tiptap\Tiptap;
 
 if (class_exists(Tiptap::class)) {
     Tiptap::register(new Plugin(

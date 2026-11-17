@@ -1,9 +1,9 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap\Field;
+namespace Klxm\Tiptap\Field;
 
 use Attribute;
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Tiptap;
 use Override;
 use Redaxo\Core\Form\BoundField;
 use Redaxo\Core\Form\Field\Field;

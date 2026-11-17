@@ -1,13 +1,13 @@
 <?php
 
-use FriendsOfRedaxo\Tiptap\Mode;
-use FriendsOfRedaxo\Tiptap\Output;
-use FriendsOfRedaxo\Tiptap\RecordLinks;
-use FriendsOfRedaxo\Tiptap\RecordSearchApi;
+use Klxm\Tiptap\Mode;
+use Klxm\Tiptap\Output;
+use Klxm\Tiptap\RecordLinks;
+use Klxm\Tiptap\RecordSearchApi;
 use Redaxo\Core\MediaManager\MediaTypeRegistry;
-use FriendsOfRedaxo\Tiptap\Profile;
-use FriendsOfRedaxo\Tiptap\Profiles;
-use FriendsOfRedaxo\Tiptap\Registry;
+use Klxm\Tiptap\Profile;
+use Klxm\Tiptap\Profiles;
+use Klxm\Tiptap\Registry;
 use Redaxo\Core\Filesystem\Url;
 use Redaxo\Core\Http\Request;
 use Redaxo\Core\Http\Response;
@@ -143,8 +143,8 @@ if ('edit' === $func || 'add' === $func) {
     }
 
     $usage = '<pre class="rex-code"><code>'
-        . escape("// Modul / Collection / Formular des Cores\n#[\\FriendsOfRedaxo\\Tiptap\\Field\\Editor('Text', profile: '" . $profile->name . "')]\npublic string \$text = '';\n\n"
-            . "// Ausgabe\necho \\FriendsOfRedaxo\\Tiptap\\Tiptap::render(\$this->text, '" . $profile->name . "');\n\n"
+        . escape("// Modul / Collection / Formular des Cores\n#[\\Klxm\\Tiptap\\Field\\Editor('Text', profile: '" . $profile->name . "')]\npublic string \$text = '';\n\n"
+            . "// Ausgabe\necho \\Klxm\\Tiptap\\Tiptap::render(\$this->text, '" . $profile->name . "');\n\n"
             . "// YForm 6 / eigenes Formular: Attribut an der Textarea\ndata-tiptap=\"" . $profile->name . "\"")
         . '</code></pre>';
 

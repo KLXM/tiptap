@@ -1,5 +1,7 @@
 # TipTap editor for REDAXO 6
 
+An addon by [KLXM Crossmedia](https://klxm.de).
+
 WYSIWYG and Markdown editor based on [TipTap](https://tiptap.dev) (ProseMirror) for REDAXO 6 – in the backend, in
 collections and in the frontend.
 
@@ -14,15 +16,15 @@ collections and in the frontend.
 ## Installation
 
 ```bash
-composer require friendsofredaxo/tiptap
+composer require klxm/tiptap
 php bin/console migrate
 ```
 
 ## Quick start
 
 ```php
-use FriendsOfRedaxo\Tiptap\Field\Editor;
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Field\Editor;
+use Klxm\Tiptap\Tiptap;
 
 #[Editor('Text', profile: 'default')]
 public string $text = '';
@@ -33,7 +35,7 @@ public function output(): string
 }
 ```
 
-YForm 6: `yield \FriendsOfRedaxo\Tiptap\YForm\Editor::new('text')->profile('simple');`  
+YForm 6: `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('simple');`  
 Any textarea: `<textarea data-tiptap="simple">`  
 Frontend: `echo Tiptap::editor('message', $value, 'guest');` and on submit `Tiptap::sanitize(…, 'guest')`.
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap;
+namespace Klxm\Tiptap;
 
 use Override;
 use Redaxo\Core\ApiFunction\ApiFunction;

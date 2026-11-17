@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap;
+namespace Klxm\Tiptap;
 
 use Redaxo\Core\Util\Str;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;

@@ -1,8 +1,8 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap;
+namespace Klxm\Tiptap;
 
-use FriendsOfRedaxo\Tiptap\ExtensionPoint\RecordUrl;
+use Klxm\Tiptap\ExtensionPoint\RecordUrl;
 use Redaxo\Core\Content\Article;
 use Redaxo\Core\ExtensionPoint\Extension;
 use Redaxo\Core\Security\User;

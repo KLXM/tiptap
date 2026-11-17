@@ -1,8 +1,8 @@
 <?php
 
-use FriendsOfRedaxo\Tiptap\Mode;
-use FriendsOfRedaxo\Tiptap\Profiles;
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Mode;
+use Klxm\Tiptap\Profiles;
+use Klxm\Tiptap\Tiptap;
 use Redaxo\Core\Filesystem\Url;
 use Redaxo\Core\Http\Request;
 use Redaxo\Core\Security\CsrfToken;

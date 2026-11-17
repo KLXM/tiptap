@@ -1,6 +1,6 @@
 <?php
 
-use FriendsOfRedaxo\Tiptap\YForm\Editor;
+use Klxm\Tiptap\YForm\Editor;
 use Yakamara\YForm\Form\FieldContext;
 
 use function Redaxo\Core\View\escape;

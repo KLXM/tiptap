@@ -2,7 +2,7 @@
 
 namespace Project\Module;
 
-use FriendsOfRedaxo\Tiptap\Field\Editor;
+use Klxm\Tiptap\Field\Editor;
 use Redaxo\Core\Form\Field\Text;
 
 /** Eintrag der Collection von {@see TiptapBeispielModule} */

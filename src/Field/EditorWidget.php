@@ -1,9 +1,9 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap\Field;
+namespace Klxm\Tiptap\Field;
 
-use FriendsOfRedaxo\Tiptap\Profile;
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Profile;
+use Klxm\Tiptap\Tiptap;
 use Redaxo\Core\Form\Widget\Widget;
 use Redaxo\Core\View\Html;
 use Redaxo\Core\View\HtmlAttributes;

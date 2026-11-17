@@ -1,8 +1,8 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap\YForm;
+namespace Klxm\Tiptap\YForm;
 
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Tiptap;
 use Override;
 use Yakamara\YForm\Data\Record;
 use Yakamara\YForm\Field\Textarea;

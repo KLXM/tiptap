@@ -2,8 +2,8 @@
 
 namespace Project\Module;
 
-use FriendsOfRedaxo\Tiptap\Field\Editor;
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Field\Editor;
+use Klxm\Tiptap\Tiptap;
 use Redaxo\Core\Content\AsModule;
 use Redaxo\Core\Content\Module;
 use Redaxo\Core\Form\Field\Collection;

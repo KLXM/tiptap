@@ -1,6 +1,6 @@
 <?php
 
-use FriendsOfRedaxo\Tiptap\TiptapAddon;
+use Klxm\Tiptap\TiptapAddon;
 use Redaxo\Core\Filesystem\Url;
 use Redaxo\Core\Http\Request;
 use Redaxo\Core\Translation\I18n;

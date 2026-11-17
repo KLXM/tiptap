@@ -6,7 +6,7 @@ Das Feld `Editor` ist ein Feld-Attribut wie `Text` oder `Textarea`. Es funktioni
 Formulare aus Eigenschaften baut: Module, Einträge einer `Collection`, eigene Formulare.
 
 ```php
-use FriendsOfRedaxo\Tiptap\Field\Editor;
+use Klxm\Tiptap\Field\Editor;
 use Redaxo\Core\Form\Field\Collection;
 
 #[Editor('Text', profile: 'default')]
@@ -60,7 +60,7 @@ werden dabei korrigiert.
 Im Link-Dialog öffnet **Datensatz wählen** eine Suche in den Tabellen, die das Profil freigibt. Gespeichert wird
 `yform://tabelle/ID`. Die Adresse entsteht erst bei der Ausgabe:
 
-1. über den Extension Point `FriendsOfRedaxo\Tiptap\ExtensionPoint\RecordUrl`, für AddOns mit eigenen Adressen
+1. über den Extension Point `Klxm\Tiptap\ExtensionPoint\RecordUrl`, für AddOns mit eigenen Adressen
    je Datensatz:
 
    ```php
@@ -78,7 +78,7 @@ Ohne beides wird der Link zu `#`.
 Für Tabellen und Formulare von YForm 6 gibt es ein eigenes Feld:
 
 ```php
-use FriendsOfRedaxo\Tiptap\YForm\Editor;
+use Klxm\Tiptap\YForm\Editor;
 
 yield Editor::new('text')->label('Text')->profile('simple');
 // große Inhalte (mediumtext):
@@ -105,7 +105,7 @@ JSON an die Seite an.
 ## Frontend
 
 ```php
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Tiptap;
 
 echo Tiptap::editor('nachricht', $value, 'guest', ['id' => 'nachricht']);
 

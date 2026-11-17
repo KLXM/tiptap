@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap;
+namespace Klxm\Tiptap;
 
 /**
  * Ein Werkzeug der Toolbar, wie es der Profil-Builder anbietet.

@@ -2,7 +2,7 @@
 
 namespace Project\Module;
 
-use FriendsOfRedaxo\Tiptap\Tiptap;
+use Klxm\Tiptap\Tiptap;
 use Redaxo\Core\Content\AsModule;
 use Redaxo\Core\Content\Module;
 use Redaxo\Core\Form\Field\Text;

@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfRedaxo\Tiptap;
+namespace Klxm\Tiptap;
 
 /**
  * Erweiterung aus einem anderen AddOn: Skript und Stile, die mit dem Editor geladen werden, und die Werkzeuge, die
