@@ -54,8 +54,7 @@ final class TiptapAddon extends Addon
             ->ensureColumn(new Column('updateuser', 'varchar(255)'))
             ->ensureIndex(new Index('name', ['name'], Index::UNIQUE))
             ->ensure();
-
-        Profiles::installDefaults();
+        // die mitgelieferten Profile sind Klassen (src/Profile), nicht in der Datenbank
     }
 
     #[Override]

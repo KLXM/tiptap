@@ -11,6 +11,6 @@ final class TiptapBeispielItem
     #[Text('Titel')]
     public string $title = '';
 
-    #[Editor('Text', profile: 'simple')]
+    #[Editor('Text', profile: 'tiptap.simple')]
     public string $text = '';
 }

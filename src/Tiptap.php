@@ -24,12 +24,12 @@ use const JSON_UNESCAPED_UNICODE;
  * Öffentliche Schnittstelle des AddOns.
  *
  *     // Ausgabe im Modul/Template (Markdown → HTML, bereinigt, interne Links aufgelöst)
- *     echo Tiptap::render($this->text, 'default');
+ *     echo Tiptap::render($this->text, 'tiptap.default');
  *
  *     // Frontend-Formular (z. B. für Gäste)
  *     echo Tiptap::assets();
- *     echo Tiptap::editor('comment', $value, 'guest');
- *     $clean = Tiptap::sanitize(Request::post('comment', 'string'), 'guest');
+ *     echo Tiptap::editor('comment', $value, 'tiptap.guest');
+ *     $clean = Tiptap::sanitize(Request::post('comment', 'string'), 'tiptap.guest');
  */
 final class Tiptap
 {

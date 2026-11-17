@@ -74,6 +74,8 @@ final readonly class Profile
         public array $config = self::DEFAULTS,
         /** @var class-string<ProfileDefinition>|null Klasse, wenn das Profil aus Code kommt ({@see AsProfile}) */
         public ?string $class = null,
+        /** Mitgeliefert mit dem AddOn (im Backend anpassbar, die Anpassung liegt dann in der Datenbank) */
+        public bool $builtin = false,
     ) {
         if (!preg_match(self::NAME_PATTERN, $name)) {
             throw new InvalidArgumentException('Invalid profile name "' . $name . '".');
@@ -129,10 +131,10 @@ final readonly class Profile
         return false === $pos ? null : substr($this->name, 0, $pos);
     }
 
-    /** Kommt das Profil aus einer PHP-Klasse (schreibgeschützt im Backend)? */
+    /** Kommt das Profil aus einer PHP-Klasse des Projekts oder eines AddOns (schreibgeschützt im Backend)? */
     public function isCode(): bool
     {
-        return null !== $this->class;
+        return null !== $this->class && !$this->builtin;
     }
 
     /**

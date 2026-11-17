@@ -27,18 +27,18 @@ php bin/console migrate
 use Klxm\Tiptap\Field\Editor;
 use Klxm\Tiptap\Tiptap;
 
-#[Editor('Text', profile: 'default')]
+#[Editor('Text', profile: 'tiptap.default')]
 public string $text = '';
 
 public function output(): string
 {
-    return Tiptap::render($this->text, 'default');
+    return Tiptap::render($this->text, 'tiptap.default');
 }
 ```
 
-YForm 6: `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('simple');`  
+YForm 6: `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('tiptap.simple');`  
 Any textarea: `<textarea data-tiptap="simple">`  
-Frontend: `echo Tiptap::editor('message', $value, 'guest');` and on submit `Tiptap::sanitize(…, 'guest')`.
+Frontend: `echo Tiptap::editor('message', $value, 'tiptap.guest');` and on submit `Tiptap::sanitize(…, 'tiptap.guest')`.
 
 The documentation (German) is in the backend under **TipTap editor → Docs** and in [`docs/`](docs/).
 

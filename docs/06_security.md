@@ -41,7 +41,7 @@ Das Backend von REDAXO 6 sendet eine strenge CSP mit Nonce. Der Editor hält sie
 
 ## Gäste
 
-Für Besucher eignet sich ein Profil wie `guest`:
+Für Besucher eignet sich ein Profil wie `tiptap.guest`:
 
 - Wenige Werkzeuge.
 - Keine internen Links und keine Dateien.

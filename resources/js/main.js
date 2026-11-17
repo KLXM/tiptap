@@ -60,7 +60,7 @@ class RexTiptapElement extends HTMLElement {
         const textarea = this.querySelector('textarea');
         let config;
         try {
-            config = this.dataset.config ? JSON.parse(this.dataset.config) : profiles()[this.getAttribute('profile') ?? 'default'];
+            config = this.dataset.config ? JSON.parse(this.dataset.config) : profiles()[this.getAttribute('profile') ?? 'tiptap.default'];
         } catch (e) {
             console.error('rex-tiptap: config', e);
         }
@@ -112,7 +112,7 @@ function upgradeTextareas(root = document) {
             continue;
         }
         const element = document.createElement('rex-tiptap');
-        element.setAttribute('profile', textarea.dataset.tiptap || 'default');
+        element.setAttribute('profile', textarea.dataset.tiptap || 'tiptap.default');
         if (textarea.id) {
             element.dataset.labelFor = textarea.id;
         }

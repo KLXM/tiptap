@@ -20,7 +20,7 @@ use function trim;
 /**
  * Formularfeld mit TipTap-Editor – in Modulen, Collections, Formularen des Cores.
  *
- *     #[Editor('Text', profile: 'simple')]
+ *     #[Editor('Text', profile: 'tiptap.simple')]
  *     public string $text = '';
  *
  * Gespeichert wird HTML oder Markdown (je nach Profil), beim Speichern nach dem Profil bereinigt.
@@ -33,7 +33,7 @@ final class Editor extends Field
         string|Renderable|null $note = null,
         bool $required = false,
         ?string $key = null,
-        /** Name des Profils (Editor → Profile); fehlt es, gilt „default“ */
+        /** Name des Profils (TipTap-Editor → Profile); fehlt es, gilt „tiptap.default“ */
         public readonly ?string $profile = null,
     ) {
         parent::__construct($label, $note, $required, $key);

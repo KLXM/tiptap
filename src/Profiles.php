@@ -44,6 +44,8 @@ use const JSON_UNESCAPED_UNICODE;
 final class Profiles
 {
     public const string TABLE = 'rex_tiptap_profile';
+    /** Profil ohne Angabe (mitgeliefert als {@see Profile\DefaultProfile}) */
+    public const string DEFAULT = 'tiptap.default';
     /** Kennung im Export, damit ein Import fremde JSON-Dateien erkennt */
     public const string EXPORT_FORMAT = 'redaxo-tiptap-profiles';
 
@@ -51,8 +53,11 @@ final class Profiles
     private static ?array $cache = null;
 
     /**
-     * Alle Profile: zuerst die aus Code ({@see AsProfile}), dann die aus der Datenbank – ein Profil aus Code
-     * überdeckt ein gleichnamiges aus der Datenbank.
+     * Alle Profile. Reihenfolge des Vorrangs bei gleichem Namen:
+     *
+     * 1. Klassen aus Projekt und AddOns ({@see AsProfile}) – verbindlich, im Backend schreibgeschützt
+     * 2. Profile aus der Datenbank (im Backend angelegt oder angepasst)
+     * 3. die mitgelieferten Profile des AddOns (`tiptap.*`, src/Profile)
      *
      * @return array<string, Profile> nach Name
      */
@@ -61,12 +66,33 @@ final class Profiles
         if (null !== self::$cache) {
             return self::$cache;
         }
-        $profiles = self::fromCode();
-        foreach (self::fromDatabase() as $name => $profile) {
+        $code = self::fromCode();
+        $database = self::fromDatabase();
+        $profiles = $code;
+        foreach (self::builtin() as $name => $profile) {
+            $profiles[$name] ??= $database[$name] ?? $profile;
+        }
+        foreach ($database as $name => $profile) {
             $profiles[$name] ??= $profile;
         }
 
         return self::$cache = $profiles;
+    }
+
+    /**
+     * Die mitgelieferten Profile (Klassen im AddOn selbst).
+     *
+     * @return array<string, Profile>
+     */
+    public static function builtin(): array
+    {
+        return array_filter(self::discover(), static fn (Profile $p) => $p->builtin);
+    }
+
+    /** Ist ein Profil mitgeliefert und in der Datenbank angepasst? */
+    public static function isCustomized(string $name): bool
+    {
+        return isset(self::builtin()[$name]) && isset(self::fromDatabase()[$name]);
     }
 
     /** @return array<string, Profile> */
@@ -83,9 +109,23 @@ final class Profiles
         return $profiles;
     }
 
-    /** @return array<string, Profile> */
+    /**
+     * Profile aus Klassen von Projekt und AddOns (ohne die mitgelieferten).
+     *
+     * @return array<string, Profile>
+     */
     public static function fromCode(): array
     {
+        return array_filter(self::discover(), static fn (Profile $p) => !$p->builtin);
+    }
+
+    /** @return array<string, Profile> */
+    private static function discover(): array
+    {
+        static $discovered = null;
+        if (null !== $discovered) {
+            return $discovered;
+        }
         $found = [];
         foreach (ClassDiscovery::getInstance()->discoverByAttribute(AsProfile::class, ProfileDefinition::class) as $class => $attr) {
             $found[] = [$attr, $class];
@@ -102,13 +142,25 @@ final class Profiles
                     'mode' => $attr->mode->value,
                     'config' => new $class()->config(),
                 ]);
-                $profiles[$profile->name] ??= new Profile($profile->name, $profile->label, $profile->mode, $profile->description, $profile->config, $class);
+                $builtin = 'tiptap' === self::origin($class);
+                // Klassen anderer Pakete gewinnen gegen gleichnamige mitgelieferte
+                $key = ($builtin ? 'builtin:' : '') . $profile->name;
+                $profiles[$key] ??= new Profile($profile->name, $profile->label, $profile->mode, $profile->description, $profile->config, $class, $builtin);
             } catch (\Throwable) {
                 // fehlerhafte Klasse überspringen statt den Editor lahmzulegen
             }
         }
+        // zuerst Klassen aus Projekt und AddOns, dann die mitgelieferten, soweit nicht ersetzt
+        $result = [];
+        foreach ([false, true] as $builtin) {
+            foreach ($profiles as $profile) {
+                if ($builtin === $profile->builtin) {
+                    $result[$profile->name] ??= $profile;
+                }
+            }
+        }
 
-        return $profiles;
+        return $discovered = $result;
     }
 
     /**
@@ -144,8 +196,8 @@ final class Profiles
     public static function getOrDefault(?string $name): Profile
     {
         return (null !== $name ? self::get($name) : null)
-            ?? self::get('default')
-            ?? (self::all() ? self::all()[array_key_first(self::all())] : new Profile('default', 'Standard'));
+            ?? self::get(self::DEFAULT)
+            ?? (self::all() ? self::all()[array_key_first(self::all())] : new Profile(self::DEFAULT, 'Standard'));
     }
 
     public static function exists(string $name): bool
@@ -161,7 +213,8 @@ final class Profiles
         $user = Core::getUser()->login ?? 'console';
         $now = date('Y-m-d H:i:s');
         $config = json_encode($profile->config, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $existing = null !== $previousName && self::exists($previousName) ? $previousName : (self::exists($profile->name) ? $profile->name : null);
+        $rows = self::fromDatabase();
+        $existing = null !== $previousName && isset($rows[$previousName]) ? $previousName : (isset($rows[$profile->name]) ? $profile->name : null);
 
         $sql = Sql::factory()->setTable(self::TABLE);
         $sql->setValue('name', $profile->name);
@@ -172,7 +225,7 @@ final class Profiles
         $sql->setValue('updatedate', $now);
         $sql->setValue('updateuser', $user);
         if (null !== $existing) {
-            if ($existing !== $profile->name && self::exists($profile->name)) {
+            if ($existing !== $profile->name && isset($rows[$profile->name])) {
                 throw new RuntimeException('Profile "' . $profile->name . '" already exists.');
             }
             $sql->setWhere(['name' => $existing]);
@@ -371,96 +424,6 @@ final class Profiles
             Sql::factory()->setQuery('UPDATE ' . self::TABLE . ' SET prio = ? WHERE name = ?', [$i + 1, $name]);
         }
         self::$cache = null;
-    }
-
-    /** Legt fehlende Standardprofile an (beim migrate) */
-    public static function installDefaults(): void
-    {
-        self::$cache = null;
-        foreach (self::defaults() as $profile) {
-            if (!self::exists($profile->name)) {
-                self::save($profile);
-            }
-        }
-    }
-
-    /** @return list<Profile> */
-    public static function defaults(): array
-    {
-        return [
-            Profile::fromArray([
-                'name' => 'default',
-                'label' => 'Standard',
-                'description' => 'Alle wichtigen Werkzeuge für redaktionelle Texte.',
-                'mode' => 'html',
-                'config' => [
-                    'toolbar' => [
-                        ['undo', 'redo'],
-                        ['heading', 'blockStyle'],
-                        ['bold', 'italic', 'underline', 'strike', 'highlight'],
-                        ['bulletList', 'orderedList', 'blockquote'],
-                        ['align'],
-                        ['link', 'unlink', 'image', 'table', 'horizontalRule', 'specialChars'],
-                        ['subscript', 'superscript', 'code', 'clearFormatting'],
-                        ['source', 'fullscreen'],
-                    ],
-                    'blockStyles' => [['label' => 'Einleitung', 'class' => 'lead', 'element' => 'p'], ['label' => 'Kleingedruckt', 'class' => 'small', 'element' => 'p']],
-                    'listStyles' => [
-                        ['label' => 'Gegliedert (1.1, 1.2)', 'class' => 'list-outline', 'list' => 'ol'],
-                        ['label' => 'Häkchen', 'class' => 'list-check', 'list' => 'ul'],
-                        ['label' => 'Ohne Zeichen', 'class' => 'list-plain', 'list' => 'both'],
-                    ],
-                    'linkStyles' => [['label' => 'Als Button', 'class' => 'btn btn--primary']],
-                    'image' => ['styles' => [
-                        ['label' => 'Links umflossen', 'class' => 'img-left'],
-                        ['label' => 'Rechts umflossen', 'class' => 'img-right'],
-                        ['label' => 'Zentriert', 'class' => 'img-center'],
-                        ['label' => 'Volle Breite', 'class' => 'img-full'],
-                    ]],
-                ],
-            ]),
-            Profile::fromArray([
-                'name' => 'simple',
-                'label' => 'Einfach',
-                'description' => 'Fett, kursiv, Listen und Links – für kurze Texte und Collections.',
-                'mode' => 'html',
-                'config' => [
-                    'toolbar' => [['bold', 'italic'], ['bulletList', 'orderedList'], ['link', 'unlink'], ['undo', 'redo']],
-                    'minHeight' => 100,
-                    'counter' => false,
-                ],
-            ]),
-            Profile::fromArray([
-                'name' => 'markdown',
-                'label' => 'Markdown',
-                'description' => 'Speichert Markdown statt HTML.',
-                'mode' => 'markdown',
-                'config' => [
-                    'toolbar' => [
-                        ['undo', 'redo'],
-                        ['heading'],
-                        ['bold', 'italic', 'strike', 'code'],
-                        ['bulletList', 'orderedList', 'blockquote', 'codeBlock'],
-                        ['link', 'image', 'table', 'horizontalRule'],
-                        ['source', 'fullscreen'],
-                    ],
-                ],
-            ]),
-            Profile::fromArray([
-                'name' => 'guest',
-                'label' => 'Gäste (Frontend)',
-                'description' => 'Minimal für Eingaben von Besuchern: fett, kursiv, Listen, externe Links.',
-                'mode' => 'html',
-                'config' => [
-                    'toolbar' => [['bold', 'italic'], ['bulletList', 'orderedList'], ['link']],
-                    'link' => ['internal' => false, 'media' => false, 'external' => true, 'mailto' => false, 'tel' => false, 'targetBlank' => false],
-                    'minHeight' => 120,
-                    'maxLength' => 2000,
-                    'pasteText' => true,
-                    'stickyToolbar' => false,
-                ],
-            ]),
-        ];
     }
 
     private static function nextPrio(): int

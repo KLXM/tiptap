@@ -2,6 +2,7 @@
 
 namespace Klxm\Tiptap\YForm;
 
+use Klxm\Tiptap\Profiles;
 use Klxm\Tiptap\Tiptap;
 use Override;
 use Yakamara\YForm\Data\Record;
@@ -17,13 +18,13 @@ use function trim;
 /**
  * YForm-6-Feld mit TipTap-Editor (Tabellen und Formulare, Backend und Frontend).
  *
- *     yield Editor::new('text')->label('Text')->profile('simple');
+ *     yield Editor::new('text')->label('Text')->profile('tiptap.simple');
  *
  * Speichert HTML oder Markdown je nach Profil, bereinigt die Eingabe auf dem Server.
  */
 class Editor extends Textarea
 {
-    public protected(set) string $profile = 'default';
+    public protected(set) string $profile = Profiles::DEFAULT;
 
     #[Override]
     protected function init(): void

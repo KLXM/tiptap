@@ -25,7 +25,9 @@ Entwickler ihn **mit eigenen Werkzeugen** erweitern können.
 
 ## Schnellstart
 
-1. Unter **TipTap-Editor → Profile** gibt es vier Profile: `default`, `simple`, `markdown` und `guest`.
+1. Unter **TipTap-Editor → Profile** stehen vier mitgelieferte Profile: `tiptap.default`, `tiptap.simple`,
+   `tiptap.markdown` und `tiptap.guest`. Sie sind Klassen im AddOn. Eigene Profile legt man im Backend oder als
+   Klasse im Projekt an.
 2. Profil öffnen, Werkzeuge zusammenstellen, speichern.
 3. Im Modul das Feld verwenden:
 
@@ -33,12 +35,12 @@ Entwickler ihn **mit eigenen Werkzeugen** erweitern können.
 use Klxm\Tiptap\Field\Editor;
 use Klxm\Tiptap\Tiptap;
 
-#[Editor('Text', profile: 'default')]
+#[Editor('Text', profile: 'tiptap.default')]
 public string $text = '';
 
 public function output(): string
 {
-    return Tiptap::render($this->text, 'default');
+    return Tiptap::render($this->text, 'tiptap.default');
 }
 ```
 

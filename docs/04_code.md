@@ -50,8 +50,22 @@ es um ein Editor-Profil geht (`profile: 'tiptap.news'`), und Schlüssel anderer 
 
 Aus welchem Paket ein Profil aus Code stammt, zeigt die Liste im Backend an („Code · project“, „Code · fluid“).
 
-Die mitgelieferten Profile `default`, `simple`, `markdown` und `guest` liegen in der Datenbank und haben keine
-Kennung; Profile ohne Kennung bleiben erlaubt (z. B. bestehende Profile aus der Datenbank).
+Auch die mitgelieferten Profile sind solche Klassen (`src/Profile/` im AddOn): `tiptap.default`, `tiptap.simple`,
+`tiptap.markdown` und `tiptap.guest`. Profile ohne Kennung bleiben erlaubt, etwa für Profile, die im Backend
+angelegt wurden.
+
+## Vorrang
+
+Gibt es mehrere Profile mit demselben Namen, gilt:
+
+1. **Klasse aus dem Projekt oder einem anderen AddOn.** Sie ist verbindlich und im Backend schreibgeschützt.
+2. **Profil aus der Datenbank,** also im Backend angelegt oder angepasst.
+3. **Mitgeliefertes Profil des AddOns.**
+
+Die mitgelieferten Profile lassen sich deshalb im Backend ganz normal bearbeiten. Beim Speichern entsteht eine
+angepasste Fassung in der Datenbank („Mitgeliefert · angepasst“). **Zurücksetzen** in der Liste stellt das Original
+wieder her. Soll eine Anpassung für alle Installationen gelten, legt man eine Klasse mit demselben Namen ins
+Projekt, z. B. `#[AsProfile('tiptap.default', 'Standard')]`. „Als PHP-Klasse“ erzeugt den Code dafür.
 
 ## So funktioniert es
 

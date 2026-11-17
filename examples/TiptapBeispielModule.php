@@ -21,7 +21,7 @@ final class TiptapBeispielModule extends Module
     #[Text('Überschrift', maxLength: 120)]
     public string $headline = '';
 
-    #[Editor('Text', profile: 'default')]
+    #[Editor('Text', profile: 'tiptap.default')]
     public string $text = '';
 
     /** @var list<TiptapBeispielItem> */
@@ -31,9 +31,9 @@ final class TiptapBeispielModule extends Module
     public function output(): string
     {
         $html = '' !== $this->headline ? '<h2>' . escape($this->headline) . '</h2>' : '';
-        $html .= Tiptap::render($this->text, 'default');
+        $html .= Tiptap::render($this->text, 'tiptap.default');
         foreach ($this->items as $item) {
-            $html .= '<section><h3>' . escape($item->title) . '</h3>' . Tiptap::render($item->text, 'simple') . '</section>';
+            $html .= '<section><h3>' . escape($item->title) . '</h3>' . Tiptap::render($item->text, 'tiptap.simple') . '</section>';
         }
 
         return '<div class="wrap">' . $html . '</div>';

@@ -28,9 +28,9 @@ final class TiptapGastModule extends Module
         $result = '';
         $value = '';
         if ('post' === Request::requestMethod() && null !== Request::post('tiptap_gast', 'string', null)) {
-            $value = Tiptap::sanitize(Request::post('tiptap_gast', 'string', ''), 'guest');
+            $value = Tiptap::sanitize(Request::post('tiptap_gast', 'string', ''), 'tiptap.guest');
             $result = $csrf->isValid()
-                ? '<div class="tiptap-gast-result"><h3>Bereinigt gespeichert würde:</h3>' . Tiptap::render($value, 'guest') . '<pre>' . escape($value) . '</pre></div>'
+                ? '<div class="tiptap-gast-result"><h3>Bereinigt gespeichert würde:</h3>' . Tiptap::render($value, 'tiptap.guest') . '<pre>' . escape($value) . '</pre></div>'
                 : '<p>Das Formular ist abgelaufen, bitte erneut senden.</p>';
         }
 
@@ -40,7 +40,7 @@ final class TiptapGastModule extends Module
             . '<form method="post">'
             . $csrf->getHiddenField()
             . '<label for="tiptap-gast">Nachricht</label>'
-            . Tiptap::editor('tiptap_gast', $value, 'guest', ['id' => 'tiptap-gast'])
+            . Tiptap::editor('tiptap_gast', $value, 'tiptap.guest', ['id' => 'tiptap-gast'])
             . '<p><button type="submit" class="btn btn--primary">Absenden</button></p>'
             . '</form>'
             . $result

@@ -581,3 +581,8 @@
     max-height: 480px;
     overflow: auto;
 }
+
+.tt-profile-code[data-builtin] {
+    background: var(--rex-color-accent-subtle);
+    color: var(--rex-color-accent);
+}

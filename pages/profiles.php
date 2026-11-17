@@ -83,8 +83,9 @@ if ('post' === Request::requestMethod() && $func) {
                     break;
 
                 case 'delete':
+                    $reset = isset(Profiles::builtin()[$name]);
                     Profiles::delete($name);
-                    $message = Message::success(I18n::msg('tiptap_profile_deleted', $name));
+                    $message = Message::success(I18n::msg($reset ? 'tiptap_profile_reset' : 'tiptap_profile_deleted', $name));
                     $func = '';
                     break;
 
@@ -148,12 +149,14 @@ if ('edit' === $func || 'add' === $func) {
             Mode::tryFrom(Request::post('mode', 'string', '')) ?? Mode::Html,
             Request::post('description', 'string', ''),
             Profile::normalize($posted),
-            // Profil aus Code bleibt als solches erkennbar
-            Profiles::get(Request::post('previous', 'string', '') ?: Request::post('profile_name', 'string', ''))?->class,
+            // Profil aus Code bzw. mitgeliefertes Profil bleibt als solches erkennbar
+            ($original = Profiles::get(Request::post('previous', 'string', '') ?: Request::post('profile_name', 'string', '')))?->class,
+            $original->builtin ?? false,
         );
     }
     $profile ??= new Profile(Profiles::freeName('profile'), '', Mode::Html, '', Profile::DEFAULTS);
     $previous = 'add' === $func ? '' : (Request::post('previous', 'string', '') ?: $profile->name);
+    $isBuiltin = isset(Profiles::builtin()[$profile->name]) && 'add' !== $func;
 
     $modes = '';
     foreach ([Mode::Html, Mode::Markdown] as $mode) {
@@ -171,7 +174,7 @@ if ('edit' === $func || 'add' === $func) {
         . '<div class="rex-field" data-layout="vertical"><label class="rex-field-label" for="tt-label">' . I18n::msg('tiptap_profile_label') . '</label>'
         . '<input class="rex-input" id="tt-label" name="label" required maxlength="191" value="' . escape($profile->label) . '"></div>'
         . '<div class="rex-field" data-layout="vertical"><label class="rex-field-label" for="tt-name">' . I18n::msg('tiptap_profile_name') . '</label>'
-        . '<input class="rex-input" id="tt-name" name="profile_name" required maxlength="129" pattern="[a-z0-9][a-z0-9_\-]*(\.[a-z0-9][a-z0-9_\-]*)?" value="' . escape($profile->name) . '" aria-describedby="tt-name-hint">'
+        . '<input class="rex-input" id="tt-name" name="profile_name" required maxlength="129" pattern="[a-z0-9][a-z0-9_\-]*(\.[a-z0-9][a-z0-9_\-]*)?"' . ($isBuiltin || $profile->isCode() ? ' readonly' : '') . ' value="' . escape($profile->name) . '" aria-describedby="tt-name-hint">'
         . '<p id="tt-name-hint" class="rex-field-note">' . I18n::msg('tiptap_profile_name_hint') . '</p></div>'
         . '</div>'
         . '<div class="rex-field" data-layout="vertical"><label class="rex-field-label" for="tt-desc">' . I18n::msg('tiptap_profile_description') . '</label>'
@@ -195,7 +198,11 @@ if ('edit' === $func || 'add' === $func) {
         . '</div>';
 
     // Profil aus Code: Hinweis; erzeugter PHP-Code zum Einfügen
-    $intro = $profile->isCode() ? Message::info(I18n::rawMsg('tiptap_code_profile_note', escape((string) $profile->class))) : '';
+    $intro = match (true) {
+        $profile->isCode() => Message::info(I18n::rawMsg('tiptap_code_profile_note', escape((string) $profile->class))),
+        $isBuiltin => Message::info(I18n::rawMsg(Profiles::isCustomized($profile->name) ? 'tiptap_builtin_customized_note' : 'tiptap_builtin_note')),
+        default => '',
+    };
     if (null !== $phpCode) {
         $path = $profile->isCode() ? I18n::msg('tiptap_php_replace', (string) $profile->class) : I18n::msg('tiptap_php_where');
         $intro .= new Section(title: I18n::msg('tiptap_as_php'), body: Html::raw(
@@ -250,6 +257,7 @@ foreach (Profiles::all() as $profile) {
 
     $rows .= '<tr data-name="' . escape($profile->name) . '">'
         . '<td><a href="' . $edit . '"><strong>' . escape($profile->label) . '</strong></a><br><code>' . escape($profile->name) . '</code>'
+        . (isset(Profiles::builtin()[$profile->name]) && !$profile->isCode() ? ' <span class="tt-profile-code" data-builtin><i class="rex-icon fa-solid fa-box" aria-hidden="true"></i> ' . I18n::msg(Profiles::isCustomized($profile->name) ? 'tiptap_builtin_customized' : 'tiptap_builtin') . '</span>' : '')
         . ($profile->isCode() ? ' <span class="tt-profile-code" title="' . escape((string) $profile->class) . '"><i class="rex-icon fa-solid fa-code" aria-hidden="true"></i> ' . I18n::msg('tiptap_code') . ' · ' . escape(Profiles::origin((string) $profile->class)) . '</span>' : '')
         . (Profiles::isShadowed($profile->name) ? '<br><small class="rex-u-text-warning">' . I18n::msg('tiptap_shadowed') . '</small>' : '')
         . ('' !== $profile->description ? '<br><small class="rex-u-text-muted">' . escape($profile->description) . '</small>' : '') . '</td>'
@@ -260,7 +268,13 @@ foreach (Profiles::all() as $profile) {
         . $post('duplicate', I18n::msg('tiptap_duplicate'), 'fa-copy')
         . '<a class="rex-button" data-size="sm" href="' . Url::currentBackendPage(['func' => 'export', 'name' => $profile->name]) . '" title="' . I18n::msg('tiptap_export') . '" aria-label="' . escape(I18n::msg('tiptap_export') . ': ' . $profile->label) . '"><i class="rex-icon fa-solid fa-download" aria-hidden="true"></i></a>'
         . '<a class="rex-button" data-size="sm" href="' . Url::currentBackendPage(['func' => 'export_php', 'name' => $profile->name]) . '" title="' . I18n::msg('tiptap_as_php') . '" aria-label="' . escape(I18n::msg('tiptap_as_php') . ': ' . $profile->label) . '"><i class="rex-icon fa-brands fa-php" aria-hidden="true"></i></a>'
-        . ($profile->isCode() ? '' : $post('delete', I18n::msg('tiptap_delete'), 'fa-trash', 'danger', I18n::msg('tiptap_delete_confirm', $profile->label)))
+        . match (true) {
+            $profile->isCode() => '',
+            isset(Profiles::builtin()[$profile->name]) => Profiles::isCustomized($profile->name)
+                ? $post('delete', I18n::msg('tiptap_reset'), 'fa-rotate-left', 'warning', I18n::msg('tiptap_reset_confirm', $profile->label))
+                : '',
+            default => $post('delete', I18n::msg('tiptap_delete'), 'fa-trash', 'danger', I18n::msg('tiptap_delete_confirm', $profile->label)),
+        }
         . '</div></td></tr>';
 }
 

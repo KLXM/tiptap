@@ -11,7 +11,7 @@ Erste Fassung für REDAXO 6.
   `textarea[data-tiptap]` für alles andere
 - Linkmap und Medienpool im Link- und Bild-Dialog, Tabellen, Sonderzeichen, Block- und Textformate,
   Ausrichtung als Klassen, Quelltext, Vollbild, Zeichenzähler und -limit
-- Frontend: eigenes Bundle, lädt sich bei Bedarf selbst; Profil `guest` für Besucher
+- Frontend: eigenes Bundle, lädt sich bei Bedarf selbst; Profil `tiptap.guest` für Besucher
 - Serverseitige Bereinigung je Profil (`Tiptap::sanitize()`, `Tiptap::render()`), interne Links per OUTPUT_FILTER
 - Kontextmenü (Rechtsklick, Kontextmenü-Taste, Umschalt + F10) – für Tabellen eingebaut, für eigene Werkzeuge über `context()`
 - Quelltext-Ansicht mit Auszeichnung (CodeMirror 6, nachgeladen): Markdown formatiert, HTML hervorgehoben
@@ -25,7 +25,9 @@ Erste Fassung für REDAXO 6.
   der echte Editor (Datensätze, Mediamanager)
 - Listen: Zählweise je Ebene (1, a, A, i, I über `type`), Startnummer, Listenformate (Klassen) mit Vorlagen
 - Linkformate (z. B. „Als Button“) in Link-Dialog, Link-Leiste und Kontextmenü
-- Profile als PHP-Klassen (`#[AsProfile]`, `ProfileDefinition`), Namen mit Kennung (`tiptap.news`): per ClassDiscovery gefunden, Vorrang vor der
+- Profile als PHP-Klassen (`#[AsProfile]`, `ProfileDefinition`), Namen mit Kennung (`tiptap.news`); die mitgelieferten Profile sind selbst Klassen (`tiptap.default`, `tiptap.simple`,
+  `tiptap.markdown`, `tiptap.guest`; im Backend anpass- und zurücksetzbar). Vorrang: Klasse aus Projekt/AddOn vor
+  Datenbank vor mitgeliefert: per ClassDiscovery gefunden, Vorrang vor der
   Datenbank, im Backend schreibgeschützt; „Als PHP-Klasse“ erzeugt den Code (nur Abweichungen von den
   Voreinstellungen)
 - Erweiterungs-API für andere AddOns (`Tiptap::register()`, `RexTiptap.register()`), Ereignisse

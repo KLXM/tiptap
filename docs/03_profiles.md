@@ -3,6 +3,10 @@
 Ein Profil legt fest, wie der Editor aussieht und was er speichern darf. Profile werden im Backend unter
 **TipTap-Editor → Profile** gepflegt. Code ist dafür nicht nötig.
 
+Mitgeliefert sind `tiptap.default`, `tiptap.simple`, `tiptap.markdown` und `tiptap.guest`. Sie lassen sich
+anpassen und jederzeit zurücksetzen. Profile, die mit dem Projekt ausgeliefert werden sollen, gehören als Klasse
+ins Projekt, siehe [Profile als PHP-Klassen](04_code.md).
+
 ## Toolbar-Builder
 
 - **Gruppen:** Die Toolbar besteht aus Gruppen, zwischen denen ein Trenner steht. Ein Klick auf eine Gruppe

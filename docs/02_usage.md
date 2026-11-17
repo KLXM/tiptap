@@ -9,7 +9,7 @@ Formulare aus Eigenschaften baut: Module, Einträge einer `Collection`, eigene F
 use Klxm\Tiptap\Field\Editor;
 use Redaxo\Core\Form\Field\Collection;
 
-#[Editor('Text', profile: 'default')]
+#[Editor('Text', profile: 'tiptap.default')]
 public string $text = '';
 
 /** @var list<Abschnitt> */
@@ -17,12 +17,12 @@ public string $text = '';
 public array $items = [];
 
 // in der Klasse Abschnitt:
-#[Editor('Text', profile: 'simple', note: 'Kurz halten')]
+#[Editor('Text', profile: 'tiptap.simple', note: 'Kurz halten')]
 public string $text = '';
 ```
 
 Parameter: `label`, `note`, `required`, `key` wie bei den anderen Feldern, dazu `profile`. Fehlt das Profil, gilt
-`default`. Beim Speichern wird der Wert nach dem Profil bereinigt. Ein leerer Editor speichert einen leeren String.
+`tiptap.default`. Beim Speichern wird der Wert nach dem Profil bereinigt. Ein leerer Editor speichert einen leeren String.
 
 Vollständige Beispiele liegen in `examples/` des AddOns:
 
@@ -32,7 +32,7 @@ Vollständige Beispiele liegen in `examples/` des AddOns:
 ## Ausgabe
 
 ```php
-echo Tiptap::render($this->text, 'default');
+echo Tiptap::render($this->text, 'tiptap.default');
 ```
 
 `render()` wandelt Markdown in HTML um und bereinigt nach dem Profil. Interne Links (`redaxo://ID`) bekommen die
@@ -80,9 +80,9 @@ Für Tabellen und Formulare von YForm 6 gibt es ein eigenes Feld:
 ```php
 use Klxm\Tiptap\YForm\Editor;
 
-yield Editor::new('text')->label('Text')->profile('simple');
+yield Editor::new('text')->label('Text')->profile('tiptap.simple');
 // große Inhalte (mediumtext):
-yield Editor::new('body')->label('Inhalt')->profile('default')->large();
+yield Editor::new('body')->label('Inhalt')->profile('tiptap.default')->large();
 ```
 
 Das Feld bereinigt Eingaben nach dem Profil. In Listen und Suchen zeigt es reinen Text.
@@ -90,7 +90,7 @@ Das Feld bereinigt Eingaben nach dem Profil. In Listen und Suchen zeigt es reine
 Alternativ reicht an jedem Textarea das Attribut `data-tiptap`:
 
 ```php
-yield Textarea::new('text')->attributes(['data-tiptap' => 'simple']);
+yield Textarea::new('text')->attributes(['data-tiptap' => 'tiptap.simple']);
 ```
 
 Hier bereinigt das AddOn **nicht** von selbst. Für Eingaben aus dem Frontend deshalb das Feld `Editor` nehmen oder
@@ -107,17 +107,17 @@ JSON an die Seite an.
 ```php
 use Klxm\Tiptap\Tiptap;
 
-echo Tiptap::editor('nachricht', $value, 'guest', ['id' => 'nachricht']);
+echo Tiptap::editor('nachricht', $value, 'tiptap.guest', ['id' => 'nachricht']);
 
 // beim Absenden – immer auf dem Server bereinigen:
-$clean = Tiptap::sanitize(Request::post('nachricht', 'string', ''), 'guest');
+$clean = Tiptap::sanitize(Request::post('nachricht', 'string', ''), 'tiptap.guest');
 ```
 
 Die Skripte lädt das AddOn im Frontend von selbst, sobald ein Editor auf der Seite steht. Mit
 `echo Tiptap::assets();` lassen sie sich auch gezielt im `<head>` ausgeben, mit Nonce der Antwort.
 
 Im Frontend gibt es weder Linkmap noch Medienpool. Interne Links und Dateien sind dort abgeschaltet, Bilder nur
-mit „Externe Bildadressen erlauben“. Das Profil `guest` ist für Besucher gedacht:
+mit „Externe Bildadressen erlauben“. Das Profil `tiptap.guest` ist für Besucher gedacht:
 
 - Fett, kursiv, Listen und externe Links.
 - Höchstens 2000 Zeichen.

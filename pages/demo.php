@@ -14,7 +14,7 @@ use Redaxo\Core\View\Message;
 use function Redaxo\Core\View\escape;
 
 $csrf = CsrfToken::factory('tiptap_demo');
-$profile = Tiptap::profile(Request::request('profile', 'string', 'default'));
+$profile = Tiptap::profile(Request::request('profile', 'string', Profiles::DEFAULT));
 $value = null;
 if ('post' === Request::requestMethod()) {
     if ($csrf->isValid()) {

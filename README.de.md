@@ -22,7 +22,8 @@ composer require klxm/tiptap
 php bin/console migrate
 ```
 
-`migrate` legt die Tabelle `rex_tiptap_profile` und die Profile `default`, `simple`, `markdown` und `guest` an.
+`migrate` legt die Tabelle `rex_tiptap_profile` an, für Profile, die im Backend angelegt werden. Die mitgelieferten
+Profile `tiptap.default`, `tiptap.simple`, `tiptap.markdown` und `tiptap.guest` sind Klassen im AddOn.
 
 ## Kurz
 
@@ -30,18 +31,18 @@ php bin/console migrate
 use Klxm\Tiptap\Field\Editor;
 use Klxm\Tiptap\Tiptap;
 
-#[Editor('Text', profile: 'default')]
+#[Editor('Text', profile: 'tiptap.default')]
 public string $text = '';
 
 public function output(): string
 {
-    return Tiptap::render($this->text, 'default');
+    return Tiptap::render($this->text, 'tiptap.default');
 }
 ```
 
-YForm 6: `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('simple');`  
+YForm 6: `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('tiptap.simple');`  
 Beliebige Textarea: `<textarea data-tiptap="simple">`  
-Frontend: `echo Tiptap::editor('nachricht', $value, 'guest');` und beim Absenden `Tiptap::sanitize(…, 'guest')`.
+Frontend: `echo Tiptap::editor('nachricht', $value, 'tiptap.guest');` und beim Absenden `Tiptap::sanitize(…, 'tiptap.guest')`.
 
 ## Doku
 

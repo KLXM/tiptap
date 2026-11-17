@@ -22,7 +22,7 @@ Tiptap::render(?string $value, string|Profile|null $profile = null): string    /
 Tiptap::sanitize(?string $value, string|Profile|null $profile = null): string  // vor dem Speichern
 Tiptap::editor(string $name, ?string $value, string|Profile|null $profile = null, array $attributes = []): string
 Tiptap::assets(bool $withProfiles = false): string                             // Frontend-Skripte/Stile
-Tiptap::profile(?string $name): Profile                                        // Profil oder „default“
+Tiptap::profile(?string $name): Profile                                        // Profil oder „tiptap.default“
 Tiptap::register(Plugin $plugin): void                                         // Erweiterung anmelden
 ```
 
