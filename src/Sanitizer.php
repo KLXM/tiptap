@@ -72,6 +72,9 @@ final class Sanitizer
             $elements['pre'] = [];
         }
 
+        if (isset($elements['img'])) {
+            $elements['img'] = [...$elements['img'], 'class', 'data-rex-media', 'data-rex-media-type'];
+        }
         if (!$profile->config['link']['targetBlank'] && isset($elements['a'])) {
             $elements['a'] = array_values(array_diff($elements['a'], ['target']));
         }
@@ -106,6 +109,9 @@ final class Sanitizer
         if ($link['internal']) {
             $schemes[] = 'redaxo';
         }
+        if ($link['records']) {
+            $schemes[] = 'yform';
+        }
         $config = $config->allowLinkSchemes($schemes ?: ['https'])
             ->allowRelativeLinks($link['internal'] || $link['media'])
             ->allowMediaSchemes($profile->config['image']['external'] ? ['http', 'https'] : [])
@@ -133,6 +139,11 @@ final class Sanitizer
         }
         if ($profile->hasItem('inlineStyle')) {
             foreach ($profile->config['inlineStyles'] as $style) {
+                $classes = array_merge($classes, explode(' ', $style['class']));
+            }
+        }
+        if ($profile->hasItem('image')) {
+            foreach ($profile->config['image']['styles'] as $style) {
                 $classes = array_merge($classes, explode(' ', $style['class']));
             }
         }

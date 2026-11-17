@@ -508,3 +508,26 @@
 .tt-actions form {
     display: contents;
 }
+
+/* lange Auswahllisten (z. B. Mediamanager-Typen) */
+.tt-b-checklist-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.tt-b-checklist {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 0 12px;
+    max-height: 210px;
+    overflow-y: auto;
+    padding: 6px 10px;
+    border: 1px solid var(--rex-color-border);
+    border-radius: var(--rex-radius);
+}
+
+.tt-b-check[hidden] {
+    display: none;
+}

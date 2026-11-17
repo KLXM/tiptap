@@ -1,6 +1,9 @@
 <?php
 
 use FriendsOfRedaxo\Tiptap\Mode;
+use FriendsOfRedaxo\Tiptap\Output;
+use FriendsOfRedaxo\Tiptap\RecordLinks;
+use Redaxo\Core\MediaManager\MediaTypeRegistry;
 use FriendsOfRedaxo\Tiptap\Profile;
 use FriendsOfRedaxo\Tiptap\Profiles;
 use FriendsOfRedaxo\Tiptap\Registry;
@@ -157,7 +160,9 @@ if ('edit' === $func || 'add' === $func) {
 
     $builder = '<div class="tt-b" data-tiptap-builder data-output="#tt-config"'
         . ' data-catalog="' . escape($json(Registry::catalog())) . '"'
-        . ' data-media-url="' . escape(Url::media()) . '"></div>'
+        . ' data-media-url="' . escape(Output::basePath() . 'media/') . '"'
+        . ' data-media-types="' . escape($json(array_keys(MediaTypeRegistry::all()))) . '"'
+        . ' data-record-tables="' . escape($json(RecordLinks::tables())) . '"></div>'
         . '<textarea id="tt-config" name="config" hidden>' . escape($json($profile->config)) . '</textarea>';
 
     $buttons = '<div class="rex-form-actions">'

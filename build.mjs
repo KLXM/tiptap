@@ -5,7 +5,8 @@ const watch = process.argv.includes('--watch');
 const target = ['chrome125', 'firefox128', 'safari18'];
 
 const builds = [
-    {entryPoints: ['resources/js/main.js'], outfile: 'assets/tiptap.js', format: 'esm'},
+    // ES-Modul mit nachgeladenen Teilen (z. B. CodeMirror für die Quelltext-Ansicht) in assets/chunks/
+    {entryPoints: {tiptap: 'resources/js/main.js'}, outdir: 'assets', format: 'esm', splitting: true, chunkNames: 'chunks/[name]-[hash]'},
     {entryPoints: ['resources/js/loader.js'], outfile: 'assets/tiptap-loader.js', format: 'iife'},
     {entryPoints: ['resources/js/builder.js'], outfile: 'assets/builder.js', format: 'iife'},
 ];

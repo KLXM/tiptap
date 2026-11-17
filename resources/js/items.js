@@ -1,7 +1,7 @@
 /* Eingebaute Werkzeuge der Toolbar. Ein Werkzeug: {label, icon, run?, active?, enabled?, menu?, current?} */
 
 import {t} from './i18n.js';
-import {blockHasClass, CLASS_NODES, nodeOfElement} from './extensions.js';
+import {blockHasClass, CLASS_NODES, mediaSrc, nodeOfElement} from './extensions.js';
 
 const chain = editor => editor.chain().focus();
 
@@ -203,6 +203,27 @@ export const builtinItems = {
         run: ({ui}) => ui.imageDialog(),
         active: ({editor}) => editor.isActive('image'),
         enabled: ({config}) => !!(config.backend && window.rex?.pick) || !!config.image.external,
+        // Rechtsklick auf ein Bild: bearbeiten, Bildformat, Größe, entfernen
+        context: ({editor, config, ui}) => {
+            if (!editor.isActive('image')) {
+                return null;
+            }
+            const attrs = editor.getAttributes('image');
+            const set = values => editor.chain().focus().updateAttributes('image', values).run();
+            const styles = config.image.styles ?? [];
+            const types = attrs.media ? (config.image.mediaTypes ?? []) : [];
+            return [
+                {label: t('imageEdit'), icon: 'image', run: () => ui.imageDialog()},
+                ...(styles.length ? [{separator: true},
+                    {label: t('imageStyleNone'), radio: true, active: () => !attrs.class, run: () => set({class: null})},
+                    ...styles.map(s => ({label: s.label, radio: true, active: () => attrs.class === s.class, run: () => set({class: s.class})}))] : []),
+                ...(types.length ? [{separator: true},
+                    {label: t('imageOriginal'), radio: true, active: () => !attrs.mediaType, run: () => set({mediaType: null, src: mediaSrc(config, attrs.media)})},
+                    ...types.map(name => ({label: name, radio: true, active: () => attrs.mediaType === name, run: () => set({mediaType: name, src: mediaSrc(config, attrs.media, name)})}))] : []),
+                {separator: true},
+                {label: t('imageRemove'), icon: 'trash', danger: true, run: () => editor.chain().focus().deleteSelection().run()},
+            ];
+        },
     },
     table: {
         label: t('table'),
@@ -220,11 +241,16 @@ export const builtinItems = {
         label: t('specialChars'),
         icon: 'specialChars',
         grid: true,
-        menu: ({editor, config}) => config.specialChars.map(char => ({
-            label: {' ': 'NBSP', '­': 'SHY'}[char] ?? char,
-            title: {' ': 'geschütztes Leerzeichen / non-breaking space', '­': 'weiches Trennzeichen / soft hyphen'}[char] ?? char,
-            run: () => chain(editor).insertContent(char).run(),
-        })),
+        menu: ({editor, config}) => config.specialChars.map(char => {
+            // unsichtbare Zeichen mit Namen statt Zeichen
+            const name = {'\u00A0': 'nbsp', '\u00AD': 'shy'}[char];
+            return {
+                label: name ?? char,
+                className: name ? 'is-text' : null,
+                title: {'\u00A0': 'geschütztes Leerzeichen / non-breaking space', '\u00AD': 'weiches Trennzeichen / soft hyphen'}[char] ?? char,
+                run: () => chain(editor).insertContent(char).run(),
+            };
+        }),
     },
 
     source: {

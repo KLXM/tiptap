@@ -44,8 +44,8 @@ final readonly class Profile
         'blockStyles' => [],
         'inlineStyles' => [],
         'align' => ['left' => 'text-left', 'center' => 'text-center', 'right' => 'text-right', 'justify' => 'text-justify'],
-        'link' => ['internal' => true, 'media' => true, 'external' => true, 'mailto' => true, 'tel' => true, 'targetBlank' => true],
-        'image' => ['types' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'], 'external' => false],
+        'link' => ['internal' => true, 'media' => true, 'external' => true, 'mailto' => true, 'tel' => true, 'targetBlank' => true, 'records' => []],
+        'image' => ['types' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'], 'external' => false, 'mediaTypes' => [], 'mediaType' => '', 'styles' => []],
         'specialChars' => ['–', '—', '…', '„', '“', '‚', '‘', '«', '»', '€', '©', '®', '™', '§', '°', '±', '×', '÷', '½', '→', '←', '✓', "\u{00A0}", "\u{00AD}"],
         'minHeight' => 180,
         'maxHeight' => 0,
@@ -194,12 +194,23 @@ final readonly class Profile
 
         $link = is_array($config['link'] ?? null) ? $config['link'] : [];
         foreach ($d['link'] as $key => $default) {
-            $out['link'][$key] = (bool) ($link[$key] ?? $default);
+            if ('records' !== $key) {
+                $out['link'][$key] = (bool) ($link[$key] ?? $default);
+            }
         }
+        // YForm-Tabellen, deren Datensätze sich verlinken lassen
+        $out['link']['records'] = self::names($link['records'] ?? []);
         $image = is_array($config['image'] ?? null) ? $config['image'] : [];
+        $mediaTypes = self::names($image['mediaTypes'] ?? []);
+        $mediaType = is_string($image['mediaType'] ?? null) && in_array($image['mediaType'], $mediaTypes, true) ? $image['mediaType'] : '';
         $out['image'] = [
             'types' => self::extensions($image['types'] ?? null) ?: $d['image']['types'],
             'external' => (bool) ($image['external'] ?? $d['image']['external']),
+            // Mediamanager-Typen zur Auswahl im Bild-Dialog, Voreinstellung ('' = Originaldatei)
+            'mediaTypes' => $mediaTypes,
+            'mediaType' => $mediaType,
+            // Bildformate: Klassen am <img> (z. B. links umflossen, volle Breite)
+            'styles' => self::styles($image['styles'] ?? [], false),
         ];
 
         $chars = is_array($config['specialChars'] ?? null) ? $config['specialChars'] : $d['specialChars'];
@@ -257,6 +268,20 @@ final readonly class Profile
         );
 
         return implode(' ', array_values(array_unique($list)));
+    }
+
+    /**
+     * Liste von Namen (Tabellen, Mediamanager-Typen): nur sichere Zeichen.
+     *
+     * @return list<string>
+     */
+    private static function names(mixed $value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        return array_slice(array_values(array_unique(array_filter($value, static fn ($v) => is_string($v) && 1 === preg_match('/^[a-zA-Z0-9_.-]{1,100}$/', $v)))), 0, 100);
     }
 
     /** @return list<string> */

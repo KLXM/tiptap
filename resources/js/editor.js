@@ -1,10 +1,10 @@
 /* Editor-Instanz: TipTap + Toolbar + Dialoge, gebunden an eine Textarea */
 
-import {Editor} from '@tiptap/core';
+import {Editor, mergeAttributes} from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import {Markdown} from '@tiptap/markdown';
 import {CharacterCount, Placeholder} from '@tiptap/extensions';
-import {TableKit} from '@tiptap/extension-table';
+import {Table, TableKit} from '@tiptap/extension-table';
 import Highlight from '@tiptap/extension-highlight';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
@@ -12,7 +12,7 @@ import Image from '@tiptap/extension-image';
 
 import {t} from './i18n.js';
 import {icon} from './icons.js';
-import {allowedUrl, BlockClass, InlineStyle, normalizeUrl} from './extensions.js';
+import {allowedUrl, BlockClass, InlineStyle, mediaSrc, normalizeUrl, rexImage} from './extensions.js';
 import {registry} from './registry.js';
 
 let uid = 0;
@@ -205,10 +205,15 @@ export class RexTiptapEditor {
             extensions.push(Superscript);
         }
         if (has('image')) {
-            extensions.push(Image.configure({inline: false, allowBase64: false}));
+            extensions.push(rexImage(Image, config));
         }
         if (has('table')) {
-            extensions.push(TableKit.configure({table: {resizable: false}}));
+            // Tabelle ohne style-Attribute (min-width, colgroup) – sonst greift die Content-Security-Policy
+            extensions.push(TableKit.configure({table: false}), Table.extend({
+                renderHTML({HTMLAttributes}) {
+                    return ['table', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), ['tbody', 0]];
+                },
+            }).configure({resizable: false}));
         }
         const blockClasses = [
             ...(has('blockStyle') ? config.blockStyles.flatMap(s => s.class.split(' ')) : []),
@@ -352,13 +357,14 @@ export class RexTiptapEditor {
 
     setValue(value) {
         this.textarea.value = value ?? '';
+        this.codeView?.dispatch({changes: {from: 0, to: this.codeView.state.doc.length, insert: this.textarea.value}});
         this.editor.commands.setContent(this.textarea.value, {contentType: this.markdown ? 'markdown' : 'html', emitUpdate: false});
         this.update();
     }
 
     focus() {
         if (this.sourceMode) {
-            this.textarea.focus();
+            this.codeView ? this.codeView.focus() : this.textarea.focus();
         } else {
             this.editor.commands.focus();
         }
@@ -546,6 +552,14 @@ export class RexTiptapEditor {
                 return;
             }
             const {view, state} = this.editor;
+            // Rechtsklick auf ein Bild wählt das Bild
+            if ('IMG' === e.target.nodeName && view.dom.contains(e.target)) {
+                this.editor.commands.setNodeSelection(view.posAtDOM(e.target, 0));
+                if (this.contextMenu(e.clientX, e.clientY)) {
+                    e.preventDefault();
+                }
+                return;
+            }
             const pos = view.posAtCoords({left: e.clientX, top: e.clientY});
             const {from, to} = state.selection;
             const inCellSelection = !!state.selection.$anchorCell && !!e.target.closest?.('.selectedCell');
@@ -618,9 +632,13 @@ export class RexTiptapEditor {
 
     /* ---------- Quelltext und Vollbild ---------- */
 
-    toggleSource() {
+    async toggleSource() {
         this.closeMenu(false);
         if (this.sourceMode) {
+            this.codeView?.destroy();
+            this.codeView = null;
+            this.codeHost?.remove();
+            this.codeHost = null;
             this.editor.commands.setContent(this.textarea.value, {contentType: this.markdown ? 'markdown' : 'html', emitUpdate: true});
             this.textarea.hidden = true;
             this.content.hidden = false;
@@ -631,11 +649,32 @@ export class RexTiptapEditor {
             this.sync(true);
             this.textarea.value = this.markdown ? this.textarea.value : formatHtml(this.textarea.value);
             this.content.hidden = true;
-            this.textarea.hidden = false;
             this.sourceMode = true;
-            this.onSourceInput ??= () => this.updateCounter();
-            this.textarea.addEventListener('input', this.onSourceInput);
-            this.textarea.focus();
+            // Ansicht mit Auszeichnung (CodeMirror, wird nachgeladen); ohne sie die einfache Textarea
+            try {
+                const {createCodeView} = await import('./code.js');
+                this.codeHost = el('div', {className: 'rex-tiptap-code'});
+                this.textarea.after(this.codeHost);
+                this.codeView = createCodeView({
+                    parent: this.codeHost,
+                    doc: this.textarea.value,
+                    mode: this.markdown ? 'markdown' : 'html',
+                    label: this.markdown ? t('sourceMarkdown') : t('sourceHtml'),
+                    placeholder: this.config.placeholder,
+                    onChange: value => {
+                        this.textarea.value = value;
+                        this.textarea.dispatchEvent(new Event('input', {bubbles: true}));
+                        this.updateCounter();
+                    },
+                });
+                this.codeView.focus();
+            } catch (e) {
+                console.warn('rex-tiptap: Quelltext-Ansicht ohne Auszeichnung', e);
+                this.textarea.hidden = false;
+                this.onSourceInput ??= () => this.updateCounter();
+                this.textarea.addEventListener('input', this.onSourceInput);
+                this.textarea.focus();
+            }
         }
         this.root.classList.toggle('is-source', this.sourceMode);
         this.update();
@@ -752,8 +791,109 @@ export class RexTiptapEditor {
                 }
             }}, icon('media'), el('span', {text: t('linkMedia')})));
         }
+        // YForm-Datensätze
+        const tables = config.recordTables ?? [];
+        let recordPanel = null;
+        if (config.backend && config.recordApi && tables.length) {
+            const tableSelect = el('select', {className: 'rex-input', 'aria-label': t('recordTable')},
+                ...tables.map(tb => el('option', {value: tb.name, text: tb.label})));
+            const search = el('input', {type: 'search', className: 'rex-input', placeholder: t('recordSearch'), 'aria-label': t('recordSearch')});
+            const results = el('div', {className: 'rex-tiptap-records', role: 'listbox', 'aria-label': t('recordResults')});
+            let timer = null;
+            const load = async () => {
+                const params = new URLSearchParams({table: tableSelect.value, q: search.value});
+                try {
+                    const res = await fetch(config.recordApi + '&' + params, {headers: {Accept: 'application/json'}, credentials: 'same-origin'});
+                    const data = await res.json();
+                    const list = data.records ?? [];
+                    results.replaceChildren(...(list.length ? list.map(r => el('button', {
+                        type: 'button', role: 'option', className: 'rex-tiptap-record',
+                        onclick: () => {
+                            url.value = 'yform://' + tableSelect.value + '/' + r.id;
+                            if (empty && !text.value) {
+                                text.value = r.label;
+                            }
+                            recordPanel.hidden = true;
+                            url.focus();
+                        },
+                    }, el('span', {text: r.label}), el('small', {text: 'ID ' + r.id}))) : [el('p', {className: 'rex-tiptap-records-empty', text: t('recordNone')})]));
+                } catch {
+                    results.replaceChildren(el('p', {className: 'rex-tiptap-records-empty', text: t('recordError')}));
+                }
+            };
+            search.addEventListener('input', () => {
+                clearTimeout(timer);
+                timer = setTimeout(load, 250);
+            });
+            search.addEventListener('keydown', e => {
+                if ('Enter' === e.key) {
+                    e.preventDefault();
+                    load();
+                } else if ('ArrowDown' === e.key) {
+                    e.preventDefault();
+                    results.querySelector('button')?.focus();
+                }
+            });
+            results.addEventListener('keydown', e => {
+                const list = [...results.querySelectorAll('button')];
+                const i = list.indexOf(document.activeElement);
+                if ('ArrowDown' === e.key || 'ArrowUp' === e.key) {
+                    e.preventDefault();
+                    (list[i + ('ArrowDown' === e.key ? 1 : -1)] ?? ('ArrowUp' === e.key ? search : null))?.focus();
+                }
+            });
+            tableSelect.addEventListener('change', load);
+            recordPanel = el('div', {className: 'rex-tiptap-record-panel', hidden: true},
+                el('div', {className: 'rex-tiptap-field-row'}, tableSelect, search), results);
+            pickers.push(el('button', {type: 'button', className: 'rex-tiptap-dialog-button', onclick: () => {
+                recordPanel.hidden = !recordPanel.hidden;
+                if (!recordPanel.hidden) {
+                    const current = /^yform:\/\/([\w.-]+)\//.exec(url.value);
+                    if (current && tables.some(tb => tb.name === current[1])) {
+                        tableSelect.value = current[1];
+                    }
+                    load();
+                    search.focus();
+                }
+            }}, icon('record'), el('span', {text: t('linkRecord')})));
+        }
+        // gewähltes Ziel lesbar anzeigen (Datensatz)
+        const target = el('small', {className: 'rex-tiptap-link-target'});
+        const describe = async () => {
+            const m = /^yform:\/\/([\w.-]+)\/(\d+)/.exec(url.value);
+            target.textContent = '';
+            if (m && config.recordApi) {
+                try {
+                    const res = await fetch(config.recordApi + '&' + new URLSearchParams({table: m[1], id: m[2]}), {credentials: 'same-origin'});
+                    const data = await res.json();
+                    const table = tables.find(tb => tb.name === m[1])?.label ?? m[1];
+                    target.textContent = '→ ' + table + ': ' + (data.label ?? 'ID ' + m[2]);
+                } catch {
+                    // ohne Bezeichnung
+                }
+            }
+        };
+        url.addEventListener('change', describe);
+        url.addEventListener('input', () => {
+            target.textContent = '';
+        });
+        describe();
+        // Wert wird auch per Skript gesetzt (Auswahl) – dann ebenfalls beschreiben
+        const setUrl = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+        Object.defineProperty(url, 'value', {
+            get: () => setUrl.get.call(url),
+            set: v => {
+                setUrl.set.call(url, v);
+                describe();
+            },
+        });
+        fields.splice(1, 0, target);
+        if (recordPanel) {
+            fields.splice(2, 0, recordPanel);
+        }
+
         if (pickers.length) {
-            fields.splice(1, 0, el('div', {className: 'rex-tiptap-pickers'}, ...pickers));
+            fields.splice(2, 0, el('div', {className: 'rex-tiptap-pickers'}, ...pickers));
         }
 
         const extra = editing ? [el('button', {type: 'button', className: 'rex-tiptap-dialog-button is-danger', text: t('remove'), onclick: () => {
@@ -783,39 +923,81 @@ export class RexTiptapEditor {
     imageDialog() {
         const {editor, config} = this;
         const attrs = editor.isActive('image') ? editor.getAttributes('image') : {};
-        const src = el('input', {type: 'text', className: 'rex-input', value: attrs.src ?? '', readonly: !config.image.external, spellcheck: 'false'});
+        const image = config.image;
+        const pick = config.backend && window.rex?.pick;
+        let media = attrs.media ?? null;
+
+        const src = el('input', {type: 'text', className: 'rex-input', value: attrs.src ?? '', readonly: !image.external, spellcheck: 'false'});
         const alt = el('input', {type: 'text', className: 'rex-input', value: attrs.alt ?? ''});
         const title = el('input', {type: 'text', className: 'rex-input', value: attrs.title ?? ''});
         const preview = el('img', {className: 'rex-tiptap-image-preview', alt: '', hidden: !attrs.src, src: attrs.src || null});
 
+        // Mediamanager-Typ (Bildgröße) und Bildformat (Klasse) aus dem Profil
+        const type = image.mediaTypes?.length ? el('select', {className: 'rex-input'},
+            el('option', {value: '', text: t('imageOriginal')}),
+            ...image.mediaTypes.map(name => el('option', {value: name, text: name}))) : null;
+        if (type) {
+            type.value = attrs.media ? (attrs.mediaType ?? '') : (image.mediaType ?? '');
+        }
+        const style = image.styles?.length ? el('select', {className: 'rex-input'},
+            el('option', {value: '', text: t('imageStyleNone')}),
+            ...image.styles.map(s => el('option', {value: s.class, text: s.label}))) : null;
+        if (style) {
+            style.value = attrs.class ?? '';
+        }
+        const refresh = () => {
+            if (media) {
+                src.value = mediaSrc(config, media, type?.value ?? '');
+            }
+            preview.src = src.value;
+            preview.hidden = !src.value;
+        };
+        type?.addEventListener('change', refresh);
+        src.addEventListener('change', () => {
+            media = null;
+            refresh();
+        });
+
         const choose = async () => {
-            const items = await window.rex.pick('media', {types: config.image.types});
+            const items = await window.rex.pick('media', {types: image.types});
             const [item] = items ?? [];
             if (item) {
-                src.value = config.mediaUrl + encodeURIComponent(item.value);
-                preview.src = src.value;
-                preview.hidden = false;
+                media = item.value;
+                refresh();
                 alt.focus();
             }
         };
         const fields = [];
-        if (config.backend && window.rex?.pick) {
+        if (pick) {
             fields.push(el('div', {className: 'rex-tiptap-pickers'},
                 el('button', {type: 'button', className: 'rex-tiptap-dialog-button', onclick: choose}, icon('media'), el('span', {text: t('imageMedia')}))));
         }
-        fields.push(this.field(t('imageSrc'), src), preview, this.field(t('imageAlt'), alt, t('imageAltHint')), this.field(t('imageTitleAttr'), title));
+        fields.push(this.field(t('imageSrc'), src), preview);
+        if (type || style) {
+            fields.push(el('div', {className: 'rex-tiptap-field-row'},
+                type ? this.field(t('imageSize'), type) : null,
+                style ? this.field(t('imageStyle'), style) : null));
+        }
+        fields.push(this.field(t('imageAlt'), alt, t('imageAltHint')), this.field(t('imageTitleAttr'), title));
 
         this.openDialog(attrs.src ? t('imageEdit') : t('imageTitle'), fields, () => {
             const value = src.value.trim();
             if (!value) {
                 return t('imageSrc') + '?';
             }
-            if (/^(https?:)?\/\//i.test(value) && !config.image.external) {
+            if (!media && /^(https?:)?\/\//i.test(value) && !image.external) {
                 return t('linkInvalid');
             }
-            editor.chain().focus().setImage({src: value, alt: alt.value.trim(), title: title.value.trim() || null}).run();
+            editor.chain().focus().setImage({
+                src: value,
+                alt: alt.value.trim(),
+                title: title.value.trim() || null,
+                media,
+                mediaType: media ? (type?.value || null) : null,
+                class: style?.value || null,
+            }).run();
         });
-        if (!attrs.src && config.backend && window.rex?.pick) {
+        if (!attrs.src && pick) {
             choose();
         }
     }
@@ -835,6 +1017,7 @@ export class RexTiptapEditor {
         if (!this.sourceMode) {
             this.sync(true);
         }
+        this.codeView?.destroy();
         this.editor?.destroy();
         this.editor = null;
         this.textarea.hidden = false;

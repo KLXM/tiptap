@@ -33,6 +33,8 @@ final class TiptapAddon extends Addon
     public protected(set) array $defaultConfig = [
         // interne Links (redaxo://ID) in der Frontend-Ausgabe auflösen, auch ohne Tiptap::render()
         'resolve_links' => true,
+        // Adress-Vorlagen für verlinkte YForm-Datensätze: Tabelle => z. B. redaxo://12?news_id={id}
+        'record_urls' => [],
     ];
 
     #[Override]
@@ -70,6 +72,7 @@ final class TiptapAddon extends Addon
         $main->setRequiredPermissions('admin');
         $main->addSubpage(new Page('profiles', I18n::msg('tiptap_profiles')));
         $main->addSubpage(new Page('demo', I18n::msg('tiptap_demo')));
+        $main->addSubpage(new Page('settings', I18n::msg('tiptap_settings')));
         $main->addSubpage(new Page('docs', I18n::msg('tiptap_docs')));
 
         yield $main;
@@ -114,7 +117,7 @@ final class TiptapAddon extends Addon
                 $html = false === $pos ? $html . $inject : substr_replace($html, $inject, $pos, 0);
             }
             if (!Core::isBackend() && $this->getConfig('resolve_links')) {
-                $html = Output::resolveLinks($html);
+                $html = Output::resolve($html);
             }
 
             return $html;

@@ -16,6 +16,9 @@ Entwickler ihn **mit eigenen Werkzeugen** erweitern können.
 - **Frontend:** derselbe Editor auf der Website, z. B. in fluid oder für Gäste in minimaler Form. Die Eingaben
   werden auf dem Server nach dem Profil bereinigt.
 - **Import/Export** von Profilen als JSON.
+- **Quelltext mit Auszeichnung:** Markdown sieht aus wie formatierter Text, die Syntax bleibt sichtbar. HTML bekommt
+  Syntax-Hervorhebung. Die Ansicht nutzt CodeMirror und wird erst beim Öffnen nachgeladen.
+- **Datensätze verlinken** (YForm) und **Bilder in passender Größe** über Mediamanager-Typen.
 - **Content-Security-Policy:** keine `style`-Attribute, keine Inline-Skripte. Ausrichtung und Formate sind Klassen.
 - **Erweiterbar:** andere AddOns melden Werkzeuge, TipTap-Erweiterungen, Symbole und Texte an.
 
@@ -52,5 +55,6 @@ Unter **Ausprobieren** lässt sich jedes Profil testen. Dort sieht man auch, was
 | Zeilenumbruch ohne neuen Absatz | Umschalt + Enter |
 | Tabelle bearbeiten (Zeilen, Spalten, Zellen) | Rechtsklick in eine Zelle, Kontextmenü-Taste oder Umschalt + F10 |
 | Menü des Browsers in Tabellen (z. B. Rechtschreibung) | Umschalt + Rechtsklick |
+| Bild bearbeiten, Format, Größe | Rechtsklick aufs Bild |
 | In der Toolbar bewegen | ← → Pos1 Ende |
 | Menü schließen, Vollbild verlassen | Esc |

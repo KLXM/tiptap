@@ -48,4 +48,4 @@ npm run build
 
 ## License
 
-MIT. Bundles TipTap/ProseMirror (MIT), marked (MIT), linkifyjs (MIT) and Lucide icons (ISC).
+MIT. Bundles TipTap/ProseMirror (MIT), CodeMirror/Lezer (MIT), marked (MIT), linkifyjs (MIT) and Lucide icons (ISC).

@@ -220,6 +220,12 @@ final class Profiles
                         ['source', 'fullscreen'],
                     ],
                     'blockStyles' => [['label' => 'Einleitung', 'class' => 'lead', 'element' => 'p'], ['label' => 'Kleingedruckt', 'class' => 'small', 'element' => 'p']],
+                    'image' => ['styles' => [
+                        ['label' => 'Links umflossen', 'class' => 'img-left'],
+                        ['label' => 'Rechts umflossen', 'class' => 'img-right'],
+                        ['label' => 'Zentriert', 'class' => 'img-center'],
+                        ['label' => 'Volle Breite', 'class' => 'img-full'],
+                    ]],
                 ],
             ]),
             Profile::fromArray([

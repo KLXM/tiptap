@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | Lader | `assets/tiptap-loader.js` | klein, wird immer geladen; lädt das Bundle erst, wenn ein Editor erscheint |
 | Bundle | `assets/tiptap.js` (ES-Modul) | TipTap, `<rex-tiptap>`, Toolbar, Dialoge, `window.RexTiptap` |
+| Nachgeladen | `assets/chunks/` | Quelltext-Ansicht (CodeMirror), erst beim Öffnen |
 | Stile | `assets/tiptap.css` | Editor, Menüs, Dialoge; Variablen `--rex-tiptap-*` |
 | PHP | `FriendsOfRedaxo\Tiptap\*` | Profile, Sanitizer, Ausgabe, Felder |
 

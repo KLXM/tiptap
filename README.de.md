@@ -57,4 +57,4 @@ Quellen in `resources/js/`, das Ergebnis in `assets/` wird eingecheckt (Composer
 
 ## Lizenz
 
-MIT. Enthält TipTap/ProseMirror (MIT), marked (MIT), linkifyjs (MIT) und Lucide-Symbole (ISC).
+MIT. Enthält TipTap/ProseMirror (MIT), CodeMirror/Lezer (MIT), marked (MIT), linkifyjs (MIT) und Lucide-Symbole (ISC).

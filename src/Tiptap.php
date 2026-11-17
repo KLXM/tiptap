@@ -96,12 +96,26 @@ final class Tiptap
     public static function clientConfig(Profile $profile): array
     {
         $config = $profile->clientConfig();
-        $config['backend'] = Core::isBackend() && null !== Core::getUser();
-        $config['mediaUrl'] = Url::media();
-        if (!$config['backend']) {
-            // Im Frontend gibt es weder Linkmap noch Medienpool
+        $user = Core::isBackend() ? Core::getUser() : null;
+        $config['backend'] = null !== $user;
+        // Adressen ab der Website-Wurzel: stimmen im Backend wie im Frontend
+        $base = Output::basePath();
+        $config['mediaUrl'] = $base . 'media/';
+        $config['mediaManagerUrl'] = $base . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__';
+        if (null === $user) {
+            // Im Frontend gibt es weder Linkmap noch Medienpool noch Datensatz-Auswahl
             $config['link']['internal'] = false;
             $config['link']['media'] = false;
+            $config['link']['records'] = [];
+        } else {
+            $tables = RecordLinks::tables($user);
+            $config['recordTables'] = [];
+            foreach ($config['link']['records'] as $name) {
+                if (isset($tables[$name])) {
+                    $config['recordTables'][] = ['name' => $name, 'label' => $tables[$name]];
+                }
+            }
+            $config['recordApi'] = Url::backendController(RecordSearchApi::getUrlParams());
         }
 
         return $config;

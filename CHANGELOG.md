@@ -14,4 +14,10 @@ Erste Fassung für REDAXO 6.
 - Frontend: eigenes Bundle, lädt sich bei Bedarf selbst; Profil `guest` für Besucher
 - Serverseitige Bereinigung je Profil (`Tiptap::sanitize()`, `Tiptap::render()`), interne Links per OUTPUT_FILTER
 - Kontextmenü (Rechtsklick, Kontextmenü-Taste, Umschalt + F10) – für Tabellen eingebaut, für eigene Werkzeuge über `context()`
+- Quelltext-Ansicht mit Auszeichnung (CodeMirror 6, nachgeladen): Markdown formatiert, HTML hervorgehoben
+- Bilder: Mediamanager-Typ und Bildformat (Klasse) je Profil, Kontextmenü am Bild, Adresse bei der Ausgabe
+  aus `data-rex-media` (korrekt im Frontend)
+- Links auf YForm-Datensätze (`yform://tabelle/id`), Adresse über Extension Point `RecordUrl` oder Vorlage
+  (Einstellungen)
+- Schreibbereich weiß, Vollbild als Blatt, Sonderzeichen im festen Raster, Tabellen ohne style-Attribute
 - Erweiterungs-API für andere AddOns (`Tiptap::register()`, `RexTiptap.register()`), Ereignisse

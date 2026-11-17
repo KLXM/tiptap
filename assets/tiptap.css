@@ -8,7 +8,7 @@ rex-tiptap {
 }
 
 .rex-tiptap {
-    --_bg: var(--rex-tiptap-bg, var(--rex-color-bg, #fff));
+    --_bg: var(--rex-tiptap-bg, var(--rex-color-surface, #fff));
     --_surface: var(--rex-tiptap-surface, var(--rex-color-surface-subtle, #f6f7f9));
     --_raised: var(--rex-tiptap-raised, var(--rex-color-surface-raised, #fff));
     --_text: var(--rex-tiptap-text, var(--rex-color-text, #1f2933));
@@ -181,7 +181,7 @@ i.rex-tiptap-icon {
 
 .rex-tiptap-menu--grid {
     display: grid;
-    grid-template-columns: repeat(6, 36px);
+    grid-template-columns: repeat(8, 36px);
     min-width: 0;
     gap: 2px;
 }
@@ -205,8 +205,29 @@ i.rex-tiptap-icon {
 
 .rex-tiptap-menu--grid .rex-tiptap-menu-item {
     justify-content: center;
+    width: 36px;
+    height: 36px;
+    min-height: 0;
     padding: 0;
-    font-size: 16px;
+    font-size: 17px;
+    line-height: 1;
+}
+
+.rex-tiptap-menu--grid .rex-tiptap-menu-label {
+    flex: none;
+    text-align: center;
+}
+
+/* Namen statt Zeichen (geschütztes Leerzeichen, weiches Trennzeichen) */
+.rex-tiptap-menu--grid .rex-tiptap-menu-item.is-text .rex-tiptap-menu-label {
+    padding: 2px 3px;
+    border: 1px dashed var(--_border);
+    border-radius: 3px;
+    color: var(--_muted);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-transform: uppercase;
 }
 
 .rex-tiptap-menu-item:hover:not(:disabled),
@@ -398,10 +419,46 @@ img.ProseMirror-separator { display: inline !important; }
     max-height: none;
 }
 
-.rex-tiptap.is-fullscreen .rex-tiptap-prose {
-    max-width: 52rem;
+.rex-tiptap.is-fullscreen {
+    background: var(--_surface);
+}
+
+.rex-tiptap.is-fullscreen .rex-tiptap-toolbar {
+    justify-content: center;
+    border-radius: 0;
+    box-shadow: 0 1px 0 var(--_border-soft);
+}
+
+.rex-tiptap.is-fullscreen .rex-tiptap-body {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 32px 16px 48px;
+}
+
+/* Inhalt als Blatt in der Mitte */
+.rex-tiptap.is-fullscreen .rex-tiptap-content,
+.rex-tiptap.is-fullscreen textarea.rex-tiptap-source,
+.rex-tiptap.is-fullscreen .rex-tiptap-code {
+    flex: none;
+    width: 100%;
+    max-width: 60rem;
+    min-height: calc(100% - 8px);
     margin-inline: auto;
-    padding-block: 32px;
+    overflow: visible;
+    border: 1px solid var(--_border-soft);
+    border-radius: var(--_radius);
+    background: var(--_bg);
+    box-shadow: var(--_shadow);
+}
+
+.rex-tiptap.is-fullscreen .rex-tiptap-prose {
+    min-height: 100%;
+    padding: 48px 56px;
+    font-size: 16px;
+}
+
+.rex-tiptap.is-fullscreen .rex-tiptap-footer {
+    border-radius: 0;
 }
 
 html.rex-tiptap-has-fullscreen {
@@ -411,7 +468,7 @@ html.rex-tiptap-has-fullscreen {
 /* ---------- Dialoge ---------- */
 
 .rex-tiptap-dialog {
-    --_bg: var(--rex-tiptap-bg, var(--rex-color-bg, #fff));
+    --_bg: var(--rex-tiptap-bg, var(--rex-color-surface, #fff));
     --_text: var(--rex-tiptap-text, var(--rex-color-text, #1f2933));
     --_muted: var(--rex-tiptap-muted, var(--rex-color-text-muted, #5f6b7a));
     --_border: var(--rex-tiptap-border, var(--rex-color-border-input, #c5ccd6));
@@ -566,3 +623,94 @@ html.rex-tiptap-has-fullscreen {
     left: 0;
     z-index: 10001;
 }
+
+/* Dialog: Felder nebeneinander, Datensatz-Auswahl */
+.rex-tiptap-field-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.rex-tiptap-dialog select {
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid var(--_border);
+    border-radius: var(--_radius);
+    background: var(--_bg);
+    color: var(--_text);
+    font: inherit;
+}
+
+.rex-tiptap-dialog input[type="search"] {
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid var(--_border);
+    border-radius: var(--_radius);
+    background: var(--_bg);
+    color: var(--_text);
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.rex-tiptap-link-target {
+    margin-top: -8px;
+    color: var(--_muted);
+    font-size: 13px;
+}
+
+.rex-tiptap-link-target:empty {
+    display: none;
+}
+
+.rex-tiptap-record-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--_border);
+    border-radius: var(--_radius);
+}
+
+.rex-tiptap-records {
+    display: flex;
+    flex-direction: column;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.rex-tiptap-record {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--_text);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.rex-tiptap-record:hover,
+.rex-tiptap-record:focus-visible {
+    background: var(--_hover);
+}
+
+.rex-tiptap-record small,
+.rex-tiptap-records-empty {
+    color: var(--_muted);
+}
+
+.rex-tiptap-records-empty {
+    margin: 4px 8px;
+}
+
+/* Bilder: Formatvorlagen der Standardprofile (Frontend braucht eigene Regeln für diese Klassen) */
+.rex-tiptap-prose img.img-left { float: left; max-width: 45%; margin: .3em 1.2em .8em 0; }
+.rex-tiptap-prose img.img-right { float: right; max-width: 45%; margin: .3em 0 .8em 1.2em; }
+.rex-tiptap-prose img.img-center { margin-inline: auto; }
+.rex-tiptap-prose img.img-full { width: 100%; }
+.rex-tiptap-prose::after { content: ""; display: table; clear: both; }

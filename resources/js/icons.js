@@ -6,7 +6,7 @@ import {
     Link, Unlink, Image, Table, Omega, CodeXml, Maximize, Minimize, Undo2, Redo2, LetterH, Pilcrow, Paintbrush,
     ChevronDown, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, ExternalLink, FileText, FolderOpen,
     Globe, Mail, Phone, Trash, Check, X, BetweenHorizontalStart, BetweenHorizontalEnd, BetweenVerticalStart,
-    BetweenVerticalEnd, TableCellsMerge, TableCellsSplit, Columns3, Rows3, Plus, Puzzle,
+    BetweenVerticalEnd, TableCellsMerge, TableCellsSplit, Columns3, Rows3, Plus, Puzzle, Database,
 } from 'lucide';
 
 const icons = {
@@ -20,7 +20,7 @@ const icons = {
     undo: Undo2, redo: Redo2, heading: LetterH, paragraph: Pilcrow, blockStyle: Pilcrow, inlineStyle: Paintbrush,
     chevron: ChevronDown, h1: Heading1, h2: Heading2, h3: Heading3, h4: Heading4, h5: Heading5, h6: Heading6,
     external: ExternalLink, article: FileText, media: FolderOpen, globe: Globe, mail: Mail, phone: Phone,
-    trash: Trash, check: Check, close: X, plus: Plus, plugin: Puzzle,
+    trash: Trash, check: Check, close: X, plus: Plus, plugin: Puzzle, record: Database,
     rowBefore: BetweenHorizontalStart, rowAfter: BetweenHorizontalEnd, colBefore: BetweenVerticalStart,
     colAfter: BetweenVerticalEnd, merge: TableCellsMerge, split: TableCellsSplit, columns: Columns3, rows: Rows3,
 };

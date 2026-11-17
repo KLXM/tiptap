@@ -41,7 +41,7 @@ final class TiptapGastModule extends Module
             . $csrf->getHiddenField()
             . '<label for="tiptap-gast">Nachricht</label>'
             . Tiptap::editor('tiptap_gast', $value, 'guest', ['id' => 'tiptap-gast'])
-            . '<p><button type="submit">Absenden</button></p>'
+            . '<p><button type="submit" class="btn btn--primary">Absenden</button></p>'
             . '</form>'
             . $result
             . '</div>';

@@ -129,6 +129,58 @@ export const InlineStyle = Mark.create({
     },
 });
 
+/** Adresse eines Medienpool-Bildes (optional über einen Mediamanager-Typ), ab der Website-Wurzel */
+export function mediaSrc(config, file, type = '') {
+    return type
+        ? config.mediaManagerUrl.replace('__TYPE__', encodeURIComponent(type)).replace('__FILE__', encodeURIComponent(file))
+        : config.mediaUrl + encodeURIComponent(file);
+}
+
+/**
+ * Bild mit Verweis auf den Medienpool (`data-rex-media`, `data-rex-media-type`) und Bildformat (Klasse) – die
+ * Ausgabe setzt daraus die richtige Adresse. Alte relative Adressen (`../media/…`) werden beim Laden korrigiert.
+ */
+export function rexImage(Image, config) {
+    const allowed = new Set((config.image?.styles ?? []).flatMap(s => tokens(s.class)));
+    const oldMedia = src => /^(?:\.\.\/)+media\/(.+)$/.exec(src ?? '');
+    return Image.extend({
+        addAttributes() {
+            return {
+                ...this.parent?.(),
+                src: {
+                    default: null,
+                    parseHTML: el => {
+                        const media = el.getAttribute('data-rex-media');
+                        if (media) {
+                            return mediaSrc(config, media, el.getAttribute('data-rex-media-type') ?? '');
+                        }
+                        const old = oldMedia(el.getAttribute('src'));
+                        return old ? config.mediaUrl + old[1] : el.getAttribute('src');
+                    },
+                },
+                media: {
+                    default: null,
+                    parseHTML: el => {
+                        const old = oldMedia(el.getAttribute('src'));
+                        return el.getAttribute('data-rex-media') ?? (old ? decodeURIComponent(old[1]) : null);
+                    },
+                    renderHTML: attrs => attrs.media ? {'data-rex-media': attrs.media} : {},
+                },
+                mediaType: {
+                    default: null,
+                    parseHTML: el => el.getAttribute('data-rex-media-type'),
+                    renderHTML: attrs => attrs.mediaType && attrs.media ? {'data-rex-media-type': attrs.mediaType} : {},
+                },
+                class: {
+                    default: null,
+                    parseHTML: el => tokens(el.getAttribute('class')).filter(c => allowed.has(c)).join(' ') || null,
+                    renderHTML: attrs => attrs.class ? {class: attrs.class} : {},
+                },
+            };
+        },
+    }).configure({inline: false, allowBase64: false});
+}
+
 /** Prüft eine Link-Adresse gegen die Einstellungen des Profils */
 export function allowedUrl(url, link) {
     const value = String(url ?? '').trim();
@@ -140,6 +192,9 @@ export function allowedUrl(url, link) {
     }
     if (/^redaxo:\/\/\d+(-\d+)?(#[\w-]*)?$/.test(value)) {
         return !!link.internal;
+    }
+    if (/^yform:\/\/[\w.-]+\/\d+(#[\w-]*)?$/.test(value)) {
+        return !!link.records?.length;
     }
     if (/^mailto:/i.test(value)) {
         return !!link.mailto;

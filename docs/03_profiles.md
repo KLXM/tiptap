@@ -39,7 +39,15 @@ Werkzeuge anderer AddOns erscheinen in eigenen Bereichen.
 - **Textformate:** Bezeichnung und Klasse für `<span class="…">` um markierten Text.
 - **Ausrichtung:** Klassen für links, zentriert, rechts und Blocksatz. Voreinstellung `text-left` usw.
 - **Links:** intern (Linkmap), Medienpool, extern, E-Mail, Telefon, Option „Neues Fenster“.
-- **Bilder:** erlaubte Dateitypen aus dem Medienpool, externe Adressen.
+- **Bilder:**
+  - Erlaubte Dateitypen aus dem Medienpool und externe Adressen.
+  - **Mediamanager-Typen zur Auswahl** mit Voreinstellung: Der Bild-Dialog bietet die Größe an, die Ausgabe
+    baut die Adresse über den Mediamanager.
+  - **Bildformate:** Bezeichnung und Klasse, z. B. `img-left` für „links umflossen“. Auswahl im Bild-Dialog und per
+    Rechtsklick aufs Bild. Für die Website braucht es CSS zu diesen Klassen. Im Editor bringt das AddOn Regeln für
+    `img-left`, `img-right`, `img-center` und `img-full` mit.
+- **Datensätze verlinken (YForm):** Tabellen, die der Link-Dialog anbietet. Wohin ein Link führt, steht unter
+  **Einstellungen**.
 - **Sonderzeichen:** Liste, durch Leerzeichen getrennt. `NBSP` steht für das geschützte Leerzeichen, `SHY` für
   das weiche Trennzeichen.
 - **Editor:**

@@ -20,6 +20,11 @@ const T = {
         links: 'Links', linkInternal: 'Interne Links (Linkmap, redaxo://ID)', linkMedia: 'Dateien aus dem Medienpool',
         linkExternal: 'Externe Adressen (http/https)', linkMailto: 'E-Mail (mailto:)', linkTel: 'Telefon (tel:)', linkBlank: 'Option „Neues Fenster“',
         images: 'Bilder', imageTypes: 'Erlaubte Dateitypen', imageExternal: 'Externe Bildadressen erlauben',
+        mediaTypes: 'Mediamanager-Typen zur Auswahl', mediaTypesHint: 'Der Bild-Dialog bietet diese Typen an – so kommen Bilder in passender Größe auf die Website.',
+        mediaTypeDefault: 'Voreinstellung', mediaTypeOriginal: 'Originaldatei',
+        imageStyles: 'Bildformate', imageStylesHint: 'Klassen am Bild, z. B. „links umflossen“ oder „volle Breite“ – Auswahl im Bild-Dialog und per Rechtsklick.',
+        filter: 'Filtern …',
+        records: 'Datensätze verlinken (YForm)', recordsHint: 'Diese Tabellen bietet der Link-Dialog an. Wohin der Link führt, steht unter Einstellungen.', recordsNone: 'YForm ist nicht installiert.',
         chars: 'Sonderzeichen', charsHint: 'Durch Leerzeichen getrennt. NBSP = geschütztes Leerzeichen, SHY = weiches Trennzeichen.',
         editor: 'Editor', minHeight: 'Mindesthöhe (px)', maxHeight: 'Maximalhöhe (px, 0 = ohne)', placeholder: 'Platzhalter',
         maxLength: 'Höchstens Zeichen (0 = unbegrenzt)', counter: 'Zeichen und Wörter anzeigen', sticky: 'Toolbar bleibt beim Scrollen sichtbar',
@@ -45,6 +50,11 @@ const T = {
         links: 'Links', linkInternal: 'Internal links (linkmap, redaxo://ID)', linkMedia: 'Files from the media pool',
         linkExternal: 'External addresses (http/https)', linkMailto: 'E-mail (mailto:)', linkTel: 'Phone (tel:)', linkBlank: 'Option “new window”',
         images: 'Images', imageTypes: 'Allowed file types', imageExternal: 'Allow external image addresses',
+        mediaTypes: 'Media manager types to choose from', mediaTypesHint: 'The image dialog offers these types – so images reach the website in a fitting size.',
+        mediaTypeDefault: 'Default', mediaTypeOriginal: 'Original file',
+        imageStyles: 'Image styles', imageStylesHint: 'Classes on the image, e.g. “float left” or “full width” – chosen in the image dialog and via right click.',
+        filter: 'Filter …',
+        records: 'Link records (YForm)', recordsHint: 'The link dialog offers these tables. Where the link leads is set under Settings.', recordsNone: 'YForm is not installed.',
         chars: 'Special characters', charsHint: 'Separated by spaces. NBSP = non-breaking space, SHY = soft hyphen.',
         editor: 'Editor', minHeight: 'Minimum height (px)', maxHeight: 'Maximum height (px, 0 = none)', placeholder: 'Placeholder',
         maxLength: 'Maximum characters (0 = unlimited)', counter: 'Show characters and words', sticky: 'Toolbar stays visible while scrolling',
@@ -98,12 +108,15 @@ class Builder {
         this.catalog = JSON.parse(root.dataset.catalog);
         this.items = Object.fromEntries(this.catalog.flatMap(c => c.items).map(i => [i.id, i]));
         this.config = JSON.parse(this.output.value || '{}');
+        this.mediaTypes = JSON.parse(root.dataset.mediaTypes || '[]');
+        this.recordTables = JSON.parse(root.dataset.recordTables || '{}');
         this.form = this.output.form;
         this.modeInputs = [...this.form.querySelectorAll('[name="mode"]')];
         this.selectedGroup = 0;
         this.drag = null;
         this.modeInputs.forEach(input => input.addEventListener('change', () => this.changed(true)));
         this.render();
+        this.renderDefaultType();
         this.changed(false);
     }
 
@@ -450,9 +463,15 @@ class Builder {
             section(t('links'), null,
                 check('link.internal', t('linkInternal')), check('link.media', t('linkMedia')), check('link.external', t('linkExternal')),
                 check('link.mailto', t('linkMailto')), check('link.tel', t('linkTel')), check('link.targetBlank', t('linkBlank'))),
+            section(t('records'), t('recordsHint'), this.checkList('link.records', Object.entries(this.recordTables).map(([name, label]) => [name, label + ' (' + name + ')']), t('recordsNone'))),
             section(t('images'), null,
                 field(t('imageTypes'), el('input', {type: 'text', className: 'rex-input', value: (c.image?.types ?? []).join(', '), oninput: e => set('image.types', e.target.value.split(/[\s,]+/).filter(Boolean))})),
-                check('image.external', t('imageExternal'))),
+                check('image.external', t('imageExternal')),
+                el('h4', {text: t('mediaTypes')}), el('p', {className: 'tt-b-hint', text: t('mediaTypesHint')}),
+                this.checkList('image.mediaTypes', this.mediaTypes.map(name => [name, name]), '', () => this.renderDefaultType()),
+                this.defaultTypeField = el('div'),
+                el('h4', {text: t('imageStyles')}), el('p', {className: 'tt-b-hint', text: t('imageStylesHint')}),
+                this.styleList('image.styles', false)),
             section(t('chars'), t('charsHint'),
                 field(t('chars'), el('input', {type: 'text', className: 'rex-input', value: (c.specialChars ?? []).map(ch => CHAR_NAMES[ch] ?? ch).join(' '), oninput: e => set('specialChars', e.target.value.split(/\s+/).filter(Boolean).map(ch => CHAR_VALUES[ch] ?? ch))}))),
             section(t('editor'), null,
@@ -464,11 +483,65 @@ class Builder {
         ];
     }
 
+    /** Mehrfachauswahl als Kästchen, gespeichert als Liste unter path */
+    checkList(path, options, emptyText = '', after = null) {
+        const parts = path.split('.');
+        const owner = () => parts.slice(0, -1).reduce((o, k) => o[k] ??= {}, this.config);
+        const values = () => owner()[parts.at(-1)] ??= [];
+        if (!options.length) {
+            return emptyText ? el('p', {className: 'tt-b-hint', text: emptyText}) : el('span');
+        }
+        const box = el('div', {className: 'tt-b-inline' + (options.length > 12 ? ' tt-b-checklist' : '')});
+        const draw = () => {
+            const chosen = new Set(values());
+            // lange Listen: gewählte zuerst
+            const sorted = options.length > 12 ? [...options].sort((a, b) => Number(chosen.has(b[0])) - Number(chosen.has(a[0]))) : options;
+            box.replaceChildren(...sorted.map(([value, label]) => el('label', {className: 'tt-b-check', 'data-filter': (value + ' ' + label).toLowerCase()},
+                el('input', {type: 'checkbox', checked: chosen.has(value), onchange: e => {
+                    const list = new Set(values());
+                    e.target.checked ? list.add(value) : list.delete(value);
+                    owner()[parts.at(-1)] = options.map(([v]) => v).filter(v => list.has(v));
+                    after?.();
+                    this.changed();
+                }}), el('span', {text: label}))));
+        };
+        draw();
+        if (options.length <= 12) {
+            return box;
+        }
+        const filter = el('input', {type: 'search', className: 'rex-input', placeholder: t('filter'), 'aria-label': t('filter'), oninput: () => {
+            const q = filter.value.trim().toLowerCase();
+            box.querySelectorAll('[data-filter]').forEach(item => {
+                item.hidden = '' !== q && !item.dataset.filter.includes(q) && !item.querySelector('input').checked;
+            });
+        }});
+        return el('div', {className: 'tt-b-checklist-wrap'}, filter, box);
+    }
+
+    renderDefaultType() {
+        const image = this.config.image ??= {};
+        const types = image.mediaTypes ?? [];
+        if (!types.includes(image.mediaType)) {
+            image.mediaType = '';
+        }
+        const select = el('select', {className: 'rex-input', id: 'tt-b-default-type', onchange: e => {
+            image.mediaType = e.target.value;
+            this.changed();
+        }}, el('option', {value: '', text: t('mediaTypeOriginal'), selected: !image.mediaType}),
+        ...types.map(name => el('option', {value: name, text: name, selected: image.mediaType === name})));
+        this.defaultTypeField?.replaceChildren(...(types.length ? [el('div', {className: 'tt-b-field'}, el('label', {for: 'tt-b-default-type', text: t('mediaTypeDefault')}), select)] : []));
+    }
+
     styleList(key, block) {
         const wrap = el('div', {className: 'tt-b-styles'});
         const elements = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'table'];
         const draw = () => {
-            const list = this.config[key] ??= [];
+            const parts = key.split('.');
+            let owner = this.config;
+            for (const part of parts.slice(0, -1)) {
+                owner = owner[part] ??= {};
+            }
+            const list = owner[parts.at(-1)] ??= [];
             wrap.replaceChildren(
                 ...list.map((style, i) => el('div', {className: 'tt-b-style'},
                     el('input', {type: 'text', className: 'rex-input', 'aria-label': t('label'), placeholder: t('label'), value: style.label ?? '', oninput: e => {

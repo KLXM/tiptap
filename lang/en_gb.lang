@@ -98,3 +98,13 @@ tiptap_item_source = Source
 tiptap_item_source_desc = Switch between editor and HTML/Markdown
 tiptap_item_fullscreen = Fullscreen
 tiptap_import_invalid = The file contains no valid profiles ({0}).
+tiptap_settings = Settings
+tiptap_settings_saved = Settings saved.
+tiptap_settings_output = Output
+tiptap_settings_resolve = Resolve internal links, record links and images in the frontend automatically
+tiptap_settings_resolve_note = Replaces redaxo://ID, yform://table/ID and media pool images in every page (OUTPUT_FILTER) – even without Tiptap::render().
+tiptap_settings_records = Linking records (YForm)
+tiptap_settings_records_intro = Each profile decides which tables can be linked (Links → Records). Here you set where a link to a record leads. <code>{id}</code> is replaced; <code>redaxo://12?news_id={id}</code> gives the address of article 12 with the parameter. Addons with their own record addresses provide them via the extension point <code>RecordUrl</code> – leave the field empty then.
+tiptap_settings_no_yform = YForm is not installed.
+tiptap_settings_table = Table
+tiptap_settings_url = Address (template)
