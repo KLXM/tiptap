@@ -531,3 +531,19 @@
 .tt-b-check[hidden] {
     display: none;
 }
+
+.tt-b-preset {
+    margin-top: 10px;
+}
+
+.tt-b-preset-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.tt-b-preset .tt-b-output {
+    margin-top: 6px;
+    max-height: none;
+}

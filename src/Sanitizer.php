@@ -72,6 +72,9 @@ final class Sanitizer
             $elements['pre'] = [];
         }
 
+        if (isset($elements['ol'])) {
+            $elements['ol'] = [...$elements['ol'], 'type'];
+        }
         if (isset($elements['img'])) {
             $elements['img'] = [...$elements['img'], 'class', 'data-rex-media', 'data-rex-media-type'];
         }
@@ -139,6 +142,16 @@ final class Sanitizer
         }
         if ($profile->hasItem('inlineStyle')) {
             foreach ($profile->config['inlineStyles'] as $style) {
+                $classes = array_merge($classes, explode(' ', $style['class']));
+            }
+        }
+        if ($profile->hasItem('bulletList', 'orderedList')) {
+            foreach ($profile->config['listStyles'] as $style) {
+                $classes = array_merge($classes, explode(' ', $style['class']));
+            }
+        }
+        if ($profile->hasItem('link')) {
+            foreach ($profile->config['linkStyles'] as $style) {
                 $classes = array_merge($classes, explode(' ', $style['class']));
             }
         }

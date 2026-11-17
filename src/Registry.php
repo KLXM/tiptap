@@ -114,6 +114,7 @@ final class Registry
 
             new Item('bulletList', $m('bulletList'), 'bulletList', 'block', elements: ['ul' => [], 'li' => []]),
             new Item('orderedList', $m('orderedList'), 'orderedList', 'block', elements: ['ol' => ['start'], 'li' => []]),
+            new Item('listStyle', $m('listStyle'), 'listStyle', 'block', markdown: false, description: $d('listStyle'), menu: true),
             new Item('blockquote', $m('blockquote'), 'blockquote', 'block', elements: ['blockquote' => []]),
             new Item('codeBlock', $m('codeBlock'), 'codeBlock', 'block', elements: ['pre' => [], 'code' => []]),
             new Item('horizontalRule', $m('horizontalRule'), 'horizontalRule', 'block', elements: ['hr' => []]),

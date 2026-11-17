@@ -129,6 +129,47 @@ export const InlineStyle = Mark.create({
     },
 });
 
+/** Nächste Liste um den Cursor (für Zählweise, Format, Start je Ebene) */
+export function nearestList(state, names = ['orderedList', 'bulletList']) {
+    const {$from} = state.selection;
+    for (let depth = $from.depth; depth > 0; depth--) {
+        const node = $from.node(depth);
+        if (names.includes(node.type.name)) {
+            return {node, pos: $from.before(depth)};
+        }
+    }
+    return null;
+}
+
+/** Attribute der nächsten Liste ändern – nur diese Ebene, nicht die äußeren Listen */
+export function updateNearestList(editor, attrs, names = ['orderedList', 'bulletList']) {
+    const found = nearestList(editor.state, names);
+    if (!found) {
+        return false;
+    }
+    const values = 'function' === typeof attrs ? attrs(found.node) : attrs;
+    editor.view.dispatch(editor.state.tr.setNodeMarkup(found.pos, undefined, {...found.node.attrs, ...values}));
+    editor.commands.focus();
+    return true;
+}
+
+/** Link mit Linkformat (Klasse aus dem Profil, z. B. „Als Button“) */
+export function rexLink(Link, allowedClasses) {
+    const allowed = new Set(allowedClasses);
+    return Link.extend({
+        addAttributes() {
+            return {
+                ...this.parent?.(),
+                class: {
+                    default: null,
+                    parseHTML: el => tokens(el.getAttribute('class')).filter(c => allowed.has(c)).join(' ') || null,
+                    renderHTML: attrs => attrs.class ? {class: attrs.class} : {},
+                },
+            };
+        },
+    });
+}
+
 /** Adresse eines Medienpool-Bildes (optional über einen Mediamanager-Typ), ab der Website-Wurzel */
 export function mediaSrc(config, file, type = '') {
     return type

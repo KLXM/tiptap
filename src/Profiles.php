@@ -220,6 +220,12 @@ final class Profiles
                         ['source', 'fullscreen'],
                     ],
                     'blockStyles' => [['label' => 'Einleitung', 'class' => 'lead', 'element' => 'p'], ['label' => 'Kleingedruckt', 'class' => 'small', 'element' => 'p']],
+                    'listStyles' => [
+                        ['label' => 'Gegliedert (1.1, 1.2)', 'class' => 'list-outline', 'list' => 'ol'],
+                        ['label' => 'Häkchen', 'class' => 'list-check', 'list' => 'ul'],
+                        ['label' => 'Ohne Zeichen', 'class' => 'list-plain', 'list' => 'both'],
+                    ],
+                    'linkStyles' => [['label' => 'Als Button', 'class' => 'btn btn--primary']],
                     'image' => ['styles' => [
                         ['label' => 'Links umflossen', 'class' => 'img-left'],
                         ['label' => 'Rechts umflossen', 'class' => 'img-right'],

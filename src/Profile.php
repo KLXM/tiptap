@@ -5,6 +5,7 @@ namespace FriendsOfRedaxo\Tiptap;
 use InvalidArgumentException;
 
 use function array_filter;
+use function array_intersect;
 use function array_key_exists;
 use function array_map;
 use function array_slice;
@@ -43,6 +44,10 @@ final readonly class Profile
         'headings' => [2, 3, 4],
         'blockStyles' => [],
         'inlineStyles' => [],
+        // Zählweisen nummerierter Listen (HTML-Attribut type), Listenformate (Klassen), Linkformate (Klassen)
+        'listTypes' => ['1', 'a', 'A', 'i', 'I'],
+        'listStyles' => [],
+        'linkStyles' => [],
         'align' => ['left' => 'text-left', 'center' => 'text-center', 'right' => 'text-right', 'justify' => 'text-justify'],
         'link' => ['internal' => true, 'media' => true, 'external' => true, 'mailto' => true, 'tel' => true, 'targetBlank' => true, 'records' => []],
         'image' => ['types' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'], 'external' => false, 'mediaTypes' => [], 'mediaType' => '', 'styles' => []],
@@ -186,6 +191,21 @@ final readonly class Profile
         $out['blockStyles'] = Mode::Markdown === $mode ? [] : self::styles($config['blockStyles'] ?? [], true);
         $out['inlineStyles'] = Mode::Markdown === $mode ? [] : self::styles($config['inlineStyles'] ?? [], false);
 
+        $types = is_array($config['listTypes'] ?? null) ? $config['listTypes'] : $d['listTypes'];
+        $out['listTypes'] = Mode::Markdown === $mode ? ['1'] : (array_values(array_intersect($d['listTypes'], array_map('strval', $types))) ?: ['1']);
+        $out['listStyles'] = [];
+        if (Mode::Html === $mode) {
+            foreach (is_array($config['listStyles'] ?? null) ? $config['listStyles'] : [] as $raw) {
+                $style = is_array($raw) ? self::styles([$raw], false)[0] ?? null : null;
+                if (null !== $style) {
+                    $list = $raw['list'] ?? 'both';
+                    $style['list'] = in_array($list, ['ol', 'ul', 'both'], true) ? $list : 'both';
+                    $out['listStyles'][] = $style;
+                }
+            }
+        }
+        $out['linkStyles'] = Mode::Markdown === $mode ? [] : self::styles($config['linkStyles'] ?? [], false);
+
         $align = is_array($config['align'] ?? null) ? $config['align'] : [];
         foreach ($d['align'] as $key => $default) {
             $class = self::classList(is_string($align[$key] ?? null) ? $align[$key] : $default);
@@ -231,7 +251,7 @@ final readonly class Profile
         return $out;
     }
 
-    /** @return list<array{label: string, class: string, element?: string}> */
+    /** @return list<array{label: string, class: string, element?: string, list?: string}> */
     private static function styles(mixed $styles, bool $block): array
     {
         if (!is_array($styles)) {

@@ -108,3 +108,5 @@ tiptap_settings_records_intro = Each profile decides which tables can be linked 
 tiptap_settings_no_yform = YForm is not installed.
 tiptap_settings_table = Table
 tiptap_settings_url = Address (template)
+tiptap_item_listStyle = List style
+tiptap_item_listStyle_desc = Menu: numbering (1, a, i …), list styles (classes), first number – also via right click in a list

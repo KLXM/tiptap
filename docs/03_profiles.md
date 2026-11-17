@@ -24,7 +24,7 @@ Datenbank landen würde.
 | Verlauf | Rückgängig, Wiederholen |
 | Absatz & Formate | Absatzformat (Menü), Blockformat (Menü), Textformat (Menü) |
 | Zeichen | Fett, Kursiv, Unterstrichen, Durchgestrichen, Code, Markieren, Tief-/Hochgestellt, Formatierung entfernen |
-| Blöcke | Aufzählung, Nummerierte Liste, Zitat, Codeblock, Trennlinie |
+| Blöcke | Aufzählung, Nummerierte Liste, Listenformat (Menü), Zitat, Codeblock, Trennlinie |
 | Ausrichtung | Menü oder einzelne Knöpfe |
 | Einfügen | Link, Link entfernen, Bild, Tabelle (Menü), Sonderzeichen (Menü) |
 | Ansicht | Quelltext, Vollbild |
@@ -37,6 +37,16 @@ Werkzeuge anderer AddOns erscheinen in eigenen Bereichen.
 - **Blockformate:** Bezeichnung, CSS-Klasse und Element (`<p>`, `<h2>`, `<blockquote>`, `<ul>` …). Ein Format
   für `<h2>` macht den Block zur Überschrift und setzt die Klasse.
 - **Textformate:** Bezeichnung und Klasse für `<span class="…">` um markierten Text.
+- **Listen:**
+  - **Zählweisen** nummerierter Listen: 1, a, A, i, I. Sie stehen als HTML-Attribut `type` an `<ol>` und brauchen
+    kein CSS.
+  - **Listenformate:** Bezeichnung, Klasse und ob sie für nummerierte Listen, Aufzählungen oder beide gelten.
+    Vorlagen mit CSS liegen im Builder, etwa „Gegliedert (1.1, 1.2)“, „Häkchen“ und „Ohne Zeichen“.
+  - Die Auswahl gilt je Ebene: Rechtsklick in die Liste oder das Werkzeug „Listenformat“. Dort gibt es auch
+    „Beginnt bei …“.
+  - Eine gegliederte Nummerierung zählt mit CSS-Countern. `type` und `start` wirken dann nicht.
+- **Linkformate:** Klassen für Links, z. B. „Als Button“ mit `btn btn--primary`. Auswahl im Link-Dialog, in der
+  Link-Leiste und per Rechtsklick.
 - **Ausrichtung:** Klassen für links, zentriert, rechts und Blocksatz. Voreinstellung `text-left` usw.
 - **Links:** intern (Linkmap), Medienpool, extern, E-Mail, Telefon, Option „Neues Fenster“.
 - **Bilder:**

@@ -12,7 +12,8 @@ import Image from '@tiptap/extension-image';
 
 import {t} from './i18n.js';
 import {icon} from './icons.js';
-import {allowedUrl, BlockClass, InlineStyle, mediaSrc, normalizeUrl, rexImage} from './extensions.js';
+import {allowedUrl, BlockClass, InlineStyle, mediaSrc, nearestList, normalizeUrl, rexImage, rexLink, updateNearestList} from './extensions.js';
+import Link from '@tiptap/extension-link';
 import {registry} from './registry.js';
 
 let uid = 0;
@@ -180,18 +181,22 @@ export class RexTiptapEditor {
                 orderedList: has('orderedList') ? {} : false,
                 listItem: any('bulletList', 'orderedList') ? {} : false,
                 listKeymap: any('bulletList', 'orderedList') ? {} : false,
-                link: any('link', 'unlink') ? {
-                    openOnClick: false,
-                    autolink: !!config.link.external,
-                    linkOnPaste: true,
-                    defaultProtocol: 'https',
-                    HTMLAttributes: {target: null, rel: null},
-                    isAllowedUri: url => allowedUrl(url, config.link),
-                } : false,
+                // Link separat (mit Linkformaten), siehe unten
+                link: false,
                 trailingNode: false,
             }),
             CharacterCount.configure({limit: config.maxLength > 0 ? config.maxLength : null}),
         ];
+        if (any('link', 'unlink')) {
+            extensions.push(rexLink(Link, (config.linkStyles ?? []).flatMap(s => s.class.split(' '))).configure({
+                openOnClick: false,
+                autolink: !!config.link.external,
+                linkOnPaste: true,
+                defaultProtocol: 'https',
+                HTMLAttributes: {target: null, rel: null},
+                isAllowedUri: url => allowedUrl(url, config.link),
+            }));
+        }
         if (config.placeholder) {
             extensions.push(Placeholder.configure({placeholder: config.placeholder}));
         }
@@ -218,6 +223,7 @@ export class RexTiptapEditor {
         const blockClasses = [
             ...(has('blockStyle') ? config.blockStyles.flatMap(s => s.class.split(' ')) : []),
             ...(any('align', 'alignLeft', 'alignCenter', 'alignRight', 'alignJustify') ? Object.values(config.align).flatMap(c => c.split(' ')) : []),
+            ...(any('bulletList', 'orderedList') ? (config.listStyles ?? []).flatMap(s => s.class.split(' ')) : []),
         ];
         if (blockClasses.length && !this.markdown) {
             extensions.push(BlockClass.configure({allowed: blockClasses}));
@@ -670,6 +676,10 @@ export class RexTiptapEditor {
             this.bubbleTarget,
             el('span', {className: 'rex-tiptap-bubble-sep'}),
             el('button', {type: 'button', className: 'rex-tiptap-bubble-button', title: t('linkEdit'), 'aria-label': t('linkEdit'), onclick: () => this.linkDialog()}, icon('edit')),
+            ...(this.config.linkStyles?.length ? [el('button', {type: 'button', className: 'rex-tiptap-bubble-button', title: t('linkFormat'), 'aria-label': t('linkFormat'), onclick: e => {
+                const box = e.currentTarget.getBoundingClientRect();
+                this.contextMenu(box.left, box.bottom + 4);
+            }}, icon('linkStyle'))] : []),
             this.bubbleOpen,
             el('button', {type: 'button', className: 'rex-tiptap-bubble-button', title: t('unlink'), 'aria-label': t('unlink'), onclick: () => {
                 this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
@@ -896,6 +906,14 @@ export class RexTiptapEditor {
         if (empty) {
             fields.push(this.field(t('linkText'), text));
         }
+        const linkStyles = config.linkStyles ?? [];
+        const style = linkStyles.length ? el('select', {className: 'rex-input'},
+            el('option', {value: '', text: t('linkStyleNone')}),
+            ...linkStyles.map(s => el('option', {value: s.class, text: s.label}))) : null;
+        if (style) {
+            style.value = attrs.class ?? '';
+            fields.push(this.field(t('linkStyle'), style));
+        }
         if (link.targetBlank) {
             fields.push(el('label', {className: 'rex-tiptap-check'}, blank, el('span', {text: t('linkBlank')})));
         }
@@ -1045,7 +1063,7 @@ export class RexTiptapEditor {
             if (!allowedUrl(href, link)) {
                 return t('linkInvalid');
             }
-            const markAttrs = {href, target: link.targetBlank && blank.checked ? '_blank' : null, rel: link.targetBlank && blank.checked ? 'noopener' : null};
+            const markAttrs = {href, target: link.targetBlank && blank.checked ? '_blank' : null, rel: link.targetBlank && blank.checked ? 'noopener' : null, class: style?.value || null};
             const c = editor.chain().focus();
             if (empty) {
                 c.insertContent({type: 'text', text: text.value || href, marks: [{type: 'link', attrs: markAttrs}]}).run();
@@ -1135,6 +1153,18 @@ export class RexTiptapEditor {
         if (!attrs.src && pick) {
             choose();
         }
+    }
+
+    listStartDialog() {
+        const found = nearestList(this.editor.state, ['orderedList']);
+        if (!found) {
+            return;
+        }
+        const input = el('input', {type: 'number', className: 'rex-input', min: '1', max: '9999', value: String(found.node.attrs.start ?? 1)});
+        this.openDialog(t('listStart').replace(/\s*…$/, ''), [this.field(t('listStartLabel'), input)], () => {
+            const start = Math.max(1, Math.min(9999, parseInt(input.value, 10) || 1));
+            updateNearestList(this.editor, {start}, ['orderedList']);
+        });
     }
 
     /* ---------- Aufräumen ---------- */

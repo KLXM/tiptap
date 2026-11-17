@@ -1,7 +1,7 @@
 /* Eingebaute Werkzeuge der Toolbar. Ein Werkzeug: {label, icon, run?, active?, enabled?, menu?, current?} */
 
 import {t} from './i18n.js';
-import {blockHasClass, CLASS_NODES, mediaSrc, nodeOfElement} from './extensions.js';
+import {blockHasClass, CLASS_NODES, mediaSrc, nearestList, nodeOfElement, updateNearestList} from './extensions.js';
 
 const chain = editor => editor.chain().focus();
 
@@ -47,8 +47,67 @@ function alignItem(side) {
     };
 }
 
+/** Linkformate (z. B. „Als Button“) für den Link am Cursor */
+function linkStyleEntries(editor, config) {
+    const styles = config.linkStyles ?? [];
+    if (!styles.length) {
+        return [];
+    }
+    const current = editor.getAttributes('link').class ?? null;
+    const set = value => editor.chain().focus().extendMarkRange('link').updateAttributes('link', {class: value}).run();
+    return [
+        {label: t('linkStyleNone'), radio: true, active: () => !current, run: () => set(null)},
+        ...styles.map(s => ({label: s.label, radio: true, active: () => current === s.class, run: () => set(current === s.class ? null : s.class)})),
+        {separator: true},
+    ];
+}
+
+const LIST_TYPES = {'1': '1, 2, 3', a: 'a, b, c', A: 'A, B, C', i: 'i, ii, iii', I: 'I, II, III'};
+
+/** Zählweise, Listenformat und Start der Liste, in der der Cursor steht (nur diese Ebene) */
+function listFormatEntries({editor, config, ui}) {
+    const found = nearestList(editor.state);
+    if (!found) {
+        return [];
+    }
+    const ordered = 'orderedList' === found.node.type.name;
+    const attrs = found.node.attrs;
+    const entries = [];
+    const types = config.listTypes ?? ['1'];
+    if (ordered && types.length > 1) {
+        entries.push(...types.map(type => ({
+            label: LIST_TYPES[type] ?? type,
+            radio: true,
+            active: () => (attrs.type ?? '1') === type,
+            run: () => updateNearestList(editor, {type: '1' === type ? null : type}, ['orderedList']),
+        })), {separator: true});
+    }
+    const kind = ordered ? 'ol' : 'ul';
+    const styles = (config.listStyles ?? []).filter(s => 'both' === s.list || kind === s.list);
+    if (styles.length) {
+        const all = (config.listStyles ?? []).flatMap(s => s.class.split(' '));
+        const current = (attrs.class ?? '').split(/\s+/).filter(Boolean);
+        const without = () => current.filter(c => !all.includes(c));
+        entries.push(
+            {label: t('listStyleNone'), radio: true, active: () => !styles.some(s => s.class.split(' ').every(c => current.includes(c))), run: () => updateNearestList(editor, {class: without().join(' ') || null})},
+            ...styles.map(s => ({
+                label: s.label,
+                radio: true,
+                active: () => s.class.split(' ').every(c => current.includes(c)),
+                run: () => updateNearestList(editor, {class: [...without(), ...s.class.split(' ')].join(' ')}),
+            })),
+            {separator: true},
+        );
+    }
+    if (ordered) {
+        entries.push({label: t('listStart') + (attrs.start > 1 ? ' (' + attrs.start + ')' : ''), icon: 'orderedList', run: () => ui.listStartDialog()});
+    }
+    return entries;
+}
+
 /** Rechtsklick in einer Liste: einrücken, ausrücken, Art wechseln, aufheben */
-function listContext({editor, has}) {
+function listContext(ctx) {
+    const {editor, has} = ctx;
     const bullet = editor.isActive('bulletList');
     const ordered = editor.isActive('orderedList');
     if (!bullet && !ordered) {
@@ -56,6 +115,7 @@ function listContext({editor, has}) {
     }
     const c = () => editor.chain().focus();
     return [
+        ...listFormatEntries(ctx),
         {label: t('listIndent'), icon: 'indent', enabled: () => editor.can().sinkListItem('listItem'), run: () => c().sinkListItem('listItem').run()},
         {label: t('listOutdent'), icon: 'outdent', enabled: () => editor.can().liftListItem('listItem'), run: () => c().liftListItem('listItem').run()},
         {separator: true},
@@ -187,6 +247,12 @@ export const builtinItems = {
         },
     },
 
+    listStyle: {
+        label: t('listStyle'),
+        icon: 'listStyle',
+        enabled: ({editor}) => !!nearestList(editor.state),
+        menu: ctx => listFormatEntries(ctx),
+    },
     bulletList: {...node('bulletList', 'toggleBulletList'), context: listContext},
     orderedList: {...node('orderedList', 'toggleOrderedList'), context: listContext},
     blockquote: {...node('blockquote', 'toggleBlockquote'), context: ({editor}) => editor.isActive('blockquote') ? [
@@ -222,7 +288,8 @@ export const builtinItems = {
         active: ({editor}) => editor.isActive('link'),
         shortcut: 'Mod-k',
         // Rechtsklick auf einen Link
-        context: ({editor, ui}) => editor.isActive('link') ? [
+        context: ({editor, config, ui}) => editor.isActive('link') ? [
+            ...linkStyleEntries(editor, config),
             {label: t('linkEdit'), icon: 'edit', run: () => ui.linkDialog()},
             {label: t('linkOpen'), icon: 'external', enabled: () => !!ui.bubbleOpen?.href, run: () => ui.bubbleOpen?.href && window.open(ui.bubbleOpen.href, '_blank', 'noopener')},
             {label: t('unlink'), icon: 'unlink', run: () => editor.chain().focus().extendMarkRange('link').unsetLink().run()},

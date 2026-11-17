@@ -785,3 +785,25 @@ html.rex-tiptap-has-fullscreen {
     color: var(--_muted);
     font-size: 11px;
 }
+
+/* Vorlagen der Listenformate (Standardprofil) – auf der Website eigene Regeln */
+.rex-tiptap-prose ol.list-outline,
+.rex-tiptap-prose ol.list-outline ol { counter-reset: item; list-style: none; padding-inline-start: 1.6em; }
+.rex-tiptap-prose ol.list-outline li { counter-increment: item; }
+.rex-tiptap-prose ol.list-outline li::before { content: counters(item, ".") ". "; margin-inline-start: -1.6em; display: inline-block; min-width: 1.6em; font-variant-numeric: tabular-nums; }
+.rex-tiptap-prose ol.list-outline li > p { display: inline; }
+.rex-tiptap-prose ul.list-check { list-style: none; padding-inline-start: 1.6em; }
+.rex-tiptap-prose ul.list-check > li::before { content: "✓"; display: inline-block; width: 1.4em; margin-inline-start: -1.4em; color: var(--_accent); font-weight: 700; }
+.rex-tiptap-prose ul.list-check > li > p { display: inline; }
+.rex-tiptap-prose .list-plain { list-style: none; padding-inline-start: 0; }
+
+/* Linkformat „Als Button“ (Standardprofil) – Vorschau im Editor */
+.rex-tiptap-prose a.btn {
+    display: inline-block;
+    padding: .35em .9em;
+    border-radius: 999px;
+    background: var(--_accent);
+    color: var(--rex-color-on-accent, #fff);
+    text-decoration: none;
+    font-weight: 600;
+}

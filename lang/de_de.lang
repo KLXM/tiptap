@@ -108,3 +108,5 @@ tiptap_settings_records_intro = Welche Tabellen sich verlinken lassen, legt jede
 tiptap_settings_no_yform = YForm ist nicht installiert.
 tiptap_settings_table = Tabelle
 tiptap_settings_url = Adresse (Vorlage)
+tiptap_item_listStyle = Listenformat
+tiptap_item_listStyle_desc = Menü: Zählweise (1, a, i …), Listenformate (Klassen), erste Nummer – auch per Rechtsklick in der Liste

@@ -24,6 +24,10 @@ const T = {
         mediaTypeDefault: 'Voreinstellung', mediaTypeOriginal: 'Originaldatei',
         imageStyles: 'Bildformate', imageStylesHint: 'Klassen am Bild, z. B. „links umflossen“ oder „volle Breite“ – Auswahl im Bild-Dialog und per Rechtsklick.',
         filter: 'Filtern …',
+        lists: 'Listen', listsHint: 'Zählweisen gibt der Browser selbst aus. Listenformate sind Klassen – das CSS dazu muss auf der Website (und für die Vorschau im Editor) vorhanden sein.',
+        listTypes: 'Zählweisen nummerierter Listen', listStyles: 'Listenformate', listFor: 'gilt für', listBoth: 'beide', listOl: 'nummeriert', listUl: 'Aufzählung',
+        listPresets: 'Vorlagen mit CSS', addPreset: 'übernehmen',
+        linkStyles: 'Linkformate', linkStylesHint: 'Klassen für Links, z. B. „Als Button“ – Auswahl im Link-Dialog, in der Link-Leiste und per Rechtsklick.',
         records: 'Datensätze verlinken (YForm)', recordsHint: 'Diese Tabellen bietet der Link-Dialog an. Wohin der Link führt, steht unter Einstellungen.', recordsNone: 'YForm ist nicht installiert.',
         chars: 'Sonderzeichen', charsHint: 'Durch Leerzeichen getrennt. NBSP = geschütztes Leerzeichen, SHY = weiches Trennzeichen.',
         editor: 'Editor', minHeight: 'Mindesthöhe (px)', maxHeight: 'Maximalhöhe (px, 0 = ohne)', placeholder: 'Platzhalter',
@@ -54,6 +58,10 @@ const T = {
         mediaTypeDefault: 'Default', mediaTypeOriginal: 'Original file',
         imageStyles: 'Image styles', imageStylesHint: 'Classes on the image, e.g. “float left” or “full width” – chosen in the image dialog and via right click.',
         filter: 'Filter …',
+        lists: 'Lists', listsHint: 'Numbering is rendered by the browser. List styles are classes – the CSS has to exist on the website (and for the preview in the editor).',
+        listTypes: 'Numbering of ordered lists', listStyles: 'List styles', listFor: 'applies to', listBoth: 'both', listOl: 'numbered', listUl: 'bullets',
+        listPresets: 'Presets with CSS', addPreset: 'add',
+        linkStyles: 'Link styles', linkStylesHint: 'Classes for links, e.g. “as button” – chosen in the link dialog, the link bar and via right click.',
         records: 'Link records (YForm)', recordsHint: 'The link dialog offers these tables. Where the link leads is set under Settings.', recordsNone: 'YForm is not installed.',
         chars: 'Special characters', charsHint: 'Separated by spaces. NBSP = non-breaking space, SHY = soft hyphen.',
         editor: 'Editor', minHeight: 'Minimum height (px)', maxHeight: 'Maximum height (px, 0 = none)', placeholder: 'Placeholder',
@@ -463,6 +471,13 @@ class Builder {
             section(t('links'), null,
                 check('link.internal', t('linkInternal')), check('link.media', t('linkMedia')), check('link.external', t('linkExternal')),
                 check('link.mailto', t('linkMailto')), check('link.tel', t('linkTel')), check('link.targetBlank', t('linkBlank'))),
+            section(t('lists'), t('listsHint'),
+                el('h4', {text: t('listTypes')}),
+                this.checkList('listTypes', [['1', '1, 2, 3'], ['a', 'a, b, c'], ['A', 'A, B, C'], ['i', 'i, ii, iii'], ['I', 'I, II, III']]),
+                el('h4', {text: t('listStyles')}),
+                this.styleList('listStyles', false, true),
+                this.listPresets()),
+            section(t('linkStyles'), t('linkStylesHint'), this.styleList('linkStyles', false)),
             section(t('records'), t('recordsHint'), this.checkList('link.records', Object.entries(this.recordTables).map(([name, label]) => [name, label + ' (' + name + ')']), t('recordsNone'))),
             section(t('images'), null,
                 field(t('imageTypes'), el('input', {type: 'text', className: 'rex-input', value: (c.image?.types ?? []).join(', '), oninput: e => set('image.types', e.target.value.split(/[\s,]+/).filter(Boolean))})),
@@ -532,7 +547,28 @@ class Builder {
         this.defaultTypeField?.replaceChildren(...(types.length ? [el('div', {className: 'tt-b-field'}, el('label', {for: 'tt-b-default-type', text: t('mediaTypeDefault')}), select)] : []));
     }
 
-    styleList(key, block) {
+    /** Vorlagen für Listenformate – Klasse übernehmen, CSS zum Kopieren */
+    listPresets() {
+        const presets = [
+            {label: 'Gegliedert (1.1, 1.2)', class: 'list-outline', list: 'ol', css: 'ol.list-outline, ol.list-outline ol { counter-reset: item; list-style: none; }\nol.list-outline li { counter-increment: item; }\nol.list-outline li::before { content: counters(item, ".") ". "; font-variant-numeric: tabular-nums; }'},
+            {label: 'Häkchen', class: 'list-check', list: 'ul', css: 'ul.list-check { list-style: none; padding-left: 1.6em; }\nul.list-check > li::before { content: "✓"; margin-left: -1.4em; width: 1.4em; display: inline-block; color: currentColor; }'},
+            {label: 'Ohne Zeichen', class: 'list-plain', list: 'both', css: '.list-plain { list-style: none; padding-left: 0; }'},
+        ];
+        return el('details', {className: 'tt-b-details'}, el('summary', {text: t('listPresets')}),
+            ...presets.map(p => el('div', {className: 'tt-b-preset'},
+                el('div', {className: 'tt-b-preset-head'}, el('strong', {text: p.label}), el('code', {text: p.class}),
+                    el('button', {type: 'button', className: 'rex-button', 'data-size': 'sm', text: t('addPreset'), onclick: () => {
+                        const list = this.config.listStyles ??= [];
+                        if (!list.some(s => s.class === p.class)) {
+                            list.push({label: p.label, class: p.class, list: p.list});
+                            this.listStylesRedraw?.();
+                            this.changed();
+                        }
+                    }})),
+                el('pre', {className: 'tt-b-output', text: p.css}))));
+    }
+
+    styleList(key, block, listKind = false) {
         const wrap = el('div', {className: 'tt-b-styles'});
         const elements = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'table'];
         const draw = () => {
@@ -556,6 +592,10 @@ class Builder {
                         style.element = e.target.value;
                         this.changed();
                     }}, ...elements.map(name => el('option', {value: name, text: '<' + name + '>', selected: (style.element ?? 'p') === name}))) : null,
+                    listKind ? el('select', {className: 'rex-input', 'aria-label': t('listFor'), onchange: e => {
+                        style.list = e.target.value;
+                        this.changed();
+                    }}, ...[['both', t('listBoth')], ['ol', t('listOl')], ['ul', t('listUl')]].map(([v, l]) => el('option', {value: v, text: l, selected: (style.list ?? 'both') === v}))) : null,
                     this.smallButton('trash', t('remove'), () => {
                         list.splice(i, 1);
                         draw();
@@ -563,7 +603,7 @@ class Builder {
                     }),
                 )),
                 el('button', {type: 'button', className: 'rex-button', 'data-size': 'sm', onclick: () => {
-                    list.push(block ? {label: '', class: '', element: 'p'} : {label: '', class: ''});
+                    list.push(block ? {label: '', class: '', element: 'p'} : (listKind ? {label: '', class: '', list: 'both'} : {label: '', class: ''}));
                     draw();
                     this.changed();
                     wrap.querySelectorAll('.tt-b-style input')[list.length * 2 - 2]?.focus();
@@ -571,6 +611,9 @@ class Builder {
             );
         };
         draw();
+        if (listKind) {
+            this.listStylesRedraw = draw;
+        }
         return wrap;
     }
 

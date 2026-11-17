@@ -23,4 +23,6 @@ Erste Fassung für REDAXO 6.
 - Link-Leiste (Bubble) mit lesbarem Ziel (Seite, Datensatz, Datei …), Bearbeiten, Öffnen, Entfernen
 - Kontextmenüs für Links, Listen, Überschriften, Zitate, Codeblöcke und Trennlinien; Vorschau im Builder wie
   der echte Editor (Datensätze, Mediamanager)
+- Listen: Zählweise je Ebene (1, a, A, i, I über `type`), Startnummer, Listenformate (Klassen) mit Vorlagen
+- Linkformate (z. B. „Als Button“) in Link-Dialog, Link-Leiste und Kontextmenü
 - Erweiterungs-API für andere AddOns (`Tiptap::register()`, `RexTiptap.register()`), Ereignisse
