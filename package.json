@@ -1,0 +1,26 @@
+{
+  "name": "redaxo-tiptap",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.32.2",
+    "@tiptap/extension-highlight": "3.32.2",
+    "@tiptap/extension-image": "3.32.2",
+    "@tiptap/extension-list": "3.32.2",
+    "@tiptap/extension-subscript": "3.32.2",
+    "@tiptap/extension-superscript": "3.32.2",
+    "@tiptap/extension-table": "3.32.2",
+    "@tiptap/extensions": "3.32.2",
+    "@tiptap/markdown": "3.32.2",
+    "@tiptap/pm": "3.32.2",
+    "@tiptap/starter-kit": "3.32.2",
+    "lucide": "1.66.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

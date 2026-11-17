@@ -1,0 +1,161 @@
+<?php
+
+namespace FriendsOfRedaxo\Tiptap;
+
+use Redaxo\Core\Core;
+use Redaxo\Core\Filesystem\Url;
+use Redaxo\Core\Http\Response;
+use Redaxo\Core\View\HtmlAttributes;
+
+use function in_array;
+use function json_encode;
+use function mb_substr;
+use function Redaxo\Core\View\escape;
+
+use const JSON_HEX_AMP;
+use const JSON_HEX_APOS;
+use const JSON_HEX_QUOT;
+use const JSON_HEX_TAG;
+use const JSON_THROW_ON_ERROR;
+use const JSON_UNESCAPED_SLASHES;
+use const JSON_UNESCAPED_UNICODE;
+
+/**
+ * Öffentliche Schnittstelle des AddOns.
+ *
+ *     // Ausgabe im Modul/Template (Markdown → HTML, bereinigt, interne Links aufgelöst)
+ *     echo Tiptap::render($this->text, 'default');
+ *
+ *     // Frontend-Formular (z. B. für Gäste)
+ *     echo Tiptap::assets();
+ *     echo Tiptap::editor('comment', $value, 'guest');
+ *     $clean = Tiptap::sanitize(Request::post('comment', 'string'), 'guest');
+ */
+final class Tiptap
+{
+    private const int JSON_ATTR = JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
+
+    /** Frontend-Assets schon ausgegeben */
+    private static bool $assetsDone = false;
+
+    /** Erweiterung eines anderen AddOns anmelden – in dessen boot() */
+    public static function register(Plugin $plugin): void
+    {
+        Registry::addPlugin($plugin);
+    }
+
+    public static function profile(string|Profile|null $profile = null): Profile
+    {
+        return $profile instanceof Profile ? $profile : Profiles::getOrDefault($profile);
+    }
+
+    /** Gespeicherten Inhalt ausgeben: HTML bereinigt, Markdown umgewandelt, `redaxo://ID` aufgelöst */
+    public static function render(?string $value, string|Profile|null $profile = null): string
+    {
+        return Output::render($value, self::profile($profile));
+    }
+
+    /**
+     * Eingabe bereinigen, bevor sie gespeichert wird (Frontend!). HTML-Profile: nur erlaubte Elemente/Klassen;
+     * Markdown-Profile: unverändert (wird bei der Ausgabe bereinigt), auf maxLength gekürzt.
+     */
+    public static function sanitize(?string $value, string|Profile|null $profile = null): string
+    {
+        $profile = self::profile($profile);
+        $value = (string) $value;
+        if (Mode::Markdown === $profile->mode) {
+            $max = $profile->config['maxLength'];
+
+            return $max > 0 ? mb_substr($value, 0, $max * 2) : $value;
+        }
+
+        return Sanitizer::clean($value, $profile);
+    }
+
+    /**
+     * Editor-Element mit Textarea – für eigene Formulare im Frontend oder Backend.
+     *
+     * @param array<literal-string, string|int|bool|null> $attributes zusätzliche Attribute der Textarea
+     */
+    public static function editor(string $name, ?string $value, string|Profile|null $profile = null, array $attributes = []): string
+    {
+        $profile = self::profile($profile);
+
+        return '<rex-tiptap ' . new HtmlAttributes(['data-config' => self::configJson($profile)]) . '>'
+            . '<textarea ' . new HtmlAttributes(['class' => ['rex-input', 'rex-tiptap-source'], 'name' => $name] + $attributes) . '>'
+            . escape((string) $value) . '</textarea></rex-tiptap>';
+    }
+
+    /** Einstellungen eines Profils als JSON für `data-config` */
+    public static function configJson(Profile $profile): string
+    {
+        return json_encode(self::clientConfig($profile), self::JSON_ATTR);
+    }
+
+    /** @return array<string, mixed> */
+    public static function clientConfig(Profile $profile): array
+    {
+        $config = $profile->clientConfig();
+        $config['backend'] = Core::isBackend() && null !== Core::getUser();
+        $config['mediaUrl'] = Url::media();
+        if (!$config['backend']) {
+            // Im Frontend gibt es weder Linkmap noch Medienpool
+            $config['link']['internal'] = false;
+            $config['link']['media'] = false;
+        }
+
+        return $config;
+    }
+
+    /**
+     * Skripte und Stile für das Frontend (einmal je Seite). Im Backend lädt das AddOn sie selbst.
+     *
+     * @param bool $withProfiles Einstellungen aller Profile mitschicken – nötig für `<textarea data-tiptap="name">`
+     */
+    public static function assets(bool $withProfiles = false): string
+    {
+        if (self::$assetsDone) {
+            return '';
+        }
+        self::$assetsDone = true;
+        $addon = TiptapAddon::instance();
+        $nonce = escape(Response::getNonce());
+
+        $html = '<link rel="stylesheet" href="' . escape($addon->assetUrl('tiptap.css')) . '">';
+        $html .= '<script defer nonce="' . $nonce . '" src="' . escape($addon->assetUrl('tiptap-loader.js')) . '"></script>';
+        foreach (Registry::plugins() as $plugin) {
+            if (!$plugin->frontend) {
+                continue;
+            }
+            if ($plugin->style) {
+                $html .= '<link rel="stylesheet" href="' . escape($plugin->style) . '">';
+            }
+            if ($plugin->script) {
+                $html .= '<script defer nonce="' . $nonce . '" src="' . escape($plugin->script) . '"></script>';
+            }
+        }
+        if ($withProfiles) {
+            $html .= self::profilesScript();
+        }
+
+        return $html;
+    }
+
+    /**
+     * Alle Profile als JSON-Block (für `textarea[data-tiptap]`, z. B. in YForm-Formularen).
+     *
+     * @param list<string>|null $names nur diese Profile
+     */
+    public static function profilesScript(?array $names = null): string
+    {
+        $profiles = [];
+        foreach (Profiles::all() as $profile) {
+            if (null === $names || in_array($profile->name, $names, true)) {
+                $profiles[$profile->name] = self::clientConfig($profile);
+            }
+        }
+
+        // type=application/json wird nicht ausgeführt, die CSP greift hier nicht
+        return '<script type="application/json" id="rex-tiptap-profiles">' . json_encode($profiles, self::JSON_ATTR) . '</script>';
+    }
+}

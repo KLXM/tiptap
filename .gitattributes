@@ -1,0 +1,6 @@
+/resources export-ignore
+/node_modules export-ignore
+/tests export-ignore
+/build.mjs export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
