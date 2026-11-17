@@ -896,6 +896,8 @@ export class RexTiptapEditor {
         const attrs = editor.getAttributes('link');
         const editing = editor.isActive('link');
         const empty = editor.state.selection.empty && !editing;
+        // Markierung merken: Linkmap und Medienpool nehmen dem Editor den Fokus
+        const {from, to} = editor.state.selection;
 
         const url = el('input', {type: 'text', className: 'rex-input', value: attrs.href ?? '', placeholder: link.external ? 'https://' : '', autocomplete: 'off', spellcheck: 'false'});
         const text = el('input', {type: 'text', className: 'rex-input'});
@@ -1050,21 +1052,21 @@ export class RexTiptapEditor {
         }
 
         const extra = editing ? [el('button', {type: 'button', className: 'rex-tiptap-dialog-button is-danger', text: t('remove'), onclick: () => {
-            editor.chain().focus().extendMarkRange('link').unsetLink().run();
+            editor.chain().focus().setTextSelection({from, to}).extendMarkRange('link').unsetLink().run();
             this.dialog?.close();
         }})] : [];
 
         this.openDialog(editing ? t('linkEdit') : t('linkTitle'), fields, () => {
             const href = normalizeUrl(url.value);
             if (!href) {
-                editor.chain().focus().extendMarkRange('link').unsetLink().run();
+                editor.chain().focus().setTextSelection({from, to}).extendMarkRange('link').unsetLink().run();
                 return;
             }
             if (!allowedUrl(href, link)) {
                 return t('linkInvalid');
             }
             const markAttrs = {href, target: link.targetBlank && blank.checked ? '_blank' : null, rel: link.targetBlank && blank.checked ? 'noopener' : null, class: style?.value || null};
-            const c = editor.chain().focus();
+            const c = editor.chain().focus().setTextSelection({from, to});
             if (empty) {
                 c.insertContent({type: 'text', text: text.value || href, marks: [{type: 'link', attrs: markAttrs}]}).run();
             } else {
@@ -1077,6 +1079,9 @@ export class RexTiptapEditor {
         const {editor, config} = this;
         const attrs = editor.isActive('image') ? editor.getAttributes('image') : {};
         const image = config.image;
+        // Stelle merken (der Medienpool nimmt dem Editor den Fokus); ein gewähltes Bild bleibt gewählt
+        const selection = editor.state.selection;
+        const restore = chain => attrs.src ? chain.setNodeSelection(selection.from) : chain.setTextSelection({from: selection.from, to: selection.to});
         const pick = config.backend && window.rex?.pick;
         let media = attrs.media ?? null;
 
@@ -1141,7 +1146,7 @@ export class RexTiptapEditor {
             if (!media && /^(https?:)?\/\//i.test(value) && !image.external) {
                 return t('linkInvalid');
             }
-            editor.chain().focus().setImage({
+            restore(editor.chain().focus()).setImage({
                 src: value,
                 alt: alt.value.trim(),
                 title: title.value.trim() || null,

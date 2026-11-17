@@ -251,6 +251,7 @@
 }
 
 .tt-b-tool {
+    user-select: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -265,7 +266,12 @@
     cursor: pointer;
 }
 
-.tt-b-tool:hover:not(:disabled) {
+.tt-b-tool:focus-visible {
+    outline: 2px solid var(--rex-color-focus);
+    outline-offset: 1px;
+}
+
+.tt-b-tool:hover:not([aria-disabled="true"]) {
     border-color: var(--rex-color-accent);
     background: var(--rex-color-accent-subtle);
 }
@@ -281,7 +287,7 @@
     font-weight: 700;
 }
 
-.tt-b-tool:disabled {
+.tt-b-tool[aria-disabled="true"] {
     opacity: .4;
     cursor: not-allowed;
 }

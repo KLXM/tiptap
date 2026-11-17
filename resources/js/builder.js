@@ -291,6 +291,8 @@ class Builder {
                 return;
             }
             e.preventDefault();
+            // passend zu effectAllowed, sonst verwirft der Browser den Drop
+            e.dataTransfer.dropEffect = this.drag.from ? 'move' : 'copy';
             groupEl.classList.add('is-over');
             const pos = this.dropPosition(groupEl, e.clientX, e.clientY);
             groupEl.querySelectorAll('.tt-b-chip').forEach((c, i) => {
@@ -409,13 +411,21 @@ class Builder {
             el('h5', {text: category.label}),
             el('div', {className: 'tt-b-category-items'}, ...category.items.map(item => {
                 const unavailable = markdown && !item.markdown;
-                const button = el('button', {
-                    type: 'button',
+                // kein <button>: Browser ziehen Buttons nicht zuverlässig (Firefox gar nicht)
+                const button = el('span', {
+                    role: 'button',
+                    tabindex: unavailable ? '-1' : '0',
                     className: 'tt-b-tool' + (used.has(item.id) ? ' is-used' : ''),
                     draggable: unavailable ? null : 'true',
-                    disabled: unavailable,
+                    'aria-disabled': unavailable ? 'true' : null,
                     title: [item.description, used.has(item.id) ? t('used') : '', unavailable ? t('notMarkdown') : ''].filter(Boolean).join(' – ') || item.label,
-                    onclick: () => this.addItem(item.id),
+                    onclick: () => unavailable || this.addItem(item.id),
+                    onkeydown: e => {
+                        if (!unavailable && ('Enter' === e.key || ' ' === e.key)) {
+                            e.preventDefault();
+                            this.addItem(item.id);
+                        }
+                    },
                 }, this.icon(item.icon), el('span', {text: item.label}), item.menu ? el('i', {className: 'rex-icon fa-solid fa-caret-down tt-b-menu-mark', 'aria-hidden': 'true'}) : null);
                 button.addEventListener('dragstart', e => {
                     this.drag = {id: item.id, from: null};
