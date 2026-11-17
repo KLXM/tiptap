@@ -176,7 +176,7 @@ RexTiptap.helpers               // allowedUrl(), normalizeUrl(), BlockClass, Inl
 
 ```js
 document.addEventListener('rex-tiptap:configure', e => {
-    if ('news' === e.detail.config.name) {
+    if ('project.news' === e.detail.config.name) {
         e.detail.extensions.push(MyExtension);
     }
 });

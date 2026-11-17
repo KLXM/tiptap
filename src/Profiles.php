@@ -18,7 +18,12 @@ use function strtoupper;
 use function array_key_first;
 use function implode;
 use function is_bool;
+use function realpath;
+use function rtrim;
 use function str_repeat;
+use function str_starts_with;
+use function strlen;
+use function substr;
 use function str_replace;
 use function ucwords;
 use function array_map;
@@ -104,6 +109,24 @@ final class Profiles
         }
 
         return $profiles;
+    }
+
+    /**
+     * Woher ein Profil aus Code kommt: `project` oder der Name des AddOns – anhand des Speicherorts der Klasse.
+     *
+     * @param class-string $class
+     */
+    public static function origin(string $class): string
+    {
+        $file = (string) new \ReflectionClass($class)->getFileName();
+        foreach (\Redaxo\Core\Addon\Addon::getAll() as $addon) {
+            $path = rtrim((string) realpath($addon->path), '/') . '/';
+            if ('/' !== $path && str_starts_with((string) realpath($file), $path)) {
+                return $addon->name;
+            }
+        }
+
+        return 'project';
     }
 
     /** Gibt es ein gleichnamiges Profil in der Datenbank, das ein Profil aus Code überdeckt? */
@@ -254,7 +277,9 @@ final class Profiles
      */
     public static function toPhp(Profile $profile, string $namespace = 'Project\\Tiptap', ?string $className = null): string
     {
-        $className ??= str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $profile->name))) . 'Profile';
+        // Klassenname ohne Paket-Kennung: project.news → NewsProfile (das Paket steckt im Namespace)
+        $short = null === $profile->prefix() ? $profile->name : substr($profile->name, strlen($profile->prefix()) + 1);
+        $className ??= str_replace(' ', '', ucwords(str_replace(['-', '_', '.'], ' ', $short))) . 'Profile';
         // nur, was von den Voreinstellungen abweicht – kürzer und besser zu lesen
         $config = self::diff($profile->config, Profile::normalize([], $profile->mode));
         $config = ['toolbar' => $profile->config['toolbar']] + $config;

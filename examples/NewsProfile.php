@@ -8,9 +8,9 @@ use Override;
 
 /**
  * Beispiel: Editor-Profil als PHP-Klasse – versioniert mit dem Projekt, kein Abgleich der Datenbank zwischen Stage
- * und Live. In src/Tiptap des Projekts legen; Verwendung: #[Editor('Text', profile: 'news')].
+ * und Live. In src/Tiptap des Projekts legen; Verwendung: #[Editor('Text', profile: 'project.news')].
  */
-#[AsProfile('news', 'Meldungen', description: 'Kurztexte für Meldungen – fett, kursiv, Listen, Links auf Seiten und Datensätze.')]
+#[AsProfile('project.news', 'Meldungen', description: 'Kurztexte für Meldungen – fett, kursiv, Listen, Links auf Seiten und Datensätze.')]
 final class NewsProfile extends ProfileDefinition
 {
     #[Override]

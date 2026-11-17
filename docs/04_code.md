@@ -13,7 +13,7 @@ use Klxm\Tiptap\AsProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
 
-#[AsProfile('news', 'Meldungen', description: 'Kurztexte für Meldungen')]
+#[AsProfile('project.news', 'Meldungen', description: 'Kurztexte für Meldungen')]
 final class NewsProfile extends ProfileDefinition
 {
     #[Override]
@@ -38,9 +38,27 @@ final class NewsProfile extends ProfileDefinition
 
 Verwendet wird es wie jedes andere Profil:
 
-- im Modul mit `#[Editor('Text', profile: 'news')]`,
-- in YForm mit `Editor::new('text')->profile('news')`,
-- an einer Textarea mit `data-tiptap="news"`.
+- im Modul mit `#[Editor('Text', profile: 'project.news')]`,
+- in YForm mit `Editor::new('text')->profile('project.news')`,
+- an einer Textarea mit `data-tiptap="project.news"`.
+
+## Paket-Kennung
+
+Wie bei Modulen (`#[AsModule('fluid.layout', …)]`) trägt der Name eines Profils aus Code die Kennung seines
+Pakets vor einem Punkt:
+
+| Woher | Name |
+| --- | --- |
+| Projekt | `project.news`, `project.teaser` |
+| AddOn fluid | `fluid.text`, `fluid.hinweis` |
+| eigenes AddOn | `shop.produkt` |
+
+So kollidieren Profile verschiedener Pakete nicht, und man sieht im Code sofort, woher ein Profil kommt. Die Liste
+im Backend zeigt bei jedem Profil aus Code das Paket an, aus dem die Klasse stammt. Fehlt einem Profil aus einem
+AddOn die passende Kennung, erscheint dort ein Hinweis.
+
+Die mitgelieferten Profile `default`, `simple`, `markdown` und `guest` liegen in der Datenbank und haben keine
+Kennung. Profile ohne Kennung bleiben erlaubt, etwa für bestehende Datenbank-Profile.
 
 ## So funktioniert es
 
@@ -88,7 +106,7 @@ Einen Installationsschritt in der Datenbank braucht es nicht:
 ```php
 namespace MyAddon\Tiptap;
 
-#[AsProfile('shop', 'Shop', priority: 10)]
+#[AsProfile('shop.produkt', 'Produkttexte', priority: 10)]
 final class ShopProfile extends ProfileDefinition
 {
     public function config(): array

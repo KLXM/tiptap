@@ -171,7 +171,7 @@ if ('edit' === $func || 'add' === $func) {
         . '<div class="rex-field" data-layout="vertical"><label class="rex-field-label" for="tt-label">' . I18n::msg('tiptap_profile_label') . '</label>'
         . '<input class="rex-input" id="tt-label" name="label" required maxlength="191" value="' . escape($profile->label) . '"></div>'
         . '<div class="rex-field" data-layout="vertical"><label class="rex-field-label" for="tt-name">' . I18n::msg('tiptap_profile_name') . '</label>'
-        . '<input class="rex-input" id="tt-name" name="profile_name" required maxlength="64" pattern="[a-z0-9][a-z0-9_\-]*" value="' . escape($profile->name) . '" aria-describedby="tt-name-hint">'
+        . '<input class="rex-input" id="tt-name" name="profile_name" required maxlength="129" pattern="[a-z0-9][a-z0-9_\-]*(\.[a-z0-9][a-z0-9_\-]*)?" value="' . escape($profile->name) . '" aria-describedby="tt-name-hint">'
         . '<p id="tt-name-hint" class="rex-field-note">' . I18n::msg('tiptap_profile_name_hint') . '</p></div>'
         . '</div>'
         . '<div class="rex-field" data-layout="vertical"><label class="rex-field-label" for="tt-desc">' . I18n::msg('tiptap_profile_description') . '</label>'
@@ -250,7 +250,8 @@ foreach (Profiles::all() as $profile) {
 
     $rows .= '<tr data-name="' . escape($profile->name) . '">'
         . '<td><a href="' . $edit . '"><strong>' . escape($profile->label) . '</strong></a><br><code>' . escape($profile->name) . '</code>'
-        . ($profile->isCode() ? ' <span class="tt-profile-code" title="' . escape((string) $profile->class) . '"><i class="rex-icon fa-solid fa-code" aria-hidden="true"></i> ' . I18n::msg('tiptap_code') . '</span>' : '')
+        . ($profile->isCode() ? ' <span class="tt-profile-code" title="' . escape((string) $profile->class) . '"><i class="rex-icon fa-solid fa-code" aria-hidden="true"></i> ' . I18n::msg('tiptap_code') . ' · ' . escape($origin = Profiles::origin((string) $profile->class)) . '</span>'
+            . ('project' !== $origin && $profile->prefix() !== $origin ? '<br><small class="rex-u-text-warning">' . I18n::msg('tiptap_prefix_hint', $origin . '.' . $profile->name) . '</small>' : '') : '')
         . (Profiles::isShadowed($profile->name) ? '<br><small class="rex-u-text-warning">' . I18n::msg('tiptap_shadowed') . '</small>' : '')
         . ('' !== $profile->description ? '<br><small class="rex-u-text-muted">' . escape($profile->description) . '</small>' : '') . '</td>'
         . '<td><span class="tt-profile-mode" data-mode="' . $profile->mode->value . '">' . ($profile->mode === Mode::Markdown ? 'Markdown' : 'HTML') . '</span></td>'

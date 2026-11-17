@@ -25,7 +25,9 @@ use function mb_substr;
 use function preg_match;
 use function preg_replace;
 use function sort;
+use function strpos;
 use function strtolower;
+use function substr;
 use function trim;
 
 /**
@@ -36,7 +38,8 @@ use function trim;
  */
 final readonly class Profile
 {
-    public const string NAME_PATTERN = '/^[a-z0-9][a-z0-9_-]{0,63}$/';
+    /** Name mit optionaler Paket-Kennung, z. B. `default`, `project.news`, `fluid.text` */
+    public const string NAME_PATTERN = '/^[a-z0-9][a-z0-9_-]{0,63}(\.[a-z0-9][a-z0-9_-]{0,63})?$/';
 
     /** Voreinstellungen eines leeren Profils */
     public const array DEFAULTS = [
@@ -116,6 +119,14 @@ final readonly class Profile
     public function withName(string $name, ?string $label = null): self
     {
         return new self($name, $label ?? $this->label, $this->mode, $this->description, $this->config);
+    }
+
+    /** Paket-Kennung aus dem Namen (`fluid` bei `fluid.text`), null ohne Kennung */
+    public function prefix(): ?string
+    {
+        $pos = strpos($this->name, '.');
+
+        return false === $pos ? null : substr($this->name, 0, $pos);
     }
 
     /** Kommt das Profil aus einer PHP-Klasse (schreibgeschützt im Backend)? */
