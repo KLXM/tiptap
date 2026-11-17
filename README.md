@@ -1,18 +1,49 @@
-# TipTap editor for REDAXO 6
+![TipTap for REDAXO 6](docs/images/hero.png)
 
-An addon by [KLXM Crossmedia](https://klxm.de).
+# TipTap for REDAXO 6
 
-WYSIWYG and Markdown editor based on [TipTap](https://tiptap.dev) (ProseMirror) for REDAXO 6 – in the backend, in
-collections and in the frontend.
+WYSIWYG and Markdown editor for REDAXO 6 based on [TipTap](https://tiptap.dev) (ProseMirror). It runs in the
+backend, in collections and in the frontend.
+An addon by [KLXM Crossmedia](https://klxm.de). · [Deutsch](README.de.md)
 
-- **Profiles as PHP classes** (`#[AsProfile]`): versioned with the project, no database sync between stage and live
-- **Profiles without code:** toolbar builder with groups, menus and icons, live preview, JSON import/export
-- **HTML or Markdown** per profile
-- **REDAXO integration:** linkmap (`redaxo://ID`), media pool for links and images
-- **Collections/repeaters:** web component `<rex-tiptap>`, starts on new items by itself, survives reordering
-- **Frontend and guests:** standalone bundle, server-side sanitizing per profile
-- **CSP-safe:** no `style` attributes, no inline scripts – alignment and styles are classes
-- **Extensible:** custom tools, TipTap extensions, icons and texts from other addons
+![Editor with heading, list, button link, image and table](docs/images/editor.png)
+
+## Features
+
+- **Markdown or HTML** per profile. The source view is highlighted: Markdown looks like formatted text, HTML gets
+  syntax highlighting.
+- **Profiles without code:** a builder arranges the toolbar in groups by click or drag & drop, with menus, icons
+  and a live preview. Import and export use JSON.
+- **Profiles as PHP classes** (`#[AsProfile('tiptap.news', …)]`): versioned with the project, no database sync
+  between stage and live.
+- **REDAXO integration:**
+  - Pages from the linkmap (`redaxo://ID`).
+  - Files and images from the media pool, with media manager types.
+  - Links to YForm records.
+- **Styles as CSS classes:** block, text, link (e.g. “as button”), image and list styles as well as alignment.
+  No `style` attributes, so the Content Security Policy holds.
+- **Lists:** numbering per level (1, a, A, i, I), start number, outline numbering (1.1, 1.2) via preset.
+- **Context menus** for tables, lists, images, links and headings, plus a **link bar** showing the target in plain
+  words.
+- **Collections and repeaters:** the web component `<rex-tiptap>` starts on new items by itself and survives
+  reordering.
+- **Frontend and guests:** a standalone bundle that loads itself when needed. Input is sanitized on the server per
+  profile.
+- **Extensible:** other addons register tools, TipTap extensions, context menu entries, icons and texts.
+
+## Screenshots
+
+| Profile builder | Settings and preview |
+| --- | --- |
+| ![Toolbar builder](docs/images/builder.png) | ![Settings and live preview](docs/images/builder-settings.png) |
+
+| Right click in a list | Right click in a table |
+| --- | --- |
+| ![List context menu](docs/images/list-menu.png) | ![Table context menu](docs/images/context-menu.png) |
+
+| Link bar | Highlighted Markdown |
+| --- | --- |
+| ![Link bar](docs/images/link-bubble.png) | ![Markdown source](docs/images/source-markdown.png) |
 
 ## Installation
 
@@ -20,6 +51,9 @@ collections and in the frontend.
 composer require klxm/tiptap
 php bin/console migrate
 ```
+
+Built-in profiles: `tiptap.default`, `tiptap.simple`, `tiptap.markdown` and `tiptap.guest`. They can be customized
+in the backend and reset at any time.
 
 ## Quick start
 
@@ -36,9 +70,10 @@ public function output(): string
 }
 ```
 
-YForm 6: `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('tiptap.simple');`  
-Any textarea: `<textarea data-tiptap="simple">`  
-Frontend: `echo Tiptap::editor('message', $value, 'tiptap.guest');` and on submit `Tiptap::sanitize(…, 'tiptap.guest')`.
+- **YForm 6:** `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('tiptap.simple');`
+- **Any textarea:** `<textarea data-tiptap="tiptap.simple">`
+- **Frontend:** `echo Tiptap::editor('message', $value, 'tiptap.guest');` and on submit
+  `Tiptap::sanitize(…, 'tiptap.guest')`.
 
 The documentation (German) is in the backend under **TipTap editor → Docs** and in [`docs/`](docs/).
 
@@ -51,4 +86,5 @@ npm run build
 
 ## License
 
-MIT. Bundles TipTap/ProseMirror (MIT), CodeMirror/Lezer (MIT), marked (MIT), linkifyjs (MIT) and Lucide icons (ISC).
+MIT, © KLXM Crossmedia GmbH. Bundles TipTap/ProseMirror (MIT), CodeMirror/Lezer (MIT), marked (MIT), linkifyjs (MIT)
+and Lucide icons (ISC).

@@ -4,3 +4,4 @@
 /build.mjs export-ignore
 /package.json export-ignore
 /package-lock.json export-ignore
+/docs/images export-ignore

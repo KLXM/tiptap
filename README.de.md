@@ -1,19 +1,54 @@
-# TipTap-Editor für REDAXO 6
+![TipTap for REDAXO 6](docs/images/hero.png)
 
-Ein AddOn von [KLXM Crossmedia](https://klxm.de).
+# TipTap for REDAXO 6
 
-WYSIWYG- und Markdown-Editor auf Basis von [TipTap](https://tiptap.dev) (ProseMirror) für REDAXO 6 – im Backend,
-in Collections und im Frontend.
+WYSIWYG- und Markdown-Editor für REDAXO 6 auf Basis von [TipTap](https://tiptap.dev) (ProseMirror). Er läuft im
+Backend, in Collections und im Frontend.
+Ein AddOn von [KLXM Crossmedia](https://klxm.de). · [English](README.md)
 
-- **Profile als PHP-Klassen** (`#[AsProfile('tiptap.news', …)]`): versioniert mit dem Projekt, kein Abgleich der Datenbank zwischen Stage und Live
-- **Profile ohne Code:** Toolbar-Builder mit Gruppen, Menüs und Symbolen, Live-Vorschau, Import/Export als JSON
-- **HTML oder Markdown** je Profil
-- **REDAXO-Anbindung:** Linkmap (`redaxo://ID`), Medienpool für Links und Bilder
-- **Collections/Repeater:** Web Component `<rex-tiptap>`, startet bei neuen Einträgen von selbst, übersteht Sortieren
-- **Frontend und Gäste:** eigenes Bundle ohne Backend-Abhängigkeit, serverseitige Bereinigung je Profil
-- **CSP-fest:** keine `style`-Attribute, keine Inline-Skripte – Ausrichtung und Formate als Klassen
-- **Erweiterbar:** eigene Werkzeuge, TipTap-Erweiterungen, Symbole und Texte aus anderen AddOns
-- **Barrierearm:** Toolbar mit Pfeiltasten (roving tabindex), Menüs mit ARIA-Rollen, Dialoge als `<dialog>`
+![Editor mit Überschrift, Liste, Button-Link, Bild und Tabelle](docs/images/editor.png)
+
+## Was das AddOn kann
+
+- **Markdown oder HTML** je Profil. Der Quelltext ist ausgezeichnet: Markdown sieht aus wie formatierter Text,
+  HTML bekommt Syntax-Hervorhebung.
+- **Profile ohne Code:** Ein Builder stellt die Toolbar per Klick oder Drag & Drop in Gruppen zusammen, mit Menüs,
+  Symbolen und Live-Vorschau. Import und Export laufen über JSON.
+- **Profile als PHP-Klassen** (`#[AsProfile('tiptap.news', …)]`): versioniert mit dem Projekt, ohne Abgleich der
+  Datenbank zwischen Stage und Live.
+- **REDAXO-Anbindung:**
+  - Seiten aus der Linkmap (`redaxo://ID`).
+  - Dateien und Bilder aus dem Medienpool, mit Mediamanager-Typ.
+  - Links auf YForm-Datensätze.
+- **Formate als CSS-Klassen:** Block-, Text-, Link- (z. B. „Als Button“), Bild- und Listenformate sowie die
+  Ausrichtung. Es entstehen keine `style`-Attribute, das hält die Content-Security-Policy ein.
+- **Listen:** Zählweise je Ebene (1, a, A, i, I), Startnummer, gegliedert (1.1, 1.2) per Vorlage.
+- **Kontextmenüs** für Tabellen, Listen, Bilder, Links und Überschriften. Dazu kommt eine **Link-Leiste**, die das
+  Ziel lesbar anzeigt.
+- **Collections und Repeater:** Das Web Component `<rex-tiptap>` startet bei neuen Einträgen von selbst und bleibt
+  beim Sortieren erhalten.
+- **Frontend und Gäste:** eigenes Bundle, das sich bei Bedarf selbst lädt. Eingaben werden auf dem Server nach dem
+  Profil bereinigt.
+- **Erweiterbar:** andere AddOns melden Werkzeuge, TipTap-Erweiterungen, Kontextmenü-Einträge, Symbole und Texte
+  an.
+
+## Bilder
+
+| Profil-Builder | Einstellungen und Vorschau |
+| --- | --- |
+| ![Toolbar-Builder mit Gruppen und Werkzeugen](docs/images/builder.png) | ![Einstellungen und Live-Vorschau](docs/images/builder-settings.png) |
+
+| Rechtsklick in eine Liste | Rechtsklick in eine Tabelle |
+| --- | --- |
+| ![Kontextmenü einer Liste](docs/images/list-menu.png) | ![Kontextmenü einer Tabelle](docs/images/context-menu.png) |
+
+| Link-Leiste | Markdown, ausgezeichnet |
+| --- | --- |
+| ![Link-Leiste mit lesbarem Ziel](docs/images/link-bubble.png) | ![Markdown-Quelltext mit Auszeichnung](docs/images/source-markdown.png) |
+
+| HTML-Quelltext | Profile aus Code, mitgeliefert, Datenbank |
+| --- | --- |
+| ![HTML-Quelltext mit Hervorhebung](docs/images/source-html.png) | ![Profilliste](docs/images/profiles.png) |
 
 ## Installation
 
@@ -22,8 +57,8 @@ composer require klxm/tiptap
 php bin/console migrate
 ```
 
-`migrate` legt die Tabelle `rex_tiptap_profile` an, für Profile, die im Backend angelegt werden. Die mitgelieferten
-Profile `tiptap.default`, `tiptap.simple`, `tiptap.markdown` und `tiptap.guest` sind Klassen im AddOn.
+Mitgeliefert sind die Profile `tiptap.default`, `tiptap.simple`, `tiptap.markdown` und `tiptap.guest`. Sie lassen
+sich im Backend anpassen und jederzeit zurücksetzen.
 
 ## Kurz
 
@@ -40,15 +75,34 @@ public function output(): string
 }
 ```
 
-YForm 6: `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('tiptap.simple');`  
-Beliebige Textarea: `<textarea data-tiptap="simple">`  
-Frontend: `echo Tiptap::editor('nachricht', $value, 'tiptap.guest');` und beim Absenden `Tiptap::sanitize(…, 'tiptap.guest')`.
+- **YForm 6:** `yield \Klxm\Tiptap\YForm\Editor::new('text')->profile('tiptap.simple');`
+- **Beliebige Textarea:** `<textarea data-tiptap="tiptap.simple">`
+- **Frontend:** `echo Tiptap::editor('nachricht', $value, 'tiptap.guest');` und beim Absenden
+  `Tiptap::sanitize(…, 'tiptap.guest')`.
+
+Ein Profil als Klasse im Projekt:
+
+```php
+#[AsProfile('tiptap.news', 'Meldungen')]
+final class NewsProfile extends ProfileDefinition
+{
+    public function config(): array
+    {
+        return ['toolbar' => [['bold', 'italic'], ['bulletList', 'orderedList'], ['link', 'unlink']]];
+    }
+}
+```
 
 ## Doku
 
-Im Backend unter **TipTap-Editor → Doku** oder in [`docs/`](docs/):
-[Einstieg](docs/01_start.md) · [Verwendung](docs/02_usage.md) · [Profile](docs/03_profiles.md) ·
-[Profile als PHP-Klassen](docs/04_code.md) · [Für Entwickler](docs/05_developer.md) · [Sicherheit](docs/06_security.md)
+Die Doku steht im Backend unter **TipTap-Editor → Doku** und in [`docs/`](docs/):
+
+- [Einstieg](docs/01_start.md)
+- [Verwendung](docs/02_usage.md)
+- [Profile](docs/03_profiles.md)
+- [Profile als PHP-Klassen](docs/04_code.md)
+- [Für Entwickler](docs/05_developer.md)
+- [Sicherheit](docs/06_security.md)
 
 ## Entwicklung
 
@@ -57,8 +111,10 @@ npm install
 npm run build   # oder: npm run watch
 ```
 
-Quellen in `resources/js/`, das Ergebnis in `assets/` wird eingecheckt (Composer-Nutzer brauchen kein npm).
+Die Quellen liegen in `resources/js/`. Das Ergebnis in `assets/` wird eingecheckt, damit Composer-Nutzer kein npm
+brauchen. CodeMirror für die Quelltext-Ansicht wird erst beim Öffnen nachgeladen (`assets/chunks/`).
 
 ## Lizenz
 
-MIT. Enthält TipTap/ProseMirror (MIT), CodeMirror/Lezer (MIT), marked (MIT), linkifyjs (MIT) und Lucide-Symbole (ISC).
+MIT, © KLXM Crossmedia GmbH. Enthält TipTap/ProseMirror (MIT), CodeMirror/Lezer (MIT), marked (MIT), linkifyjs (MIT)
+und Lucide-Symbole (ISC).
