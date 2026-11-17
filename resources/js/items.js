@@ -47,6 +47,28 @@ function alignItem(side) {
     };
 }
 
+/** Bearbeiten einer Tabelle: Menü der Toolbar und Kontextmenü */
+function tableEntries(editor) {
+    const c = () => editor.chain().focus();
+    const can = () => editor.can().chain().focus();
+    return [
+        {label: t('tableRowBefore'), icon: 'rowBefore', enabled: () => can().addRowBefore().run(), run: () => c().addRowBefore().run()},
+        {label: t('tableRowAfter'), icon: 'rowAfter', enabled: () => can().addRowAfter().run(), run: () => c().addRowAfter().run()},
+        {label: t('tableRowDelete'), icon: 'rows', enabled: () => can().deleteRow().run(), run: () => c().deleteRow().run()},
+        {separator: true},
+        {label: t('tableColBefore'), icon: 'colBefore', enabled: () => can().addColumnBefore().run(), run: () => c().addColumnBefore().run()},
+        {label: t('tableColAfter'), icon: 'colAfter', enabled: () => can().addColumnAfter().run(), run: () => c().addColumnAfter().run()},
+        {label: t('tableColDelete'), icon: 'columns', enabled: () => can().deleteColumn().run(), run: () => c().deleteColumn().run()},
+        {separator: true},
+        {label: t('tableHeaderRow'), icon: 'table', enabled: () => can().toggleHeaderRow().run(), run: () => c().toggleHeaderRow().run()},
+        {label: t('tableHeaderCol'), icon: 'columns', enabled: () => can().toggleHeaderColumn().run(), run: () => c().toggleHeaderColumn().run()},
+        {label: t('tableMerge'), icon: 'merge', enabled: () => can().mergeCells().run(), run: () => c().mergeCells().run()},
+        {label: t('tableSplit'), icon: 'split', enabled: () => can().splitCell().run(), run: () => c().splitCell().run()},
+        {separator: true},
+        {label: t('tableDelete'), icon: 'trash', danger: true, enabled: () => can().deleteTable().run(), run: () => c().deleteTable().run()},
+    ];
+}
+
 export const builtinItems = {
     undo: {label: t('undo'), icon: 'undo', run: ({editor}) => chain(editor).undo().run(), enabled: ({editor}) => editor.can().undo()},
     redo: {label: t('redo'), icon: 'redo', run: ({editor}) => chain(editor).redo().run(), enabled: ({editor}) => editor.can().redo()},
@@ -186,28 +208,13 @@ export const builtinItems = {
         label: t('table'),
         icon: 'table',
         active: ({editor}) => editor.isActive('table'),
-        menu: ({editor}) => {
-            const c = () => editor.chain().focus();
-            const can = () => editor.can().chain().focus();
-            const inTable = () => editor.isActive('table');
-            return [
-                {label: t('tableInsert'), icon: 'plus', enabled: () => !inTable(), run: () => c().insertTable({rows: 3, cols: 3, withHeaderRow: true}).run()},
-                {separator: true},
-                {label: t('tableRowBefore'), icon: 'rowBefore', enabled: () => can().addRowBefore().run(), run: () => c().addRowBefore().run()},
-                {label: t('tableRowAfter'), icon: 'rowAfter', enabled: () => can().addRowAfter().run(), run: () => c().addRowAfter().run()},
-                {label: t('tableRowDelete'), icon: 'rows', enabled: () => can().deleteRow().run(), run: () => c().deleteRow().run()},
-                {separator: true},
-                {label: t('tableColBefore'), icon: 'colBefore', enabled: () => can().addColumnBefore().run(), run: () => c().addColumnBefore().run()},
-                {label: t('tableColAfter'), icon: 'colAfter', enabled: () => can().addColumnAfter().run(), run: () => c().addColumnAfter().run()},
-                {label: t('tableColDelete'), icon: 'columns', enabled: () => can().deleteColumn().run(), run: () => c().deleteColumn().run()},
-                {separator: true},
-                {label: t('tableHeaderRow'), icon: 'table', enabled: () => can().toggleHeaderRow().run(), run: () => c().toggleHeaderRow().run()},
-                {label: t('tableMerge'), icon: 'merge', enabled: () => can().mergeCells().run(), run: () => c().mergeCells().run()},
-                {label: t('tableSplit'), icon: 'split', enabled: () => can().splitCell().run(), run: () => c().splitCell().run()},
-                {separator: true},
-                {label: t('tableDelete'), icon: 'trash', danger: true, enabled: () => can().deleteTable().run(), run: () => c().deleteTable().run()},
-            ];
-        },
+        menu: ({editor}) => [
+            {label: t('tableInsert'), icon: 'plus', enabled: () => !editor.isActive('table'), run: () => editor.chain().focus().insertTable({rows: 3, cols: 3, withHeaderRow: true}).run()},
+            {separator: true},
+            ...tableEntries(editor),
+        ],
+        // Rechtsklick in eine Zelle
+        context: ({editor}) => editor.isActive('table') ? tableEntries(editor) : null,
     },
     specialChars: {
         label: t('specialChars'),

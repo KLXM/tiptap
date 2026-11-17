@@ -13,4 +13,5 @@ Erste Fassung für REDAXO 6.
   Ausrichtung als Klassen, Quelltext, Vollbild, Zeichenzähler und -limit
 - Frontend: eigenes Bundle, lädt sich bei Bedarf selbst; Profil `guest` für Besucher
 - Serverseitige Bereinigung je Profil (`Tiptap::sanitize()`, `Tiptap::render()`), interne Links per OUTPUT_FILTER
+- Kontextmenü (Rechtsklick, Kontextmenü-Taste, Umschalt + F10) – für Tabellen eingebaut, für eigene Werkzeuge über `context()`
 - Erweiterungs-API für andere AddOns (`Tiptap::register()`, `RexTiptap.register()`), Ereignisse

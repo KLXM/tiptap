@@ -269,6 +269,7 @@ export class RexTiptapEditor {
 
         this.labelEditor();
         this.handleForm();
+        this.bindContextMenu();
         // Wert normalisieren erst bei der ersten Änderung – sonst gilt das Formular sofort als geändert
         this.update();
         this.root.dispatchEvent(new CustomEvent('rex-tiptap:ready', {bubbles: true, detail: {editor: this.editor, instance: this}}));
@@ -450,12 +451,22 @@ export class RexTiptapEditor {
             return;
         }
         this.closeMenu(false);
-        const ctx = this.ctx();
-        const entries = item.menu(ctx);
-        const menu = el('div', {className: 'rex-tiptap-menu' + (item.grid ? ' rex-tiptap-menu--grid' : ''), role: 'menu', 'aria-label': item.label});
+        const menu = this.buildMenu(item.menu(this.ctx()), item.label, !!item.grid);
+        wrap.append(menu);
+        btn.setAttribute('aria-expanded', 'true');
+        this.openMenu = {btn, menu, wrap};
+        this.positionMenu(menu, btn);
+        (menu.querySelector('[aria-checked="true"]:not(:disabled)') ?? menu.querySelector('button:not(:disabled)'))?.focus();
+    }
+
+    buildMenu(entries, label, grid = false) {
+        const menu = el('div', {className: 'rex-tiptap-menu' + (grid ? ' rex-tiptap-menu--grid' : ''), role: 'menu', 'aria-label': label});
         for (const entry of entries) {
             if (entry.separator) {
-                menu.append(el('div', {className: 'rex-tiptap-menu-separator', role: 'separator'}));
+                // keine doppelten Trenner, keiner am Anfang
+                if (menu.lastElementChild && !menu.lastElementChild.matches('.rex-tiptap-menu-separator')) {
+                    menu.append(el('div', {className: 'rex-tiptap-menu-separator', role: 'separator'}));
+                }
                 continue;
             }
             const active = !!safe(() => entry.active?.());
@@ -489,12 +500,73 @@ export class RexTiptapEditor {
             });
             menu.append(mi);
         }
+        menu.lastElementChild?.matches('.rex-tiptap-menu-separator') && menu.lastElementChild.remove();
         menu.addEventListener('keydown', e => this.menuKeydown(e, menu));
-        wrap.append(menu);
-        btn.setAttribute('aria-expanded', 'true');
-        this.openMenu = {btn, menu, wrap};
-        this.positionMenu(menu, btn);
-        (menu.querySelector('[aria-checked="true"]:not(:disabled)') ?? menu.querySelector('button:not(:disabled)'))?.focus();
+        return menu;
+    }
+
+    /**
+     * Kontextmenü an einer Stelle: Einträge aller Werkzeuge mit `context(ctx)` (z. B. Tabelle).
+     * Liefert false, wenn keines etwas beiträgt – dann bleibt das Menü des Browsers.
+     */
+    contextMenu(x, y) {
+        const ctx = this.ctx();
+        const entries = [];
+        for (const item of this.items) {
+            const list = item.context ? safe(() => item.context(ctx)) : null;
+            if (list?.length) {
+                entries.push(...(entries.length ? [{separator: true}] : []), ...list);
+            }
+        }
+        if (!entries.length) {
+            return false;
+        }
+        this.closeMenu(false);
+        const menu = this.buildMenu(entries, t('contextMenu'));
+        menu.classList.add('rex-tiptap-menu--context');
+        this.root.append(menu);
+        // im sichtbaren Bereich halten
+        const width = menu.offsetWidth;
+        const height = menu.offsetHeight;
+        // reicht der Platz nicht, klappt es nach links bzw. oben auf
+        const left = x + width > window.innerWidth - 8 ? x - width : x;
+        const top = y + height > window.innerHeight - 8 ? y - height : y;
+        menu.style.left = Math.max(8, left) + 'px';
+        menu.style.top = Math.max(8, Math.min(top, window.innerHeight - height - 8)) + 'px';
+        this.openMenu = {btn: null, menu, wrap: menu};
+        menu.querySelector('button:not(:disabled)')?.focus();
+        return true;
+    }
+
+    bindContextMenu() {
+        const dom = this.editor.view.dom;
+        // Umschalt + Rechtsklick öffnet weiter das Menü des Browsers (Rechtschreibung, Kopieren …)
+        this.onContext = e => {
+            if (e.shiftKey || !this.editor.isEditable || this.sourceMode) {
+                return;
+            }
+            const {view, state} = this.editor;
+            const pos = view.posAtCoords({left: e.clientX, top: e.clientY});
+            const {from, to} = state.selection;
+            const inCellSelection = !!state.selection.$anchorCell && !!e.target.closest?.('.selectedCell');
+            if (pos && !inCellSelection && (pos.pos < from || pos.pos > to)) {
+                this.editor.commands.setTextSelection(pos.pos);
+            }
+            if (this.contextMenu(e.clientX, e.clientY)) {
+                e.preventDefault();
+            }
+        };
+        dom.addEventListener('contextmenu', this.onContext);
+        // Tastatur: Kontextmenü-Taste oder Umschalt + F10
+        this.onContextKey = e => {
+            if ('ContextMenu' === e.key || (e.shiftKey && 'F10' === e.key)) {
+                const coords = this.editor.view.coordsAtPos(this.editor.state.selection.from);
+                if (this.contextMenu(coords.left, coords.bottom + 4)) {
+                    e.preventDefault();
+                }
+            }
+        };
+        dom.addEventListener('keydown', this.onContextKey);
     }
 
     positionMenu(menu, btn) {
@@ -536,10 +608,11 @@ export class RexTiptapEditor {
         }
         const {btn, menu} = this.openMenu;
         menu.remove();
-        btn.setAttribute('aria-expanded', 'false');
+        btn?.setAttribute('aria-expanded', 'false');
         this.openMenu = null;
         if (focusButton) {
-            btn.focus();
+            // Kontextmenü: zurück in den Text
+            btn ? btn.focus() : this.editor?.commands.focus();
         }
     }
 

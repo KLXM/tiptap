@@ -50,5 +50,7 @@ Unter **Ausprobieren** lässt sich jedes Profil testen. Dort sieht man auch, was
 | Liste | `- ` oder `1. ` am Zeilenanfang |
 | Zitat | `> ` am Zeilenanfang |
 | Zeilenumbruch ohne neuen Absatz | Umschalt + Enter |
+| Tabelle bearbeiten (Zeilen, Spalten, Zellen) | Rechtsklick in eine Zelle, Kontextmenü-Taste oder Umschalt + F10 |
+| Menü des Browsers in Tabellen (z. B. Rechtschreibung) | Umschalt + Rechtsklick |
 | In der Toolbar bewegen | ← → Pos1 Ende |
 | Menü schließen, Vollbild verlassen | Esc |

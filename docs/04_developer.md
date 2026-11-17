@@ -115,6 +115,8 @@ RexTiptap.ready(({tiptap}) => {
                 run: ({editor}) => editor.chain().focus().toggleHint().run(),
                 active: ({editor}) => editor.isActive('hint'),
                 // optional: enabled: ctx => bool, menu: ctx => [{label, icon, run, active, enabled, radio, separator}]
+                // optional: context: ctx => [...] – Einträge fürs Kontextmenü (Rechtsklick), null = keine
+                context: ({editor}) => editor.isActive('hint') ? [{label: 'Hinweis entfernen', icon: 'trash', run: () => editor.chain().focus().lift('hint').run()}] : null,
             },
         },
         i18n: {de: {}, en: {}},
@@ -125,9 +127,15 @@ RexTiptap.ready(({tiptap}) => {
 `RexTiptap.ready()` wartet, bis das Bundle geladen ist. Für Erweiterungen ohne eigene TipTap-Klassen genügt der
 direkte Aufruf von `RexTiptap.register()`.
 
+### Kontextmenü
+
+Gibt ein Werkzeug über `context(ctx)` Einträge zurück, zeigt der Rechtsklick ein eigenes Menü statt dem des
+Browsers. Die Einträge mehrerer Werkzeuge werden durch Trenner getrennt. Liefert kein Werkzeug etwas, bleibt das
+Menü des Browsers. Die eingebaute Tabelle nutzt das für Zeilen, Spalten und Zellen.
+
 ### Werkzeug-Kontext
 
-Die Funktionen `run`, `active`, `enabled`, `menu` und `current` bekommen `{editor, config, ui, has}`:
+Die Funktionen `run`, `active`, `enabled`, `menu`, `context` und `current` bekommen `{editor, config, ui, has}`:
 
 - `editor`: die TipTap-Instanz.
 - `config`: die Einstellungen des Profils, inklusive `mode`, `backend`, `mediaUrl`, `link` …
