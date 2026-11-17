@@ -3,6 +3,7 @@
 use FriendsOfRedaxo\Tiptap\Mode;
 use FriendsOfRedaxo\Tiptap\Output;
 use FriendsOfRedaxo\Tiptap\RecordLinks;
+use FriendsOfRedaxo\Tiptap\RecordSearchApi;
 use Redaxo\Core\MediaManager\MediaTypeRegistry;
 use FriendsOfRedaxo\Tiptap\Profile;
 use FriendsOfRedaxo\Tiptap\Profiles;
@@ -162,7 +163,9 @@ if ('edit' === $func || 'add' === $func) {
         . ' data-catalog="' . escape($json(Registry::catalog())) . '"'
         . ' data-media-url="' . escape(Output::basePath() . 'media/') . '"'
         . ' data-media-types="' . escape($json(array_keys(MediaTypeRegistry::all()))) . '"'
-        . ' data-record-tables="' . escape($json(RecordLinks::tables())) . '"></div>'
+        . ' data-record-tables="' . escape($json(RecordLinks::tables())) . '"'
+        . ' data-record-api="' . escape(Url::backendController(RecordSearchApi::getUrlParams())) . '"'
+        . ' data-media-manager-url="' . escape(Output::basePath() . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__') . '"></div>'
         . '<textarea id="tt-config" name="config" hidden>' . escape($json($profile->config)) . '</textarea>';
 
     $buttons = '<div class="rex-form-actions">'

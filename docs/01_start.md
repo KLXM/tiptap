@@ -53,8 +53,12 @@ Unter **Ausprobieren** lässt sich jedes Profil testen. Dort sieht man auch, was
 | Liste | `- ` oder `1. ` am Zeilenanfang |
 | Zitat | `> ` am Zeilenanfang |
 | Zeilenumbruch ohne neuen Absatz | Umschalt + Enter |
+| Link bearbeiten, öffnen, entfernen | Cursor in den Link (Leiste darunter) oder Rechtsklick |
 | Tabelle bearbeiten (Zeilen, Spalten, Zellen) | Rechtsklick in eine Zelle, Kontextmenü-Taste oder Umschalt + F10 |
-| Menü des Browsers in Tabellen (z. B. Rechtschreibung) | Umschalt + Rechtsklick |
+| Liste ein-/ausrücken, umwandeln, aufheben | Rechtsklick in die Liste |
+| Überschrift-Ebene wechseln | Rechtsklick in die Überschrift |
+| Zitat aufheben, Trennlinie entfernen | Rechtsklick |
+| Menü des Browsers (z. B. Rechtschreibung) | Umschalt + Rechtsklick; im normalen Text bleibt es ohnehin |
 | Bild bearbeiten, Format, Größe | Rechtsklick aufs Bild |
 | In der Toolbar bewegen | ← → Pos1 Ende |
 | Menü schließen, Vollbild verlassen | Esc |

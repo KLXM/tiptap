@@ -268,13 +268,21 @@ export class RexTiptapEditor {
             onUpdate: () => this.sync(),
             onSelectionUpdate: () => this.update(),
             onTransaction: () => this.update(),
-            onFocus: () => this.root.classList.add('is-focused'),
-            onBlur: () => this.root.classList.remove('is-focused'),
+            onFocus: () => {
+                this.root.classList.add('is-focused');
+                this.update();
+            },
+            onBlur: () => {
+                this.root.classList.remove('is-focused');
+                // Fokus wandert evtl. in die Bubble – erst danach entscheiden
+                setTimeout(() => this.updateBubble(), 0);
+            },
         });
 
         this.labelEditor();
         this.handleForm();
         this.bindContextMenu();
+        this.buildLinkBubble();
         // Wert normalisieren erst bei der ersten Änderung – sonst gilt das Formular sofort als geändert
         this.update();
         this.root.dispatchEvent(new CustomEvent('rex-tiptap:ready', {bubbles: true, detail: {editor: this.editor, instance: this}}));
@@ -411,6 +419,7 @@ export class RexTiptapEditor {
                 }
             }
             this.updateCounter();
+            this.updateBubble();
         });
     }
 
@@ -468,6 +477,10 @@ export class RexTiptapEditor {
     buildMenu(entries, label, grid = false) {
         const menu = el('div', {className: 'rex-tiptap-menu' + (grid ? ' rex-tiptap-menu--grid' : ''), role: 'menu', 'aria-label': label});
         for (const entry of entries) {
+            if (entry.note) {
+                menu.append(el('div', {className: 'rex-tiptap-menu-note', role: 'presentation', text: entry.note}));
+                continue;
+            }
             if (entry.separator) {
                 // keine doppelten Trenner, keiner am Anfang
                 if (menu.lastElementChild && !menu.lastElementChild.matches('.rex-tiptap-menu-separator')) {
@@ -507,6 +520,7 @@ export class RexTiptapEditor {
             menu.append(mi);
         }
         menu.lastElementChild?.matches('.rex-tiptap-menu-separator') && menu.lastElementChild.remove();
+        menu.querySelector('.rex-tiptap-menu-separator + .rex-tiptap-menu-separator')?.remove();
         menu.addEventListener('keydown', e => this.menuKeydown(e, menu));
         return menu;
     }
@@ -518,15 +532,28 @@ export class RexTiptapEditor {
     contextMenu(x, y) {
         const ctx = this.ctx();
         const entries = [];
+        const seen = new Set();
         for (const item of this.items) {
-            const list = item.context ? safe(() => item.context(ctx)) : null;
-            if (list?.length) {
+            const list = (item.context ? safe(() => item.context(ctx)) : null)?.filter(entry => {
+                // gleiche Einträge (z. B. Liste aus zwei Werkzeugen) nur einmal
+                const key = entry.separator ? null : entry.label;
+                if (null === key) {
+                    return true;
+                }
+                if (seen.has(key)) {
+                    return false;
+                }
+                seen.add(key);
+                return true;
+            });
+            if (list?.some(entry => !entry.separator)) {
                 entries.push(...(entries.length ? [{separator: true}] : []), ...list);
             }
         }
         if (!entries.length) {
             return false;
         }
+        entries.push({separator: true}, {note: t('contextHint')});
         this.closeMenu(false);
         const menu = this.buildMenu(entries, t('contextMenu'));
         menu.classList.add('rex-tiptap-menu--context');
@@ -552,8 +579,8 @@ export class RexTiptapEditor {
                 return;
             }
             const {view, state} = this.editor;
-            // Rechtsklick auf ein Bild wählt das Bild
-            if ('IMG' === e.target.nodeName && view.dom.contains(e.target)) {
+            // Rechtsklick auf ein Bild oder eine Trennlinie wählt das Element
+            if (['IMG', 'HR'].includes(e.target.nodeName) && view.dom.contains(e.target)) {
                 this.editor.commands.setNodeSelection(view.posAtDOM(e.target, 0));
                 if (this.contextMenu(e.clientX, e.clientY)) {
                     e.preventDefault();
@@ -627,6 +654,114 @@ export class RexTiptapEditor {
         if (focusButton) {
             // Kontextmenü: zurück in den Text
             btn ? btn.focus() : this.editor?.commands.focus();
+        }
+    }
+
+    /* ---------- Link-Bubble ---------- */
+
+    buildLinkBubble() {
+        if (!this.has('link')) {
+            return;
+        }
+        this.bubbleTarget = el('span', {className: 'rex-tiptap-bubble-target'});
+        this.bubbleOpen = el('a', {className: 'rex-tiptap-bubble-button', target: '_blank', rel: 'noopener', title: t('linkOpen'), 'aria-label': t('linkOpen')}, icon('external'));
+        this.bubble = el('div', {className: 'rex-tiptap-bubble', role: 'toolbar', 'aria-label': t('link'), hidden: true},
+            icon('link'),
+            this.bubbleTarget,
+            el('span', {className: 'rex-tiptap-bubble-sep'}),
+            el('button', {type: 'button', className: 'rex-tiptap-bubble-button', title: t('linkEdit'), 'aria-label': t('linkEdit'), onclick: () => this.linkDialog()}, icon('edit')),
+            this.bubbleOpen,
+            el('button', {type: 'button', className: 'rex-tiptap-bubble-button', title: t('unlink'), 'aria-label': t('unlink'), onclick: () => {
+                this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
+            }}, icon('unlink')),
+        );
+        // Klicks in der Bubble nehmen dem Text nicht den Fokus (außer „öffnen“)
+        this.bubble.addEventListener('mousedown', e => {
+            if (e.target.closest('button')) {
+                e.preventDefault();
+            }
+        });
+        this.root.append(this.bubble);
+        this.content.addEventListener('scroll', () => this.updateBubble(), {passive: true});
+    }
+
+    updateBubble() {
+        const bubble = this.bubble;
+        if (!bubble || !this.editor || this.editor.isDestroyed) {
+            return;
+        }
+        const editor = this.editor;
+        const show = !this.sourceMode && editor.isEditable && !this.dialog && !this.openMenu
+            && editor.isActive('link') && (editor.isFocused || bubble.contains(document.activeElement));
+        if (!show) {
+            bubble.hidden = true;
+            return;
+        }
+        const href = editor.getAttributes('link').href ?? '';
+        if (href !== this.bubbleHref) {
+            this.bubbleHref = href;
+            this.describeLink(href);
+        }
+        bubble.hidden = false;
+        // unter dem Anfang des Links, innerhalb des Editors
+        const {view, state} = editor;
+        const coords = view.coordsAtPos(state.selection.from);
+        const box = this.root.getBoundingClientRect();
+        const width = bubble.offsetWidth;
+        const left = Math.max(8, Math.min(coords.left - box.left, this.root.clientWidth - width - 8));
+        bubble.style.left = left + 'px';
+        bubble.style.top = (coords.bottom - box.top + 6) + 'px';
+    }
+
+    /** Ziel lesbar anzeigen: Seite, Datensatz, Datei, E-Mail, Telefon oder Adresse */
+    async describeLink(href) {
+        const target = this.bubbleTarget;
+        const open = this.bubbleOpen;
+        const set = (text, url) => {
+            if (this.bubbleHref !== href) {
+                return;
+            }
+            target.textContent = text;
+            target.title = href;
+            if (url && '#' !== url) {
+                open.href = url;
+                open.hidden = false;
+            } else {
+                open.removeAttribute('href');
+                open.hidden = true;
+            }
+        };
+        const api = this.config.recordApi;
+        const info = async params => {
+            try {
+                const res = await fetch(api + '&' + new URLSearchParams(params), {credentials: 'same-origin'});
+                return await res.json();
+            } catch {
+                return {};
+            }
+        };
+        let m;
+        if ((m = /^redaxo:\/\/(\d+)/.exec(href))) {
+            set(t('linkPage') + ' ' + m[1], null);
+            if (api) {
+                const data = await info({article: m[1]});
+                set(t('linkPage') + ': ' + (data.label ?? m[1]), data.url);
+            }
+        } else if ((m = /^yform:\/\/([\w.-]+)\/(\d+)/.exec(href))) {
+            const table = (this.config.recordTables ?? []).find(tb => tb.name === m[1])?.label ?? m[1];
+            set(table + ' ' + m[2], null);
+            if (api) {
+                const data = await info({table: m[1], id: m[2]});
+                set(table + ': ' + (data.label ?? 'ID ' + m[2]), data.url);
+            }
+        } else if (/^mailto:/i.test(href)) {
+            set(t('linkMail') + ': ' + href.slice(7), href);
+        } else if (/^tel:/i.test(href)) {
+            set(t('linkPhone') + ': ' + href.slice(4), href);
+        } else if (href.startsWith(this.config.mediaUrl ?? '\0')) {
+            set(t('linkFile') + ': ' + decodeURIComponent(href.slice(this.config.mediaUrl.length)), href);
+        } else {
+            set(href.replace(/^https?:\/\//, '').replace(/\/$/, ''), href);
         }
     }
 

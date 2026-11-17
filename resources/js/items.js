@@ -47,6 +47,24 @@ function alignItem(side) {
     };
 }
 
+/** Rechtsklick in einer Liste: einrücken, ausrücken, Art wechseln, aufheben */
+function listContext({editor, has}) {
+    const bullet = editor.isActive('bulletList');
+    const ordered = editor.isActive('orderedList');
+    if (!bullet && !ordered) {
+        return null;
+    }
+    const c = () => editor.chain().focus();
+    return [
+        {label: t('listIndent'), icon: 'indent', enabled: () => editor.can().sinkListItem('listItem'), run: () => c().sinkListItem('listItem').run()},
+        {label: t('listOutdent'), icon: 'outdent', enabled: () => editor.can().liftListItem('listItem'), run: () => c().liftListItem('listItem').run()},
+        {separator: true},
+        ...(bullet && has('orderedList') ? [{label: t('listToOrdered'), icon: 'orderedList', run: () => c().toggleOrderedList().run()}] : []),
+        ...(ordered && has('bulletList') ? [{label: t('listToBullet'), icon: 'bulletList', run: () => c().toggleBulletList().run()}] : []),
+        {label: t('listRemove'), icon: 'paragraph', run: () => c()[bullet ? 'toggleBulletList' : 'toggleOrderedList']().run()},
+    ];
+}
+
 /** Bearbeiten einer Tabelle: Menü der Toolbar und Kontextmenü */
 function tableEntries(editor) {
     const c = () => editor.chain().focus();
@@ -85,6 +103,8 @@ export const builtinItems = {
             }
             return t('paragraph');
         },
+        // Rechtsklick in einer Überschrift: Ebene wechseln
+        context: ctx => ctx.editor.isActive('heading') ? builtinItems.heading.menu(ctx) : null,
         menu: ({editor, config}) => [
             {label: t('paragraph'), icon: 'paragraph', radio: true, active: () => editor.isActive('paragraph'), run: () => chain(editor).setParagraph().run()},
             ...config.headings.map(level => ({
@@ -167,11 +187,22 @@ export const builtinItems = {
         },
     },
 
-    bulletList: node('bulletList', 'toggleBulletList'),
-    orderedList: node('orderedList', 'toggleOrderedList'),
-    blockquote: node('blockquote', 'toggleBlockquote'),
-    codeBlock: node('codeBlock', 'toggleCodeBlock'),
-    horizontalRule: {label: t('horizontalRule'), icon: 'horizontalRule', run: ({editor}) => chain(editor).setHorizontalRule().run()},
+    bulletList: {...node('bulletList', 'toggleBulletList'), context: listContext},
+    orderedList: {...node('orderedList', 'toggleOrderedList'), context: listContext},
+    blockquote: {...node('blockquote', 'toggleBlockquote'), context: ({editor}) => editor.isActive('blockquote') ? [
+        {label: t('quoteRemove'), icon: 'blockquote', run: () => chain(editor).lift('blockquote').run()},
+    ] : null},
+    codeBlock: {...node('codeBlock', 'toggleCodeBlock'), context: ({editor}) => editor.isActive('codeBlock') ? [
+        {label: t('codeBlockRemove'), icon: 'paragraph', run: () => chain(editor).setParagraph().run()},
+    ] : null},
+    horizontalRule: {
+        label: t('horizontalRule'),
+        icon: 'horizontalRule',
+        run: ({editor}) => chain(editor).setHorizontalRule().run(),
+        context: ({editor}) => editor.isActive('horizontalRule') ? [
+            {label: t('hrRemove'), icon: 'trash', danger: true, run: () => chain(editor).deleteSelection().run()},
+        ] : null,
+    },
 
     align: {
         label: t('align'),
@@ -190,6 +221,12 @@ export const builtinItems = {
         run: ({ui}) => ui.linkDialog(),
         active: ({editor}) => editor.isActive('link'),
         shortcut: 'Mod-k',
+        // Rechtsklick auf einen Link
+        context: ({editor, ui}) => editor.isActive('link') ? [
+            {label: t('linkEdit'), icon: 'edit', run: () => ui.linkDialog()},
+            {label: t('linkOpen'), icon: 'external', enabled: () => !!ui.bubbleOpen?.href, run: () => ui.bubbleOpen?.href && window.open(ui.bubbleOpen.href, '_blank', 'noopener')},
+            {label: t('unlink'), icon: 'unlink', run: () => editor.chain().focus().extendMarkRange('link').unsetLink().run()},
+        ] : null,
     },
     unlink: {
         label: t('unlink'),

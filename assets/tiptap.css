@@ -714,3 +714,74 @@ html.rex-tiptap-has-fullscreen {
 .rex-tiptap-prose img.img-center { margin-inline: auto; }
 .rex-tiptap-prose img.img-full { width: 100%; }
 .rex-tiptap-prose::after { content: ""; display: table; clear: both; }
+
+/* Link-Bubble unter einem Link */
+.rex-tiptap-bubble {
+    position: absolute;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: min(460px, calc(100% - 16px));
+    padding: 4px 4px 4px 10px;
+    border: 1px solid var(--_border-soft);
+    border-radius: var(--_radius);
+    background: var(--_raised);
+    color: var(--_text);
+    box-shadow: var(--_shadow);
+    font-size: 13px;
+}
+
+.rex-tiptap-bubble > .rex-tiptap-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--_muted);
+}
+
+.rex-tiptap-bubble-target {
+    overflow: hidden;
+    max-width: 300px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rex-tiptap-bubble-sep {
+    width: 1px;
+    height: 20px;
+    margin-inline: 4px;
+    background: var(--_border-soft);
+}
+
+.rex-tiptap-bubble-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--_radius) - 2px);
+    background: transparent;
+    color: var(--_text);
+    cursor: pointer;
+}
+
+.rex-tiptap-bubble-button:hover {
+    background: var(--_hover);
+}
+
+.rex-tiptap-bubble-button:focus-visible {
+    outline: 2px solid var(--_focus);
+    outline-offset: 1px;
+}
+
+.rex-tiptap-bubble-button .rex-tiptap-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.rex-tiptap-menu-note {
+    padding: 4px 8px 2px;
+    color: var(--_muted);
+    font-size: 11px;
+}

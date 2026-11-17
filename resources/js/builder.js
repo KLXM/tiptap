@@ -591,6 +591,10 @@ class Builder {
             mode: this.mode,
             backend: true,
             mediaUrl: this.root.dataset.mediaUrl || '/media/',
+            mediaManagerUrl: this.root.dataset.mediaManagerUrl || '/index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__',
+            // wie im echten Editor: verlinkbare Tabellen mit Bezeichnung und Such-Adresse
+            recordApi: this.root.dataset.recordApi,
+            recordTables: (this.config.link?.records ?? []).filter(name => this.recordTables[name]).map(name => ({name, label: this.recordTables[name]})),
             // Markdown kennt keine Klassen
             ...(markdown ? {blockStyles: [], inlineStyles: [], toolbar: (this.config.toolbar ?? []).map(g => g.filter(id => this.items[id]?.markdown !== false))} : {}),
         };

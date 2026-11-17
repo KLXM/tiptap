@@ -20,4 +20,7 @@ Erste Fassung für REDAXO 6.
 - Links auf YForm-Datensätze (`yform://tabelle/id`), Adresse über Extension Point `RecordUrl` oder Vorlage
   (Einstellungen)
 - Schreibbereich weiß, Vollbild als Blatt, Sonderzeichen im festen Raster, Tabellen ohne style-Attribute
+- Link-Leiste (Bubble) mit lesbarem Ziel (Seite, Datensatz, Datei …), Bearbeiten, Öffnen, Entfernen
+- Kontextmenüs für Links, Listen, Überschriften, Zitate, Codeblöcke und Trennlinien; Vorschau im Builder wie
+  der echte Editor (Datensätze, Mediamanager)
 - Erweiterungs-API für andere AddOns (`Tiptap::register()`, `RexTiptap.register()`), Ereignisse
