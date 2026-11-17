@@ -69,6 +69,8 @@ final readonly class Profile
         public string $description = '',
         /** @var array<string, mixed> normalisiert, siehe {@see self::DEFAULTS} */
         public array $config = self::DEFAULTS,
+        /** @var class-string<ProfileDefinition>|null Klasse, wenn das Profil aus Code kommt ({@see AsProfile}) */
+        public ?string $class = null,
     ) {
         if (!preg_match(self::NAME_PATTERN, $name)) {
             throw new InvalidArgumentException('Invalid profile name "' . $name . '".');
@@ -114,6 +116,12 @@ final readonly class Profile
     public function withName(string $name, ?string $label = null): self
     {
         return new self($name, $label ?? $this->label, $this->mode, $this->description, $this->config);
+    }
+
+    /** Kommt das Profil aus einer PHP-Klasse (schreibgeschützt im Backend)? */
+    public function isCode(): bool
+    {
+        return null !== $this->class;
     }
 
     /**

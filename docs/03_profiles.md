@@ -85,6 +85,10 @@ sollte man nicht nachträglich wechseln: Vorhandene Werte werden nicht umgewande
 
 ## Import und Export
 
+Für Profile, die mit dem Projekt ausgeliefert werden sollen, gibt es [Profile als PHP-Klassen](04_code.md). Der
+Builder erzeugt den Code dafür.
+
+
 - **Exportieren** am Profil oder **Alle exportieren** lädt eine JSON-Datei herunter.
 - **Importieren** nimmt eine Datei oder eingefügtes JSON. Erkannt werden Sammlungen, einzelne Profile und Listen.
   Gleichnamige Profile werden überschrieben oder als `name-2` angelegt.

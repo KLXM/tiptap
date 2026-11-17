@@ -26,8 +26,9 @@ Tiptap::profile(?string $name): Profile                                        /
 Tiptap::register(Plugin $plugin): void                                         // Erweiterung anmelden
 ```
 
-`Profiles::all()`, `get()`, `save()`, `delete()`, `export()`, `parse()` und `import()` verwalten die Profile, z. B. in
-einem eigenen Installationsschritt:
+Profile gehören am besten als Klasse in den Code, siehe [Profile als PHP-Klassen](04_code.md). Für Sonderfälle
+verwalten `Profiles::all()`, `get()`, `save()`, `delete()`, `export()`, `parse()`, `import()` und
+`toPhp()` die Profile auch per API, z. B. in einem eigenen Installationsschritt:
 
 ```php
 use Klxm\Tiptap\Profile;

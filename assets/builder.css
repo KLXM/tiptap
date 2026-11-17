@@ -553,3 +553,31 @@
     margin-top: 6px;
     max-height: none;
 }
+
+.tt-profile-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--rex-color-success-subtle);
+    color: var(--rex-color-success-text);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.tt-php {
+    position: relative;
+}
+
+.tt-php clipboard-copy {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+.tt-php pre {
+    max-height: 480px;
+    overflow: auto;
+}

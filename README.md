@@ -5,6 +5,7 @@ An addon by [KLXM Crossmedia](https://klxm.de).
 WYSIWYG and Markdown editor based on [TipTap](https://tiptap.dev) (ProseMirror) for REDAXO 6 – in the backend, in
 collections and in the frontend.
 
+- **Profiles as PHP classes** (`#[AsProfile]`): versioned with the project, no database sync between stage and live
 - **Profiles without code:** toolbar builder with groups, menus and icons, live preview, JSON import/export
 - **HTML or Markdown** per profile
 - **REDAXO integration:** linkmap (`redaxo://ID`), media pool for links and images

@@ -23,6 +23,7 @@ $func = Request::request('func', 'string', '');
 $name = Request::request('name', 'string', '');
 $csrf = CsrfToken::factory('tiptap_profiles');
 $message = '';
+$phpCode = null;
 
 $json = static fn (mixed $value): string => json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
@@ -36,6 +37,16 @@ if ('export' === $func || 'export_all' === $func) {
         Response::sendContent(Profiles::export($profiles), 'application/json; charset=utf-8');
         exit;
     }
+}
+
+// ---------- PHP-Klasse (Download) ----------
+if ('export_php' === $func && ($profile = Profiles::get($name))) {
+    $code = Profiles::toPhp($profile);
+    preg_match('/final class (\w+)/', $code, $m);
+    Response::cleanOutputBuffers();
+    Response::setHeader('Content-Disposition', 'attachment; filename="' . ($m[1] ?? 'Profile') . '.php"');
+    Response::sendContent($code, 'text/plain; charset=utf-8');
+    exit;
 }
 
 // ---------- Aktionen (POST) ----------
@@ -56,6 +67,12 @@ if ('post' === Request::requestMethod() && $func) {
                         'config' => is_array($config) ? $config : [],
                     ]);
                     $previous = Request::post('previous', 'string', '');
+                    // nur PHP-Code erzeugen (z. B. für ein Profil aus Code), nichts speichern
+                    if (Request::post('as_php', 'bool', false)) {
+                        $phpCode = Profiles::toPhp($profile);
+                        $func = 'edit';
+                        break;
+                    }
                     if ($profile->name !== $previous && Profiles::exists($profile->name)) {
                         throw new RuntimeException(I18n::msg('tiptap_profile_exists', $profile->name));
                     }
@@ -131,6 +148,8 @@ if ('edit' === $func || 'add' === $func) {
             Mode::tryFrom(Request::post('mode', 'string', '')) ?? Mode::Html,
             Request::post('description', 'string', ''),
             Profile::normalize($posted),
+            // Profil aus Code bleibt als solches erkennbar
+            Profiles::get(Request::post('previous', 'string', '') ?: Request::post('profile_name', 'string', ''))?->class,
         );
     }
     $profile ??= new Profile(Profiles::freeName('profile'), '', Mode::Html, '', Profile::DEFAULTS);
@@ -168,13 +187,26 @@ if ('edit' === $func || 'add' === $func) {
         . ' data-media-manager-url="' . escape(Output::basePath() . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__') . '"></div>'
         . '<textarea id="tt-config" name="config" hidden>' . escape($json($profile->config)) . '</textarea>';
 
+    $phpButton = '<button class="rex-button"' . ($profile->isCode() ? ' data-variant="primary"' : '') . ' type="submit" name="as_php" value="1"><i class="rex-icon fa-brands fa-php" aria-hidden="true"></i> ' . I18n::msg('tiptap_as_php') . '</button> ';
     $buttons = '<div class="rex-form-actions">'
-        . '<button class="rex-button" data-variant="primary" type="submit">' . I18n::msg('tiptap_save') . '</button> '
-        . '<button class="rex-button" type="submit" name="apply" value="1">' . I18n::msg('tiptap_apply') . '</button> '
+        . ($profile->isCode() ? $phpButton : '<button class="rex-button" data-variant="primary" type="submit">' . I18n::msg('tiptap_save') . '</button> '
+            . '<button class="rex-button" type="submit" name="apply" value="1">' . I18n::msg('tiptap_apply') . '</button> ' . $phpButton)
         . '<a class="rex-button" data-variant="link" href="' . Url::currentBackendPage() . '">' . I18n::msg('tiptap_cancel') . '</a>'
         . '</div>';
 
-    echo '<form method="post" action="' . Url::currentBackendPage() . '">'
+    // Profil aus Code: Hinweis; erzeugter PHP-Code zum Einfügen
+    $intro = $profile->isCode() ? Message::info(I18n::rawMsg('tiptap_code_profile_note', escape((string) $profile->class))) : '';
+    if (null !== $phpCode) {
+        $path = $profile->isCode() ? I18n::msg('tiptap_php_replace', (string) $profile->class) : I18n::msg('tiptap_php_where');
+        $intro .= new Section(title: I18n::msg('tiptap_as_php'), body: Html::raw(
+            '<p>' . $path . '</p>'
+            . '<div class="tt-php"><clipboard-copy for="tt-php-code" class="rex-button" data-size="sm"><i class="rex-icon fa-regular fa-copy" aria-hidden="true"></i> ' . I18n::msg('tiptap_copy') . '</clipboard-copy>'
+            . '<pre class="rex-code"><code id="tt-php-code">' . escape($phpCode) . '</code></pre></div>',
+        ))->render();
+    }
+
+    echo $intro
+        . '<form method="post" action="' . Url::currentBackendPage() . '">'
         . $csrf->getHiddenField()
         . '<input type="hidden" name="func" value="save">'
         . '<input type="hidden" name="previous" value="' . escape($previous) . '">'
@@ -218,6 +250,8 @@ foreach (Profiles::all() as $profile) {
 
     $rows .= '<tr data-name="' . escape($profile->name) . '">'
         . '<td><a href="' . $edit . '"><strong>' . escape($profile->label) . '</strong></a><br><code>' . escape($profile->name) . '</code>'
+        . ($profile->isCode() ? ' <span class="tt-profile-code" title="' . escape((string) $profile->class) . '"><i class="rex-icon fa-solid fa-code" aria-hidden="true"></i> ' . I18n::msg('tiptap_code') . '</span>' : '')
+        . (Profiles::isShadowed($profile->name) ? '<br><small class="rex-u-text-warning">' . I18n::msg('tiptap_shadowed') . '</small>' : '')
         . ('' !== $profile->description ? '<br><small class="rex-u-text-muted">' . escape($profile->description) . '</small>' : '') . '</td>'
         . '<td><span class="tt-profile-mode" data-mode="' . $profile->mode->value . '">' . ($profile->mode === Mode::Markdown ? 'Markdown' : 'HTML') . '</span></td>'
         . '<td><div class="tt-toolbar-mini" data-tiptap-mini="' . escape($json($profile->config['toolbar'])) . '"></div></td>'
@@ -225,7 +259,8 @@ foreach (Profiles::all() as $profile) {
         . '<a class="rex-button" data-size="sm" href="' . $edit . '" title="' . I18n::msg('tiptap_edit') . '" aria-label="' . escape(I18n::msg('tiptap_edit') . ': ' . $profile->label) . '"><i class="rex-icon fa-solid fa-pen" aria-hidden="true"></i></a>'
         . $post('duplicate', I18n::msg('tiptap_duplicate'), 'fa-copy')
         . '<a class="rex-button" data-size="sm" href="' . Url::currentBackendPage(['func' => 'export', 'name' => $profile->name]) . '" title="' . I18n::msg('tiptap_export') . '" aria-label="' . escape(I18n::msg('tiptap_export') . ': ' . $profile->label) . '"><i class="rex-icon fa-solid fa-download" aria-hidden="true"></i></a>'
-        . $post('delete', I18n::msg('tiptap_delete'), 'fa-trash', 'danger', I18n::msg('tiptap_delete_confirm', $profile->label))
+        . '<a class="rex-button" data-size="sm" href="' . Url::currentBackendPage(['func' => 'export_php', 'name' => $profile->name]) . '" title="' . I18n::msg('tiptap_as_php') . '" aria-label="' . escape(I18n::msg('tiptap_as_php') . ': ' . $profile->label) . '"><i class="rex-icon fa-brands fa-php" aria-hidden="true"></i></a>'
+        . ($profile->isCode() ? '' : $post('delete', I18n::msg('tiptap_delete'), 'fa-trash', 'danger', I18n::msg('tiptap_delete_confirm', $profile->label)))
         . '</div></td></tr>';
 }
 

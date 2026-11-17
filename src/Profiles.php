@@ -3,12 +3,24 @@
 namespace Klxm\Tiptap;
 
 use JsonException;
+use Redaxo\Core\ClassDiscovery;
 use Redaxo\Core\Core;
 use Redaxo\Core\Database\Sql;
 use RuntimeException;
 
 use function array_is_list;
+use function array_filter;
+use function dechex;
+use function mb_ord;
+use function preg_match;
+use function preg_replace_callback;
+use function strtoupper;
 use function array_key_first;
+use function implode;
+use function is_bool;
+use function str_repeat;
+use function str_replace;
+use function ucwords;
 use function array_map;
 use function date;
 use function is_array;
@@ -33,12 +45,28 @@ final class Profiles
     /** @var array<string, Profile>|null */
     private static ?array $cache = null;
 
-    /** @return array<string, Profile> nach Name */
+    /**
+     * Alle Profile: zuerst die aus Code ({@see AsProfile}), dann die aus der Datenbank – ein Profil aus Code
+     * überdeckt ein gleichnamiges aus der Datenbank.
+     *
+     * @return array<string, Profile> nach Name
+     */
     public static function all(): array
     {
         if (null !== self::$cache) {
             return self::$cache;
         }
+        $profiles = self::fromCode();
+        foreach (self::fromDatabase() as $name => $profile) {
+            $profiles[$name] ??= $profile;
+        }
+
+        return self::$cache = $profiles;
+    }
+
+    /** @return array<string, Profile> */
+    public static function fromDatabase(): array
+    {
         $profiles = [];
         foreach (Sql::factory()->getArray('SELECT * FROM ' . self::TABLE . ' ORDER BY prio, label') as $row) {
             $profile = self::fromRow($row);
@@ -47,7 +75,41 @@ final class Profiles
             }
         }
 
-        return self::$cache = $profiles;
+        return $profiles;
+    }
+
+    /** @return array<string, Profile> */
+    public static function fromCode(): array
+    {
+        $found = [];
+        foreach (ClassDiscovery::getInstance()->discoverByAttribute(AsProfile::class, ProfileDefinition::class) as $class => $attr) {
+            $found[] = [$attr, $class];
+        }
+        usort($found, static fn (array $a, array $b) => [$a[0]->priority, $a[0]->name] <=> [$b[0]->priority, $b[0]->name]);
+
+        $profiles = [];
+        foreach ($found as [$attr, $class]) {
+            try {
+                $profile = Profile::fromArray([
+                    'name' => $attr->name,
+                    'label' => $attr->label,
+                    'description' => $attr->description,
+                    'mode' => $attr->mode->value,
+                    'config' => new $class()->config(),
+                ]);
+                $profiles[$profile->name] ??= new Profile($profile->name, $profile->label, $profile->mode, $profile->description, $profile->config, $class);
+            } catch (\Throwable) {
+                // fehlerhafte Klasse überspringen statt den Editor lahmzulegen
+            }
+        }
+
+        return $profiles;
+    }
+
+    /** Gibt es ein gleichnamiges Profil in der Datenbank, das ein Profil aus Code überdeckt? */
+    public static function isShadowed(string $name): bool
+    {
+        return (self::all()[$name] ?? null)?->isCode() && isset(self::fromDatabase()[$name]);
     }
 
     public static function get(string $name): ?Profile
@@ -70,6 +132,9 @@ final class Profiles
 
     public static function save(Profile $profile, ?string $previousName = null): void
     {
+        if (self::get($profile->name)?->isCode() || (null !== $previousName && self::get($previousName)?->isCode())) {
+            throw new RuntimeException('Profile "' . $profile->name . '" is defined in code (' . self::get($profile->name)?->class . ') and can not be changed here.');
+        }
         $user = Core::getUser()->login ?? 'console';
         $now = date('Y-m-d H:i:s');
         $config = json_encode($profile->config, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -100,6 +165,9 @@ final class Profiles
 
     public static function delete(string $name): void
     {
+        if (self::get($name)?->isCode()) {
+            throw new RuntimeException('Profile "' . $name . '" is defined in code and can not be deleted here.');
+        }
         Sql::factory()->setQuery('DELETE FROM ' . self::TABLE . ' WHERE name = ?', [$name]);
         self::$cache = null;
     }
@@ -177,6 +245,98 @@ final class Profiles
         }
 
         return $names;
+    }
+
+    /**
+     * PHP-Klasse für ein Profil (zum Einchecken ins Projekt).
+     *
+     * @param string $namespace z. B. `Project\\Tiptap`
+     */
+    public static function toPhp(Profile $profile, string $namespace = 'Project\\Tiptap', ?string $className = null): string
+    {
+        $className ??= str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $profile->name))) . 'Profile';
+        // nur, was von den Voreinstellungen abweicht – kürzer und besser zu lesen
+        $config = self::diff($profile->config, Profile::normalize([], $profile->mode));
+        $config = ['toolbar' => $profile->config['toolbar']] + $config;
+        $args = [self::phpValue($profile->name), self::phpValue($profile->label)];
+        if (Mode::Html !== $profile->mode) {
+            $args[] = 'mode: Mode::' . $profile->mode->name;
+        }
+        if ('' !== $profile->description) {
+            $args[] = 'description: ' . self::phpValue($profile->description);
+        }
+
+        return "<?php\n\nnamespace {$namespace};\n\n"
+            . "use Klxm\\Tiptap\\AsProfile;\n"
+            . (Mode::Html !== $profile->mode ? "use Klxm\\Tiptap\\Mode;\n" : '')
+            . "use Klxm\\Tiptap\\ProfileDefinition;\nuse Override;\n\n"
+            . "#[AsProfile(" . implode(', ', $args) . ")]\n"
+            . "final class {$className} extends ProfileDefinition\n{\n"
+            . "    #[Override]\n    public function config(): array\n    {\n"
+            . '        return ' . self::phpValue($config, 2) . ";\n"
+            . "    }\n}\n";
+    }
+
+    /**
+     * Nur die Werte, die von den Voreinstellungen abweichen – bei Gruppen (link, image, align) je Unterschlüssel.
+     *
+     * @param array<string, mixed> $values
+     * @param array<string, mixed> $defaults
+     * @return array<string, mixed>
+     */
+    private static function diff(array $values, array $defaults): array
+    {
+        $out = [];
+        foreach ($values as $key => $value) {
+            $default = $defaults[$key] ?? null;
+            if (is_array($value) && is_array($default) && !array_is_list($value) && !array_is_list($default)) {
+                $sub = self::diff($value, $default);
+                if ([] !== $sub) {
+                    $out[$key] = $sub;
+                }
+            } elseif ($default !== $value) {
+                $out[$key] = $value;
+            }
+        }
+
+        return $out;
+    }
+
+    /** Kurze Array-Schreibweise, Listen von Werten in einer Zeile */
+    private static function phpValue(mixed $value, int $level = 0): string
+    {
+        if (is_string($value)) {
+            // unsichtbare Zeichen lesbar: "\u{00A0}"
+            if (preg_match('/[\x{00A0}\x{00AD}\x{200B}]/u', $value)) {
+                return '"' . preg_replace_callback('/[\x{00A0}\x{00AD}\x{200B}]/u', static fn (array $m) => '\\u{' . strtoupper(dechex(mb_ord($m[0]))) . '}', str_replace(['\\', '"', '$'], ['\\\\', '\\"', '\\$'], $value)) . '"';
+            }
+
+            return "'" . str_replace(['\\', "'"], ['\\\\', "\\'"], $value) . "'";
+        }
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+        if (null === $value) {
+            return 'null';
+        }
+        if (!is_array($value)) {
+            return (string) $value;
+        }
+        if ([] === $value) {
+            return '[]';
+        }
+        $list = array_is_list($value);
+        $scalars = $list && [] === array_filter($value, static fn ($v) => is_array($v));
+        if ($scalars) {
+            return '[' . implode(', ', array_map(static fn ($v) => self::phpValue($v), $value)) . ']';
+        }
+        $pad = str_repeat('    ', $level + 1);
+        $lines = [];
+        foreach ($value as $k => $v) {
+            $lines[] = $pad . ($list ? '' : self::phpValue($k) . ' => ') . self::phpValue($v, $level + 1) . ',';
+        }
+
+        return "[\n" . implode("\n", $lines) . "\n" . str_repeat('    ', $level) . ']';
     }
 
     /** @param list<string> $names neue Reihenfolge */
