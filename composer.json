@@ -1,6 +1,6 @@
 {
     "name": "klxm/tiptap",
-    "description": "WYSIWYG- und Markdown-Editor für REDAXO 6 auf Basis von TipTap: Profile mit Toolbar-Builder, Import/Export, Linkmap und Medienpool, Collections, Frontend und erweiterbar durch andere AddOns",
+    "description": "WYSIWYG and Markdown editor for REDAXO 6 based on TipTap: profiles with toolbar builder, import/export, linkmap and media pool, collections, frontend use and extensible by other addons",
     "type": "redaxo-addon",
     "license": "MIT",
     "keywords": [
