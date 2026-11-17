@@ -38,7 +38,7 @@ use function trim;
  */
 final readonly class Profile
 {
-    /** Name mit optionaler Paket-Kennung, z. B. `default`, `project.news`, `fluid.text` */
+    /** Name, optional mit Kennung vor einem Punkt – Profile aus Code: `tiptap.news` */
     public const string NAME_PATTERN = '/^[a-z0-9][a-z0-9_-]{0,63}(\.[a-z0-9][a-z0-9_-]{0,63})?$/';
 
     /** Voreinstellungen eines leeren Profils */
@@ -121,7 +121,7 @@ final readonly class Profile
         return new self($name, $label ?? $this->label, $this->mode, $this->description, $this->config);
     }
 
-    /** Paket-Kennung aus dem Namen (`fluid` bei `fluid.text`), null ohne Kennung */
+    /** Kennung aus dem Namen (`tiptap` bei `tiptap.news`), null ohne Kennung */
     public function prefix(): ?string
     {
         $pos = strpos($this->name, '.');

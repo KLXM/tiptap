@@ -277,7 +277,7 @@ final class Profiles
      */
     public static function toPhp(Profile $profile, string $namespace = 'Project\\Tiptap', ?string $className = null): string
     {
-        // Klassenname ohne Paket-Kennung: project.news → NewsProfile (das Paket steckt im Namespace)
+        // Klassenname ohne Kennung: tiptap.news → NewsProfile
         $short = null === $profile->prefix() ? $profile->name : substr($profile->name, strlen($profile->prefix()) + 1);
         $className ??= str_replace(' ', '', ucwords(str_replace(['-', '_', '.'], ' ', $short))) . 'Profile';
         // nur, was von den Voreinstellungen abweicht – kürzer und besser zu lesen

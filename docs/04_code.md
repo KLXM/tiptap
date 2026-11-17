@@ -13,7 +13,7 @@ use Klxm\Tiptap\AsProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
 
-#[AsProfile('project.news', 'Meldungen', description: 'Kurztexte für Meldungen')]
+#[AsProfile('tiptap.news', 'Meldungen', description: 'Kurztexte für Meldungen')]
 final class NewsProfile extends ProfileDefinition
 {
     #[Override]
@@ -38,27 +38,20 @@ final class NewsProfile extends ProfileDefinition
 
 Verwendet wird es wie jedes andere Profil:
 
-- im Modul mit `#[Editor('Text', profile: 'project.news')]`,
-- in YForm mit `Editor::new('text')->profile('project.news')`,
-- an einer Textarea mit `data-tiptap="project.news"`.
+- im Modul mit `#[Editor('Text', profile: 'tiptap.news')]`,
+- in YForm mit `Editor::new('text')->profile('tiptap.news')`,
+- an einer Textarea mit `data-tiptap="tiptap.news"`.
 
-## Paket-Kennung
+## Kennung
 
-Wie bei Modulen (`#[AsModule('fluid.layout', …)]`) trägt der Name eines Profils aus Code die Kennung seines
-Pakets vor einem Punkt:
+Wie bei Modulen (`#[AsModule('fluid.layout', …)]`) trägt der Name eines Profils aus Code eine Kennung vor einem
+Punkt: **`tiptap.`** – also `tiptap.news`, `tiptap.teaser`, `tiptap.produkt`. So erkennt man im Code sofort, dass
+es um ein Editor-Profil geht (`profile: 'tiptap.news'`), und Schlüssel anderer Pakete kommen sich nicht in die Quere.
 
-| Woher | Name |
-| --- | --- |
-| Projekt | `project.news`, `project.teaser` |
-| AddOn fluid | `fluid.text`, `fluid.hinweis` |
-| eigenes AddOn | `shop.produkt` |
-
-So kollidieren Profile verschiedener Pakete nicht, und man sieht im Code sofort, woher ein Profil kommt. Die Liste
-im Backend zeigt bei jedem Profil aus Code das Paket an, aus dem die Klasse stammt. Fehlt einem Profil aus einem
-AddOn die passende Kennung, erscheint dort ein Hinweis.
+Aus welchem Paket ein Profil aus Code stammt, zeigt die Liste im Backend an („Code · project“, „Code · fluid“).
 
 Die mitgelieferten Profile `default`, `simple`, `markdown` und `guest` liegen in der Datenbank und haben keine
-Kennung. Profile ohne Kennung bleiben erlaubt, etwa für bestehende Datenbank-Profile.
+Kennung; Profile ohne Kennung bleiben erlaubt (z. B. bestehende Profile aus der Datenbank).
 
 ## So funktioniert es
 
@@ -106,7 +99,7 @@ Einen Installationsschritt in der Datenbank braucht es nicht:
 ```php
 namespace MyAddon\Tiptap;
 
-#[AsProfile('shop.produkt', 'Produkttexte', priority: 10)]
+#[AsProfile('tiptap.produkt', 'Produkttexte', priority: 10)]
 final class ShopProfile extends ProfileDefinition
 {
     public function config(): array

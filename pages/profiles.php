@@ -250,8 +250,7 @@ foreach (Profiles::all() as $profile) {
 
     $rows .= '<tr data-name="' . escape($profile->name) . '">'
         . '<td><a href="' . $edit . '"><strong>' . escape($profile->label) . '</strong></a><br><code>' . escape($profile->name) . '</code>'
-        . ($profile->isCode() ? ' <span class="tt-profile-code" title="' . escape((string) $profile->class) . '"><i class="rex-icon fa-solid fa-code" aria-hidden="true"></i> ' . I18n::msg('tiptap_code') . ' · ' . escape($origin = Profiles::origin((string) $profile->class)) . '</span>'
-            . ('project' !== $origin && $profile->prefix() !== $origin ? '<br><small class="rex-u-text-warning">' . I18n::msg('tiptap_prefix_hint', $origin . '.' . $profile->name) . '</small>' : '') : '')
+        . ($profile->isCode() ? ' <span class="tt-profile-code" title="' . escape((string) $profile->class) . '"><i class="rex-icon fa-solid fa-code" aria-hidden="true"></i> ' . I18n::msg('tiptap_code') . ' · ' . escape(Profiles::origin((string) $profile->class)) . '</span>' : '')
         . (Profiles::isShadowed($profile->name) ? '<br><small class="rex-u-text-warning">' . I18n::msg('tiptap_shadowed') . '</small>' : '')
         . ('' !== $profile->description ? '<br><small class="rex-u-text-muted">' . escape($profile->description) . '</small>' : '') . '</td>'
         . '<td><span class="tt-profile-mode" data-mode="' . $profile->mode->value . '">' . ($profile->mode === Mode::Markdown ? 'Markdown' : 'HTML') . '</span></td>'

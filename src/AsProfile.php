@@ -7,7 +7,7 @@ use Attribute;
 /**
  * Meldet ein Editor-Profil als PHP-Klasse an – versioniert mit dem Projekt statt in der Datenbank.
  *
- *     #[AsProfile('news', 'Meldungen', mode: Mode::Html)]
+ *     #[AsProfile('tiptap.news', 'Meldungen', mode: Mode::Html)]
  *     final class NewsProfile extends ProfileDefinition
  *     {
  *         public function config(): array
@@ -23,7 +23,7 @@ use Attribute;
 final readonly class AsProfile
 {
     public function __construct(
-        /** Name (Schlüssel), wie in `#[Editor('Text', profile: 'news')]` */
+        /** Name (Schlüssel) mit der Kennung `tiptap.`, wie in `#[Editor('Text', profile: 'tiptap.news')]` */
         public string $name,
         public string $label = '',
         public Mode $mode = Mode::Html,

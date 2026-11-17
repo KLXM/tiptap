@@ -25,7 +25,7 @@ Erste Fassung für REDAXO 6.
   der echte Editor (Datensätze, Mediamanager)
 - Listen: Zählweise je Ebene (1, a, A, i, I über `type`), Startnummer, Listenformate (Klassen) mit Vorlagen
 - Linkformate (z. B. „Als Button“) in Link-Dialog, Link-Leiste und Kontextmenü
-- Profile als PHP-Klassen (`#[AsProfile]`, `ProfileDefinition`), Namen mit Paket-Kennung (`project.news`): per ClassDiscovery gefunden, Vorrang vor der
+- Profile als PHP-Klassen (`#[AsProfile]`, `ProfileDefinition`), Namen mit Kennung (`tiptap.news`): per ClassDiscovery gefunden, Vorrang vor der
   Datenbank, im Backend schreibgeschützt; „Als PHP-Klasse“ erzeugt den Code (nur Abweichungen von den
   Voreinstellungen)
 - Erweiterungs-API für andere AddOns (`Tiptap::register()`, `RexTiptap.register()`), Ereignisse
