@@ -62,31 +62,42 @@
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
-    gap: 8px;
-    padding: 10px;
+    gap: 4px;
+    margin-top: 34px; /* Platz für die Gruppen-Bubble */
+    padding: 6px;
+    border: 1px solid var(--rex-color-border);
     border-radius: var(--rex-radius);
-    background: var(--rex-color-surface-subtle);
+    background: var(--rex-color-surface-raised);
 }
 
+/* Gruppen sehen aus wie in der echten Toolbar: nur ein Trennstrich */
 .tt-b-group {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 120px;
-    padding: 6px;
-    border: 2px dashed var(--rex-color-border);
-    border-radius: var(--rex-radius);
-    background: var(--rex-color-bg);
+    align-items: center;
+    padding: 0 6px 0 2px;
+    border-radius: calc(var(--rex-radius) - 2px);
     cursor: pointer;
 }
 
+.tt-b-group::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -3px;
+    bottom: 6px;
+    width: 1px;
+    background: var(--rex-color-border);
+}
+
 .tt-b-group.is-selected {
-    border-style: solid;
-    border-color: var(--rex-color-accent);
+    background: var(--rex-color-accent-subtle);
+    box-shadow: inset 0 -2px 0 var(--rex-color-accent);
 }
 
 .tt-b-group.is-over {
     background: var(--rex-color-accent-subtle);
+    box-shadow: inset 0 0 0 1px var(--rex-color-accent);
 }
 
 .tt-b-group-items {
@@ -94,41 +105,88 @@
     flex: 1;
     flex-wrap: wrap;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     min-height: 34px;
 }
 
+/* Pfeile und Entfernen: Bubble über der Gruppe, nur bei Hover/Fokus */
 .tt-b-group-actions {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    z-index: 5;
     display: flex;
-    justify-content: flex-end;
     gap: 2px;
-    opacity: .55;
+    padding: 3px;
+    border: 1px solid var(--rex-color-border);
+    border-radius: var(--rex-radius);
+    background: var(--rex-color-surface-raised);
+    box-shadow: 0 4px 14px rgb(0 0 0 / .12);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, 4px);
+    transition: opacity .12s, transform .12s, visibility 0s .12s;
 }
 
-.tt-b-group:hover .tt-b-group-actions,
-.tt-b-group.is-selected .tt-b-group-actions,
-.tt-b-group:focus-within .tt-b-group-actions {
+/* Brücke, damit die Maus von der Gruppe zur Bubble kommt */
+.tt-b-group-actions::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    height: 10px;
+}
+
+.tt-b-group:hover > .tt-b-group-actions,
+.tt-b-group:focus-within > .tt-b-group-actions {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+    transition: opacity .12s, transform .12s;
+}
+
+/* Ohne Maus (Touch): Bubble an der markierten Gruppe */
+@media (hover: none) {
+    .tt-b-group.is-selected > .tt-b-group-actions {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translate(-50%, 0);
+    }
 }
 
 .tt-b-empty {
-    max-width: 160px;
+    max-width: 180px;
+    padding: 4px 8px;
+    border: 1px dashed var(--rex-color-border);
+    border-radius: calc(var(--rex-radius) - 2px);
     color: var(--rex-color-text-muted);
     font-size: 12px;
+    line-height: 1.3;
 }
 
+/* Werkzeug = Toolbar-Button */
 .tt-b-chip {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    min-width: 32px;
     height: 32px;
-    padding: 0 4px 0 8px;
-    border: 1px solid var(--rex-color-border-input);
+    padding: 0 6px;
+    border: 1px solid transparent;
     border-radius: calc(var(--rex-radius) - 2px);
-    background: var(--rex-color-surface-raised);
+    background: transparent;
+    color: var(--rex-color-text);
     cursor: grab;
     user-select: none;
+}
+
+.tt-b-chip:hover {
+    background: var(--rex-color-control-hover);
 }
 
 .tt-b-chip:focus-visible {
@@ -143,7 +201,7 @@
 .tt-b-chip.is-invalid {
     border-color: var(--rex-color-danger);
     color: var(--rex-color-danger);
-    text-decoration: line-through;
+    opacity: .7;
 }
 
 .tt-b-chip.drop-before::before,
@@ -157,8 +215,8 @@
     background: var(--rex-color-accent);
 }
 
-.tt-b-chip.drop-before::before { left: -5px; }
-.tt-b-chip.drop-after::after { right: -5px; }
+.tt-b-chip.drop-before::before { left: -3px; }
+.tt-b-chip.drop-after::after { right: -3px; }
 
 .tt-b-chip-label {
     position: absolute;
@@ -169,25 +227,56 @@
     white-space: nowrap;
 }
 
+/* Entfernen: kleiner Punkt an der Ecke, erst bei Hover/Fokus */
 .tt-b-chip-remove {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    z-index: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
     padding: 0;
-    border: 0;
+    border: 1px solid var(--rex-color-border);
     border-radius: 50%;
-    background: transparent;
+    background: var(--rex-color-surface-raised);
+    box-shadow: 0 1px 4px rgb(0 0 0 / .15);
     color: var(--rex-color-text-muted);
-    font-size: 15px;
+    font-size: 13px;
     line-height: 1;
     cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(.7);
+    transition: opacity .1s, transform .1s, visibility 0s .1s;
+}
+
+.tt-b-chip:hover > .tt-b-chip-remove,
+.tt-b-chip:focus-visible > .tt-b-chip-remove {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity .1s, transform .1s;
+}
+
+@media (hover: none) {
+    .tt-b-group.is-selected .tt-b-chip-remove {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+    }
 }
 
 .tt-b-chip-remove:hover {
-    background: var(--rex-color-danger-subtle);
-    color: var(--rex-color-danger);
+    border-color: var(--rex-color-danger);
+    background: var(--rex-color-danger);
+    color: #fff;
+}
+
+.tt-b-chip.is-dragging > .tt-b-chip-remove {
+    display: none;
 }
 
 .tt-b-small {
@@ -209,21 +298,27 @@
     color: var(--rex-color-text);
 }
 
+.tt-b-small--danger:hover:not(:disabled) {
+    background: var(--rex-color-danger-subtle);
+    color: var(--rex-color-danger);
+}
+
 .tt-b-small:disabled {
     opacity: .3;
     cursor: default;
 }
 
+/* Gruppe hinzufügen: unauffälliger Button am Ende */
 .tt-b-add-group {
     display: inline-flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    min-width: 100px;
-    padding: 8px;
-    border: 2px dashed var(--rex-color-border);
-    border-radius: var(--rex-radius);
+    align-self: center;
+    gap: 6px;
+    height: 32px;
+    margin-left: 4px;
+    padding: 0 10px;
+    border: 1px dashed var(--rex-color-border);
+    border-radius: calc(var(--rex-radius) - 2px);
     background: transparent;
     color: var(--rex-color-text-muted);
     font: inherit;
@@ -231,7 +326,8 @@
     cursor: pointer;
 }
 
-.tt-b-add-group:hover {
+.tt-b-add-group:hover,
+.tt-b-add-group:focus-visible {
     border-color: var(--rex-color-accent);
     color: var(--rex-color-accent);
 }

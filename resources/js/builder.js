@@ -8,7 +8,7 @@ const T = {
         toolbar: 'Toolbar', palette: 'Werkzeuge', paletteHint: 'Klicken fügt das Werkzeug in die markierte Gruppe ein, ziehen geht auch.',
         group: 'Gruppe', addGroup: 'Gruppe hinzufügen', removeGroup: 'Gruppe entfernen', moveUp: 'Gruppe nach vorn', moveDown: 'Gruppe nach hinten',
         emptyGroup: 'Werkzeuge hierher ziehen oder in der Liste anklicken', remove: 'Entfernen',
-        chipHint: 'Tastatur: Alt + ←/→ verschiebt, Entf entfernt.',
+        chipHint: 'Maus auf ein Werkzeug oder eine Gruppe zeigt Entfernen und Verschieben. Tastatur: Alt + ←/→ verschiebt, Entf entfernt.',
         used: 'bereits in der Toolbar', notMarkdown: 'nicht im Markdown-Modus',
         presets: 'Vorlage', presetMinimal: 'Minimal', presetStandard: 'Standard', presetFull: 'Alles', presetConfirm: 'Toolbar ersetzen?',
         headings: 'Überschriften', headingsHint: 'Welche Ebenen im Absatzformat angeboten werden.',
@@ -42,7 +42,7 @@ const T = {
         toolbar: 'Toolbar', palette: 'Tools', paletteHint: 'Click adds the tool to the selected group, dragging works too.',
         group: 'Group', addGroup: 'Add group', removeGroup: 'Remove group', moveUp: 'Move group left', moveDown: 'Move group right',
         emptyGroup: 'Drag tools here or click them in the list', remove: 'Remove',
-        chipHint: 'Keyboard: Alt + ←/→ moves, Delete removes.',
+        chipHint: 'Hover a tool or group to remove or move it. Keyboard: Alt + ←/→ moves, Delete removes.',
         used: 'already in the toolbar', notMarkdown: 'not available in Markdown mode',
         presets: 'Preset', presetMinimal: 'Minimal', presetStandard: 'Standard', presetFull: 'Everything', presetConfirm: 'Replace the toolbar?',
         headings: 'Headings', headingsHint: 'Levels offered in the paragraph format menu.',
@@ -213,7 +213,7 @@ class Builder {
             el('div', {className: 'tt-b-group-actions'},
                 this.smallButton('chevron-left', t('moveUp'), () => this.moveGroup(index, -1), 0 === index),
                 this.smallButton('chevron-right', t('moveDown'), () => this.moveGroup(index, 1), index === toolbar.length - 1),
-                this.smallButton('xmark', t('removeGroup'), () => this.removeGroup(index)),
+                this.smallButton('xmark', t('removeGroup'), () => this.removeGroup(index), false, true),
             ));
             this.dropTarget(groupEl, index);
             return groupEl;
@@ -226,8 +226,8 @@ class Builder {
         this.toolbarEl.replaceChildren(...groups, add);
     }
 
-    smallButton(icon, label, onclick, disabled = false) {
-        return el('button', {type: 'button', className: 'tt-b-small', title: label, 'aria-label': label, disabled, onclick},
+    smallButton(icon, label, onclick, disabled = false, danger = false) {
+        return el('button', {type: 'button', className: 'tt-b-small' + (danger ? ' tt-b-small--danger' : ''), title: label, 'aria-label': label, disabled, onclick},
             el('i', {className: 'rex-icon fa-solid fa-' + icon, 'aria-hidden': 'true'}));
     }
 
