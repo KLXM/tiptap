@@ -205,3 +205,40 @@ Für die Integration in fluid sind vorgesehen:
   `Profiles::save()` anlegen.
 - **`Tiptap::register()`** für Kit-eigene Werkzeuge, z. B. Hinweisboxen oder Buttons.
 - **CSS-Variablen** `--rex-tiptap-*` für die Farben des Kits.
+
+## Medien-Blöcke: Speicherformen und Einwilligung
+
+Die Werkzeuge `video`, `oembed` und `htmlEmbed` speichern:
+
+```html
+<video src="…" data-rex-media="film.mp4" poster="…" data-rex-poster="bild.jpg" controls class="… rex-ratio-16x9"></video>
+<figure data-rex-oembed="https://youtu.be/ID" data-rex-title="…" class="rex-ratio-16x9"><a href="…">…</a></figure>
+<div data-rex-embed="(maskierter Code)" data-rex-sig="…" data-consent-service="google_maps" data-rex-label="Anfahrt"></div>
+```
+
+`Tiptap::render()` löst sie auf:
+
+- **Video:** Adressen aus dem Medienpool.
+- **YouTube/Vimeo:** 2-Klick-Platzhalter oder – mit Profil-Einstellung „2-Klick-Lösung“ aus – direkt der Player
+  (`youtube-nocookie.com` bzw. Vimeo mit `dnt=1`). Titel und Vorschaubild holt der Server über oEmbed und legt sie im
+  Datenordner ab (`?rex-api-call=tiptap_oembed`).
+- **HTML-Embed:** nur mit gültiger Signatur (Recht `tiptap[html_embed]`, Admins immer) und nur in Profilen mit dem
+  Werkzeug `htmlEmbed`. `<script>`/`<style>` bekommen `Response::getNonce()`. Ein vollständiger HTML-Cache der Seite
+  friert den Nonce ein. Der OUTPUT_FILTER gibt HTML-Embeds bewusst nie aus.
+
+Seitenverhältnisse sind feste Klassen (`rex-ratio-16x9`, `-4x3`, `-1x1`, `-9x16`, `-21x9`); Stile und Skript fürs
+Frontend (`tiptap-media.css`, `tiptap-media.js`) setzt der OUTPUT_FILTER bei Bedarf selbst ein.
+
+### Schnittstelle zu Einwilligungs-Tools (z. B. consent_kit)
+
+Anbieterneutral, funktioniert mit und ohne Einwilligungs-Tool:
+
+| Teil | Vertrag |
+|---|---|
+| Platzhalter | `[data-consent-service="youtube"][data-consent-src="…"][data-consent-title="…"]`, darin `[data-consent-load]` |
+| HTML-Embed mit Dienst | `.rex-embed-consent[data-consent-service] > template` (Code), Knopf „Inhalt laden“ |
+| Zustand | `data-consent-state="blocked\|loaded"` |
+| JS | `window.ConsentKit` (Alias `cmsConsent`): `has(key)`, `accept(key)`; Ereignisse `consentkit:ready`, `consentkit:change` (`detail.accepted`) |
+
+Ist ein Dienst schon erlaubt, lädt der Inhalt sofort; mit Einwilligungs-Tool bietet der Platzhalter „… immer
+erlauben“ an (`accept()`), und eine spätere Einwilligung lädt alle Platzhalter des Dienstes.

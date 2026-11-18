@@ -155,10 +155,13 @@ final class Sanitizer
                 $classes = array_merge($classes, explode(' ', $style['class']));
             }
         }
-        if ($profile->hasItem('image')) {
+        if ($profile->hasItem('image', 'video', 'oembed')) {
             foreach ($profile->config['image']['styles'] as $style) {
                 $classes = array_merge($classes, explode(' ', $style['class']));
             }
+        }
+        if ($profile->hasItem('video', 'oembed')) {
+            $classes = array_merge($classes, Profile::RATIO_CLASSES);
         }
         if ($profile->hasItem('align', 'alignLeft', 'alignCenter', 'alignRight', 'alignJustify')) {
             foreach ($profile->config['align'] as $class) {

@@ -14,16 +14,25 @@ use Redaxo\Core\Database\Table;
 use Redaxo\Core\ExtensionPoint\Extension;
 use Redaxo\Core\ExtensionPoint\ExtensionLevel;
 use Redaxo\Core\ExtensionPoint\ExtensionPoint;
+use Klxm\Tiptap\Media\HtmlEmbed;
+use Klxm\Tiptap\Media\Oembed;
 use Redaxo\Core\Http\Request;
+use Redaxo\Core\Http\Response;
+use Redaxo\Core\Security\ContentSecurityPolicy;
+use Redaxo\Core\Security\Permission;
 use Redaxo\Core\Translation\I18n;
 use Redaxo\Core\View\Asset;
 
 use function filemtime;
 use function is_file;
 use function str_contains;
+use function htmlspecialchars;
 use function str_starts_with;
+use function stripos;
 use function strrpos;
 use function substr_replace;
+
+use const ENT_QUOTES;
 
 /**
  * TipTap-Editor für REDAXO 6: Profile, Feld {@see Field\Editor}, Frontend über {@see Tiptap}.
@@ -80,10 +89,14 @@ final class TiptapAddon extends Addon
     #[Override]
     public function boot(): void
     {
+        Permission::register(HtmlEmbed::PERMISSION, I18n::msg('tiptap_perm_html_embed'), Permission::OPTIONS);
+
         if (Core::isBackend()) {
             if (null === Core::getUser()) {
                 return;
             }
+            // Vorschau von YouTube/Vimeo im Editor (erst auf Klick)
+            ContentSecurityPolicy::backend()->add('frame-src', ...Oembed::frameHosts());
             Asset::addCssFile($this->assetUrl('tiptap.css'));
             Asset::addJsFile($this->assetUrl('tiptap-loader.js'), [Asset::JS_DEFERED => true]);
             foreach (Registry::plugins() as $plugin) {
@@ -118,9 +131,26 @@ final class TiptapAddon extends Addon
             if (!Core::isBackend() && $this->getConfig('resolve_links')) {
                 $html = Output::resolve($html);
             }
+            // Videos, Platzhalter von YouTube/Vimeo, HTML-Embeds mit Einwilligung: Stile und Skript dazu
+            if (!Core::isBackend() && !str_contains($html, 'tiptap-media.js')
+                && (str_contains($html, 'rex-oembed') || str_contains($html, 'rex-embed-consent') || str_contains($html, 'rex-ratio-'))) {
+                $html = $this->injectMediaAssets($html);
+            }
 
             return $html;
         }, ExtensionLevel::Late);
+    }
+
+    /** Stile in den head, Skript ans Ende des body (mit Nonce der Antwort) */
+    private function injectMediaAssets(string $html): string
+    {
+        $css = '<link rel="stylesheet" href="' . htmlspecialchars($this->assetUrl('tiptap-media.css'), ENT_QUOTES) . '">';
+        $js = '<script defer nonce="' . htmlspecialchars(Response::getNonce(), ENT_QUOTES) . '" src="' . htmlspecialchars($this->assetUrl('tiptap-media.js'), ENT_QUOTES) . '"></script>';
+        $head = stripos($html, '</head>');
+        $html = false === $head ? $css . $html : substr_replace($html, $css, $head, 0);
+        $body = strrpos($html, '</body>');
+
+        return false === $body ? $html . $js : substr_replace($html, $js, $body, 0);
     }
 
     /** Adresse einer Datei aus assets/ mit Version gegen veraltete Caches */

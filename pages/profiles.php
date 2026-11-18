@@ -2,6 +2,7 @@
 
 use Klxm\Tiptap\Mode;
 use Klxm\Tiptap\Output;
+use Klxm\Tiptap\Tiptap;
 use Klxm\Tiptap\RecordLinks;
 use Klxm\Tiptap\RecordSearchApi;
 use Redaxo\Core\MediaManager\MediaTypeRegistry;
@@ -187,6 +188,8 @@ if ('edit' === $func || 'add' === $func) {
         . ' data-media-types="' . escape($json(array_keys(MediaTypeRegistry::all()))) . '"'
         . ' data-record-tables="' . escape($json(RecordLinks::tables())) . '"'
         . ' data-record-api="' . escape(Url::backendController(RecordSearchApi::getUrlParams())) . '"'
+        // Laufzeit-Angaben wie im echten Editor (YouTube/Vimeo-Abfrage, Freigabe von HTML-Embeds nach Recht)
+        . ' data-runtime="' . escape($json(array_intersect_key(Tiptap::clientConfig(new Profile('preview', 'Preview')), array_flip(['oembedApi', 'htmlEmbed', 'embedSignApi'])))) . '"'
         . ' data-media-manager-url="' . escape(Output::basePath() . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__') . '"></div>'
         . '<textarea id="tt-config" name="config" hidden>' . escape($json($profile->config)) . '</textarea>';
 

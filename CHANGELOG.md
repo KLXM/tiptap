@@ -4,6 +4,11 @@
 
 Erste Fassung für REDAXO 6.
 
+- Videos aus dem Medienpool, YouTube/Vimeo per Adresse (oEmbed, 2-Klick-Platzhalter, Vorschau im Editor) und
+  HTML-Embeds (geschützter Block, signiert, Nonce, optional mit Einwilligung); Medienformate für Bilder und Videos,
+  Seitenverhältnisse
+- Toolbar-Builder sieht aus wie die echte Toolbar; Entfernen und Verschieben erscheinen beim Überfahren
+
 - Profile mit Toolbar-Builder (Gruppen, Drag & Drop, Tastatur), Einstellungen ohne Code, Live-Vorschau
 - Speicherformat HTML oder Markdown je Profil
 - Import/Export von Profilen als JSON

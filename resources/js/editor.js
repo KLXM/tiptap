@@ -15,6 +15,7 @@ import {icon} from './icons.js';
 import {allowedUrl, BlockClass, InlineStyle, mediaSrc, nearestList, normalizeUrl, rexImage, rexLink, updateNearestList} from './extensions.js';
 import Link from '@tiptap/extension-link';
 import {registry} from './registry.js';
+import {mediaDialogs, rexHtmlEmbed, rexOembed, rexVideo} from './media.js';
 
 let uid = 0;
 
@@ -212,6 +213,10 @@ export class RexTiptapEditor {
         if (has('image')) {
             extensions.push(rexImage(Image, config));
         }
+        // Medien-Blöcke; vorhandene Inhalte bleiben erhalten, auch wenn das Werkzeug nicht (mehr) in der Toolbar ist
+        if (!this.markdown) {
+            extensions.push(rexVideo(config, this), rexOembed(config, this), rexHtmlEmbed(config, this));
+        }
         if (has('table')) {
             // Tabelle ohne style-Attribute (min-width, colgroup) – sonst greift die Content-Security-Policy
             extensions.push(TableKit.configure({table: false}), Table.extend({
@@ -258,6 +263,17 @@ export class RexTiptapEditor {
                     'aria-multiline': 'true',
                     spellcheck: 'true',
                 },
+                // Adresse von YouTube/Vimeo allein in einer leeren Zeile → Video
+                ...(!config.pasteText && this.has('oembed') ? {
+                    handlePaste: (view, event) => {
+                        const text = event.clipboardData?.getData('text/plain');
+                        if (text && this.pasteVideoUrl(text)) {
+                            event.preventDefault();
+                            return true;
+                        }
+                        return false;
+                    },
+                } : {}),
                 // Einfügen als reiner Text (z. B. für Gäste)
                 ...(config.pasteText ? {
                     handlePaste: (view, event) => {
@@ -853,9 +869,9 @@ export class RexTiptapEditor {
                 el('button', {type: 'submit', className: 'rex-tiptap-dialog-button is-primary', text: t('apply')}),
             ),
         );
-        form.addEventListener('submit', e => {
+        form.addEventListener('submit', async e => {
             e.preventDefault();
-            const message = onApply();
+            const message = await onApply();
             if ('string' === typeof message) {
                 error.textContent = message;
                 error.hidden = false;
@@ -1097,9 +1113,10 @@ export class RexTiptapEditor {
         if (type) {
             type.value = attrs.media ? (attrs.mediaType ?? '') : (image.mediaType ?? '');
         }
-        const style = image.styles?.length ? el('select', {className: 'rex-input'},
+        const imageStyles = (image.styles ?? []).filter(s => 'video' !== s.media);
+        const style = imageStyles.length ? el('select', {className: 'rex-input'},
             el('option', {value: '', text: t('imageStyleNone')}),
-            ...image.styles.map(s => el('option', {value: s.class, text: s.label}))) : null;
+            ...imageStyles.map(s => el('option', {value: s.class, text: s.label}))) : null;
         if (style) {
             style.value = attrs.class ?? '';
         }
@@ -1211,3 +1228,5 @@ function formatHtml(html) {
         .replace(/(<hr\s*\/?>|<br\s*\/?>(?=<))/g, '$1\n')
         .trim();
 }
+
+Object.assign(RexTiptapEditor.prototype, mediaDialogs);

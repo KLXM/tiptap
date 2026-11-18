@@ -2,6 +2,7 @@
 
 import {t} from './i18n.js';
 import {blockHasClass, CLASS_NODES, mediaSrc, nearestList, nodeOfElement, updateNearestList} from './extensions.js';
+import {mediaContext} from './media.js';
 
 const chain = editor => editor.chain().focus();
 
@@ -314,7 +315,7 @@ export const builtinItems = {
             }
             const attrs = editor.getAttributes('image');
             const set = values => editor.chain().focus().updateAttributes('image', values).run();
-            const styles = config.image.styles ?? [];
+            const styles = (config.image.styles ?? []).filter(s => 'video' !== s.media);
             const types = attrs.media ? (config.image.mediaTypes ?? []) : [];
             return [
                 {label: t('imageEdit'), icon: 'image', run: () => ui.imageDialog()},
@@ -328,6 +329,29 @@ export const builtinItems = {
                 {label: t('imageRemove'), icon: 'trash', danger: true, run: () => editor.chain().focus().deleteSelection().run()},
             ];
         },
+    },
+    video: {
+        label: t('video'),
+        icon: 'video',
+        run: ({ui}) => ui.videoDialog(),
+        active: ({editor}) => editor.isActive('rexVideo'),
+        enabled: ({config}) => !!(config.backend && window.rex?.pick),
+        context: ({ui}) => mediaContext('rexVideo', ui),
+    },
+    oembed: {
+        label: t('oembed'),
+        icon: 'oembed',
+        run: ({ui}) => ui.oembedDialog(),
+        active: ({editor}) => editor.isActive('rexOembed'),
+        context: ({ui}) => mediaContext('rexOembed', ui),
+    },
+    htmlEmbed: {
+        label: t('htmlEmbed'),
+        icon: 'htmlEmbed',
+        run: ({ui}) => ui.htmlEmbedDialog(),
+        active: ({editor}) => editor.isActive('rexHtmlEmbed'),
+        enabled: ({config}) => !!config.htmlEmbed,
+        context: ({ui}) => mediaContext('rexHtmlEmbed', ui),
     },
     table: {
         label: t('table'),

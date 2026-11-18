@@ -41,6 +41,9 @@ final readonly class Profile
     /** Name, optional mit Kennung vor einem Punkt – Profile aus Code: `tiptap.news` */
     public const string NAME_PATTERN = '/^[a-z0-9][a-z0-9_-]{0,63}(\.[a-z0-9][a-z0-9_-]{0,63})?$/';
 
+    /** Seitenverhältnisse für Videos (feste Klassen, CSS in assets/tiptap-media.css) */
+    public const array RATIO_CLASSES = ['rex-ratio-16x9', 'rex-ratio-4x3', 'rex-ratio-1x1', 'rex-ratio-9x16', 'rex-ratio-21x9'];
+
     /** Voreinstellungen eines leeren Profils */
     public const array DEFAULTS = [
         'toolbar' => [['undo', 'redo'], ['heading'], ['bold', 'italic'], ['bulletList', 'orderedList'], ['link']],
@@ -54,6 +57,9 @@ final readonly class Profile
         'align' => ['left' => 'text-left', 'center' => 'text-center', 'right' => 'text-right', 'justify' => 'text-justify'],
         'link' => ['internal' => true, 'media' => true, 'external' => true, 'mailto' => true, 'tel' => true, 'targetBlank' => true, 'records' => []],
         'image' => ['types' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'], 'external' => false, 'mediaTypes' => [], 'mediaType' => '', 'styles' => []],
+        'video' => ['types' => ['mp4', 'webm', 'ogv', 'm4v']],
+        // YouTube/Vimeo: Anbieter; consent = 2-Klick-Lösung (Player erst nach Klick bzw. Einwilligung)
+        'embed' => ['providers' => ['youtube', 'vimeo'], 'consent' => true],
         'specialChars' => ['–', '—', '…', '„', '“', '‚', '‘', '«', '»', '€', '©', '®', '™', '§', '°', '±', '×', '÷', '½', '→', '←', '✓', "\u{00A0}", "\u{00AD}"],
         'minHeight' => 180,
         'maxHeight' => 0,
@@ -250,8 +256,16 @@ final readonly class Profile
             // Mediamanager-Typen zur Auswahl im Bild-Dialog, Voreinstellung ('' = Originaldatei)
             'mediaTypes' => $mediaTypes,
             'mediaType' => $mediaType,
-            // Bildformate: Klassen am <img> (z. B. links umflossen, volle Breite)
-            'styles' => self::styles($image['styles'] ?? [], false),
+            // Medienformate: Klassen an Bildern und Videos (z. B. links umflossen, volle Breite), media = image|video|both
+            'styles' => self::mediaStyles($image['styles'] ?? []),
+        ];
+        $video = is_array($config['video'] ?? null) ? $config['video'] : [];
+        $out['video'] = ['types' => self::extensions($video['types'] ?? null) ?: $d['video']['types']];
+        $embed = is_array($config['embed'] ?? null) ? $config['embed'] : [];
+        $providers = is_array($embed['providers'] ?? null) ? $embed['providers'] : $d['embed']['providers'];
+        $out['embed'] = [
+            'providers' => array_values(array_intersect($d['embed']['providers'], $providers)),
+            'consent' => (bool) ($embed['consent'] ?? $d['embed']['consent']),
         ];
 
         $chars = is_array($config['specialChars'] ?? null) ? $config['specialChars'] : $d['specialChars'];
@@ -298,6 +312,22 @@ final readonly class Profile
         }
 
         return array_slice($out, 0, 50);
+    }
+
+    /** @return list<array{label: string, class: string, media: string}> */
+    private static function mediaStyles(mixed $styles): array
+    {
+        $out = [];
+        foreach (is_array($styles) ? $styles : [] as $raw) {
+            $style = is_array($raw) ? self::styles([$raw], false)[0] ?? null : null;
+            if (null !== $style) {
+                $media = $raw['media'] ?? 'both';
+                $style['media'] = in_array($media, ['image', 'video', 'both'], true) ? $media : 'both';
+                $out[] = $style;
+            }
+        }
+
+        return $out;
     }
 
     /** Klassennamen (durch Leerzeichen getrennt) auf sichere Zeichen beschränken */

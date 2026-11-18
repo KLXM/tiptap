@@ -22,6 +22,14 @@ Ein AddOn von [KLXM Crossmedia](https://klxm.de). · [English](README.md)
   - Links auf YForm-Datensätze.
 - **Formate als CSS-Klassen:** Block-, Text-, Link- (z. B. „Als Button“), Bild- und Listenformate sowie die
   Ausrichtung. Es entstehen keine `style`-Attribute, das hält die Content-Security-Policy ein.
+- **Videos und Einbettungen:**
+  - Lokale Videos aus dem Medienpool mit Vorschaubild, Steuerelementen, Autoplay, Schleife, Medienformaten und
+    Seitenverhältnis.
+  - YouTube und Vimeo per Adresse (auch einfach einfügen). Gespeichert wird nur die Adresse; auf der Website ein
+    2-Klick-Platzhalter mit Vorschaubild vom eigenen Server, vor dem Klick lädt nichts vom Anbieter.
+  - HTML-Embeds: geschützter Block für eigenes HTML/JS, den das Bearbeiten nicht zerstört. Freigeben dürfen nur
+    Benutzer mit dem Recht „HTML-Embeds“ (Signatur des Servers), Skripte bekommen den Nonce der Antwort, optional
+    erst nach Einwilligung.
 - **Listen:** Zählweise je Ebene (1, a, A, i, I), Startnummer, gegliedert (1.1, 1.2) per Vorlage.
 - **Kontextmenüs** für Tabellen, Listen, Bilder, Links und Überschriften. Dazu kommt eine **Link-Leiste**, die das
   Ziel lesbar anzeigt.

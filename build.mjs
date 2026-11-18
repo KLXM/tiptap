@@ -9,6 +9,8 @@ const builds = [
     {entryPoints: {tiptap: 'resources/js/main.js'}, outdir: 'assets', format: 'esm', splitting: true, chunkNames: 'chunks/[name]-[hash]'},
     {entryPoints: ['resources/js/loader.js'], outfile: 'assets/tiptap-loader.js', format: 'iife'},
     {entryPoints: ['resources/js/builder.js'], outfile: 'assets/builder.js', format: 'iife'},
+    // Frontend der Medien-Blöcke (Platzhalter, Einwilligung) – klein, ohne TipTap
+    {entryPoints: ['resources/js/media-frontend.js'], outfile: 'assets/tiptap-media.js', format: 'iife'},
 ];
 
 for (const options of builds) {

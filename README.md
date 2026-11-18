@@ -22,6 +22,13 @@ An addon by [KLXM Crossmedia](https://klxm.de). · [Deutsch](README.de.md)
   - Links to YForm records.
 - **Styles as CSS classes:** block, text, link (e.g. “as button”), image and list styles as well as alignment.
   No `style` attributes, so the Content Security Policy holds.
+- **Videos and embeds:**
+  - Local videos from the media pool with poster, controls, autoplay, loop, media styles and aspect ratios.
+  - YouTube and Vimeo by address (pasting the address works too). Only the address is stored; on the website a
+    two-click placeholder with a poster image fetched by the server, nothing loads from the provider before the click.
+  - HTML embeds: a protected block for custom HTML/JS that editing cannot break. Only users with the permission
+    “HTML embeds” can approve code (server signature), scripts get the nonce of the response, optionally behind
+    consent.
 - **Lists:** numbering per level (1, a, A, i, I), start number, outline numbering (1.1, 1.2) via preset.
 - **Context menus** for tables, lists, images, links and headings, plus a **link bar** showing the target in plain
   words.

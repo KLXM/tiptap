@@ -128,6 +128,11 @@ final class Registry
             new Item('link', $m('link'), 'link', 'insert', elements: ['a' => ['href', 'target', 'rel', 'title']], description: $d('link')),
             new Item('unlink', $m('unlink'), 'unlink', 'insert'),
             new Item('image', $m('image'), 'image', 'insert', elements: ['img' => ['src', 'alt', 'title', 'width', 'height']], description: $d('image')),
+            new Item('video', $m('video'), 'video', 'insert', markdown: false, elements: [
+                'video' => ['src', 'data-rex-media', 'poster', 'data-rex-poster', 'title', 'controls', 'autoplay', 'muted', 'loop', 'playsinline', 'preload'],
+            ], description: $d('video')),
+            new Item('oembed', $m('oembed'), 'oembed', 'insert', markdown: false, elements: ['figure' => ['data-rex-oembed', 'data-rex-title']], description: $d('oembed')),
+            new Item('htmlEmbed', $m('htmlEmbed'), 'htmlEmbed', 'insert', markdown: false, elements: ['div' => ['data-rex-embed', 'data-rex-sig', 'data-rex-label', 'data-consent-service']], description: $d('htmlEmbed')),
             new Item('table', $m('table'), 'table', 'insert', elements: [
                 'table' => [], 'thead' => [], 'tbody' => [], 'tr' => [], 'th' => ['colspan', 'rowspan'], 'td' => ['colspan', 'rowspan'], 'colgroup' => [], 'col' => [],
             ], description: $d('table'), menu: true),

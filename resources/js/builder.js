@@ -22,7 +22,10 @@ const T = {
         images: 'Bilder', imageTypes: 'Erlaubte Dateitypen', imageExternal: 'Externe Bildadressen erlauben',
         mediaTypes: 'Mediamanager-Typen zur Auswahl', mediaTypesHint: 'Der Bild-Dialog bietet diese Typen an – so kommen Bilder in passender Größe auf die Website.',
         mediaTypeDefault: 'Voreinstellung', mediaTypeOriginal: 'Originaldatei',
-        imageStyles: 'Bildformate', imageStylesHint: 'Klassen am Bild, z. B. „links umflossen“ oder „volle Breite“ – Auswahl im Bild-Dialog und per Rechtsklick.',
+        imageStyles: 'Medienformate', imageStylesHint: 'Klassen an Bildern und Videos, z. B. „links umflossen“ oder „volle Breite“ – Auswahl im Dialog und per Rechtsklick. „gilt für“ legt fest, ob ein Format bei Bildern, Videos oder beiden angeboten wird.',
+        mediaFor: 'gilt für', mediaBoth: 'Bilder & Videos', mediaImage: 'nur Bilder', mediaVideo: 'nur Videos',
+        videos: 'Videos & Einbettungen', videosHint: 'Gilt für die Werkzeuge „Video“ (Medienpool) und „YouTube / Vimeo“. Seitenverhältnisse (16:9, 4:3, 1:1, 9:16, 21:9) sind feste Klassen rex-ratio-…, das CSS bringt das AddOn mit.',
+        videoTypes: 'Erlaubte Dateitypen (Video)', embedProviders: 'Anbieter', embedConsent: '2-Klick-Lösung: YouTube/Vimeo lädt erst nach Klick (empfohlen)', embedConsentHint: 'Ohne Häkchen wird der Player direkt eingebunden – dann ist eine Einwilligung nötig, bevor die Seite lädt.',
         filter: 'Filtern …',
         lists: 'Listen', listsHint: 'Zählweisen gibt der Browser selbst aus. Listenformate sind Klassen – das CSS dazu muss auf der Website (und für die Vorschau im Editor) vorhanden sein.',
         listTypes: 'Zählweisen nummerierter Listen', listStyles: 'Listenformate', listFor: 'gilt für', listBoth: 'beide', listOl: 'nummeriert', listUl: 'Aufzählung',
@@ -56,7 +59,10 @@ const T = {
         images: 'Images', imageTypes: 'Allowed file types', imageExternal: 'Allow external image addresses',
         mediaTypes: 'Media manager types to choose from', mediaTypesHint: 'The image dialog offers these types – so images reach the website in a fitting size.',
         mediaTypeDefault: 'Default', mediaTypeOriginal: 'Original file',
-        imageStyles: 'Image styles', imageStylesHint: 'Classes on the image, e.g. “float left” or “full width” – chosen in the image dialog and via right click.',
+        imageStyles: 'Media styles', imageStylesHint: 'Classes on images and videos, e.g. “float left” or “full width” – chosen in the dialog and via right click. “applies to” sets whether a style is offered for images, videos or both.',
+        mediaFor: 'applies to', mediaBoth: 'images & videos', mediaImage: 'images only', mediaVideo: 'videos only',
+        videos: 'Videos & embeds', videosHint: 'Applies to the tools “Video” (media pool) and “YouTube / Vimeo”. Aspect ratios (16:9, 4:3, 1:1, 9:16, 21:9) are fixed classes rex-ratio-…, the addon ships the CSS.',
+        videoTypes: 'Allowed file types (video)', embedProviders: 'Providers', embedConsent: 'Two-click: YouTube/Vimeo only loads after a click (recommended)', embedConsentHint: 'Unchecked, the player is embedded directly – consent is then needed before the page loads.',
         filter: 'Filter …',
         lists: 'Lists', listsHint: 'Numbering is rendered by the browser. List styles are classes – the CSS has to exist on the website (and for the preview in the editor).',
         listTypes: 'Numbering of ordered lists', listStyles: 'List styles', listFor: 'applies to', listBoth: 'both', listOl: 'numbered', listUl: 'bullets',
@@ -496,7 +502,12 @@ class Builder {
                 this.checkList('image.mediaTypes', this.mediaTypes.map(name => [name, name]), '', () => this.renderDefaultType()),
                 this.defaultTypeField = el('div'),
                 el('h4', {text: t('imageStyles')}), el('p', {className: 'tt-b-hint', text: t('imageStylesHint')}),
-                this.styleList('image.styles', false)),
+                this.styleList('image.styles', false, false, true)),
+            section(t('videos'), t('videosHint'),
+                field(t('videoTypes'), el('input', {type: 'text', className: 'rex-input', value: (c.video?.types ?? []).join(', '), oninput: e => set('video.types', e.target.value.split(/[\s,]+/).filter(Boolean))})),
+                el('h4', {text: t('embedProviders')}),
+                this.checkList('embed.providers', [['youtube', 'YouTube'], ['vimeo', 'Vimeo']]),
+                check('embed.consent', t('embedConsent')), el('p', {className: 'tt-b-hint', text: t('embedConsentHint')})),
             section(t('chars'), t('charsHint'),
                 field(t('chars'), el('input', {type: 'text', className: 'rex-input', value: (c.specialChars ?? []).map(ch => CHAR_NAMES[ch] ?? ch).join(' '), oninput: e => set('specialChars', e.target.value.split(/\s+/).filter(Boolean).map(ch => CHAR_VALUES[ch] ?? ch))}))),
             section(t('editor'), null,
@@ -578,7 +589,7 @@ class Builder {
                 el('pre', {className: 'tt-b-output', text: p.css}))));
     }
 
-    styleList(key, block, listKind = false) {
+    styleList(key, block, listKind = false, mediaKind = false) {
         const wrap = el('div', {className: 'tt-b-styles'});
         const elements = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'table'];
         const draw = () => {
@@ -606,6 +617,10 @@ class Builder {
                         style.list = e.target.value;
                         this.changed();
                     }}, ...[['both', t('listBoth')], ['ol', t('listOl')], ['ul', t('listUl')]].map(([v, l]) => el('option', {value: v, text: l, selected: (style.list ?? 'both') === v}))) : null,
+                    mediaKind ? el('select', {className: 'rex-input', 'aria-label': t('mediaFor'), onchange: e => {
+                        style.media = e.target.value;
+                        this.changed();
+                    }}, ...[['both', t('mediaBoth')], ['image', t('mediaImage')], ['video', t('mediaVideo')]].map(([v, l]) => el('option', {value: v, text: l, selected: (style.media ?? 'both') === v}))) : null,
                     this.smallButton('trash', t('remove'), () => {
                         list.splice(i, 1);
                         draw();
@@ -613,7 +628,7 @@ class Builder {
                     }),
                 )),
                 el('button', {type: 'button', className: 'rex-button', 'data-size': 'sm', onclick: () => {
-                    list.push(block ? {label: '', class: '', element: 'p'} : (listKind ? {label: '', class: '', list: 'both'} : {label: '', class: ''}));
+                    list.push(block ? {label: '', class: '', element: 'p'} : (listKind ? {label: '', class: '', list: 'both'} : (mediaKind ? {label: '', class: '', media: 'both'} : {label: '', class: ''})));
                     draw();
                     this.changed();
                     wrap.querySelectorAll('.tt-b-style input')[list.length * 2 - 2]?.focus();
@@ -647,6 +662,7 @@ class Builder {
             mediaManagerUrl: this.root.dataset.mediaManagerUrl || '/index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__',
             // wie im echten Editor: verlinkbare Tabellen mit Bezeichnung und Such-Adresse
             recordApi: this.root.dataset.recordApi,
+            ...JSON.parse(this.root.dataset.runtime || '{}'),
             recordTables: (this.config.link?.records ?? []).filter(name => this.recordTables[name]).map(name => ({name, label: this.recordTables[name]})),
             // Markdown kennt keine Klassen
             ...(markdown ? {blockStyles: [], inlineStyles: [], toolbar: (this.config.toolbar ?? []).map(g => g.filter(id => this.items[id]?.markdown !== false))} : {}),

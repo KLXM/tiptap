@@ -3,9 +3,14 @@
 namespace Klxm\Tiptap;
 
 use Redaxo\Core\Content\Article;
+use Redaxo\Core\Core;
 use Redaxo\Core\Filesystem\Url;
 use Redaxo\Core\MediaManager\MediaManager;
 use Redaxo\Core\MediaPool\Media;
+use Klxm\Tiptap\Media\HtmlEmbed;
+use Klxm\Tiptap\Media\Oembed;
+use Redaxo\Core\Language\Language;
+use Redaxo\Core\Translation\I18n;
 use Redaxo\Core\Util\Markdown\Markdown;
 use Throwable;
 
@@ -16,7 +21,9 @@ use function preg_match;
 use function preg_replace;
 use function preg_replace_callback;
 use function rawurldecode;
+use function rawurlencode;
 use function str_contains;
+use function str_starts_with;
 use function trim;
 
 use const ENT_QUOTES;
@@ -39,13 +46,63 @@ final class Output
             ? Markdown::factory()->parse($value, false, false, Sanitizer::config($profile))
             : Sanitizer::clean($value, $profile);
 
-        return self::resolve($html);
+        if (Mode::Html === $profile->mode && $profile->hasItem('htmlEmbed')) {
+            $html = HtmlEmbed::resolve($html);
+        }
+
+        return self::resolve($html, (bool) ($profile->config['embed']['consent'] ?? true));
     }
 
-    /** Links und Bilder auflösen – auch auf beliebiges HTML anwendbar, z. B. im OUTPUT_FILTER */
-    public static function resolve(string $html): string
+    /**
+     * Links, Bilder, Videos und YouTube/Vimeo auflösen – auch auf beliebiges HTML anwendbar, z. B. im OUTPUT_FILTER.
+     * HTML-Embeds nur über {@see self::render()} (Profil mit Werkzeug htmlEmbed, signierter Code).
+     *
+     * @param bool $twoClick YouTube/Vimeo erst nach Klick laden (Platzhalter mit Vorschaubild)
+     */
+    public static function resolve(string $html, bool $twoClick = true): string
     {
-        return self::resolveMedia(self::resolveLinks($html));
+        return self::resolveOembed(self::resolveMedia(self::resolveLinks($html)), $twoClick);
+    }
+
+    /**
+     * `<figure data-rex-oembed="…">` (YouTube/Vimeo) → Platzhalter mit Vorschaubild und „Video laden“ bzw. direkt der
+     * Player. Schnittstelle zu Einwilligungs-Tools: `data-consent-service`, `data-consent-src`, `[data-consent-load]`,
+     * `[data-consent-allow]` (siehe tiptap-media.js).
+     */
+    public static function resolveOembed(string $html, bool $twoClick = true): string
+    {
+        if (!str_contains($html, 'data-rex-oembed=')) {
+            return $html;
+        }
+
+        return (string) preg_replace_callback('~<figure\b([^>]*\sdata-rex-oembed="([^"]*)"[^>]*)>.*?</figure>~is', static function (array $m) use ($twoClick): string {
+            $url = html_entity_decode($m[2], ENT_QUOTES);
+            $video = Oembed::parse($url);
+            if (null === $video) {
+                return '';
+            }
+            $meta = Oembed::meta($url) ?? ['title' => '', 'thumbnail' => false];
+            $title = preg_match('~\sdata-rex-title="([^"]*)"~', $m[1], $t) ? html_entity_decode($t[1], ENT_QUOTES) : '';
+            $title = '' !== $title ? $title : ('' !== $meta['title'] ? $meta['title'] : Oembed::PROVIDERS[$video['provider']]);
+            $class = preg_match('~\sclass="([^"]*)"~', $m[1], $c) ? $c[1] : '';
+            if (!str_contains($class, 'rex-ratio-')) {
+                $class .= ' rex-ratio-16x9';
+            }
+            $e = static fn (string $v): string => htmlspecialchars($v, ENT_QUOTES);
+            $figure = '<figure class="rex-oembed ' . $e(trim($class)) . '">';
+            if (!$twoClick) {
+                return $figure . '<iframe src="' . $e(Oembed::playerUrl($video)) . '" title="' . $e($title) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe></figure>';
+            }
+            $provider = Oembed::PROVIDERS[$video['provider']];
+            $thumb = $meta['thumbnail'] ? '<img class="rex-oembed-thumb" src="' . $e(self::basePath() . 'index.php?rex-api-call=tiptap_oembed&thumb=1&url=' . rawurlencode($url)) . '" alt="" loading="lazy">' : '';
+
+            return $figure
+                . '<div class="rex-oembed-frame" data-consent-service="' . $video['provider'] . '" data-consent-src="' . $e(Oembed::playerUrl($video, true)) . '" data-consent-title="' . $e($title) . '">'
+                . $thumb
+                . '<button type="button" class="rex-oembed-play" data-consent-load><span class="rex-oembed-play-icon" aria-hidden="true"></span><span class="rex-oembed-play-label">' . $e(self::text('tiptap_oembed_load', $title)) . '</span></button>'
+                . '<p class="rex-oembed-note">' . $e(self::text('tiptap_oembed_note', $provider)) . ' <a href="' . $e(Oembed::watchUrl($video)) . '" target="_blank" rel="noopener">' . $e(self::text('tiptap_oembed_watch', $provider)) . '</a></p>'
+                . '</div></figure>';
+        }, $html);
     }
 
     /**
@@ -80,6 +137,9 @@ final class Output
      */
     public static function resolveMedia(string $html): string
     {
+        if (str_contains($html, '<video')) {
+            $html = self::resolveVideo($html);
+        }
         if (!str_contains($html, '<img')) {
             return $html;
         }
@@ -104,6 +164,28 @@ final class Output
         }, $html);
     }
 
+    /** Videos aus dem Medienpool: `data-rex-media` → src, `data-rex-poster` → poster (Adresse aus dem Medienpool) */
+    public static function resolveVideo(string $html): string
+    {
+        return (string) preg_replace_callback('~<video\b([^>]*)>~i', static function (array $m): string {
+            $attrs = $m[1];
+            if (preg_match('~\sdata-rex-media="([^"]+)"~', $attrs, $file)) {
+                $src = self::mediaUrl(html_entity_decode($file[1], ENT_QUOTES));
+                $attrs = (string) preg_replace('~\s(src|data-rex-media)="[^"]*"~', '', $attrs);
+                $attrs = ' src="' . htmlspecialchars($src, ENT_QUOTES) . '"' . $attrs;
+            }
+            if (preg_match('~\sdata-rex-poster="([^"]+)"~', $attrs, $poster)) {
+                $url = self::mediaUrl(html_entity_decode($poster[1], ENT_QUOTES));
+                $attrs = (string) preg_replace('~\s(poster|data-rex-poster)="[^"]*"~', '', $attrs);
+                $attrs .= ' poster="' . htmlspecialchars($url, ENT_QUOTES) . '"';
+            } elseif (preg_match('~\sposter="([^"]*)"~', $attrs, $poster) && !preg_match('~^(/|https://)~', html_entity_decode($poster[1], ENT_QUOTES))) {
+                $attrs = (string) preg_replace('~\sposter="[^"]*"~', '', $attrs);
+            }
+
+            return '<video' . $attrs . '>';
+        }, $html);
+    }
+
     public static function mediaUrl(string $file, string $type = ''): string
     {
         try {
@@ -115,6 +197,27 @@ final class Output
         } catch (Throwable) {
             return Url::media($file);
         }
+    }
+
+    /**
+     * Text für die Website in der Sprache der Seite (clang-Code de, en … → de_de, en_gb), sonst Backend-Sprache.
+     */
+    public static function text(string $key, string|int ...$replacements): string
+    {
+        if (!Core::isBackend()) {
+            try {
+                $code = Language::getCurrent()->code;
+                foreach (I18n::getLocales() as $locale) {
+                    if ($locale === $code || str_starts_with($locale, $code . '_')) {
+                        return I18n::rawMsgInLocale($key, $locale, ...$replacements);
+                    }
+                }
+            } catch (Throwable) {
+                // Backend-Sprache
+            }
+        }
+
+        return I18n::rawMsg($key, ...$replacements);
     }
 
     /** Pfad der Website-Wurzel (`/` oder `/unterordner/`) – gleich im Backend und im Frontend */
