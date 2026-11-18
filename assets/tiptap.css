@@ -713,6 +713,13 @@ html.rex-tiptap-has-fullscreen {
 .rex-tiptap-prose img.img-right { float: right; max-width: 45%; margin: .3em 0 .8em 1.2em; }
 .rex-tiptap-prose img.img-center { margin-inline: auto; }
 .rex-tiptap-prose img.img-full { width: 100%; }
+/* dieselben Formate für Videos und YouTube/Vimeo (Block im Editor) */
+.rex-tiptap-prose .rex-tiptap-media.img-left { float: left; margin: .3em 1.2em .8em 0; }
+.rex-tiptap-prose .rex-tiptap-media.img-right { float: right; margin: .3em 0 .8em 1.2em; }
+.rex-tiptap-prose .rex-tiptap-media:is(.img-left, .img-right):not([class*="rex-w-"]) { width: 45%; }
+.rex-tiptap-prose .rex-tiptap-media.img-center { margin-inline: auto; }
+.rex-tiptap-prose .rex-tiptap-media.img-full { width: 100%; }
+.rex-tiptap-prose .rex-tiptap-media:is(.img-left, .img-right, .img-full) .rex-tiptap-media-video { width: 100%; }
 .rex-tiptap-prose::after { content: ""; display: table; clear: both; }
 
 /* Link-Bubble unter einem Link */

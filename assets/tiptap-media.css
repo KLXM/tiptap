@@ -19,6 +19,16 @@ video[class*="rex-ratio-"] {
     object-fit: cover;
 }
 
+/* Formate der Standardprofile (wie bei Bildern): umflossen, zentriert, volle Breite */
+:is(video.rex-video, .rex-oembed).img-left { float: left; margin: .3em 1.2em .8em 0; }
+:is(video.rex-video, .rex-oembed).img-right { float: right; margin: .3em 0 .8em 1.2em; }
+:is(video.rex-video, .rex-oembed):is(.img-left, .img-right):not([class*="rex-w-"]) { width: 45%; }
+:is(video.rex-video, .rex-oembed).img-center { margin-inline: auto; }
+:is(video.rex-video, .rex-oembed).img-full { width: 100%; max-width: 100%; }
+@media (max-width: 640px) {
+    :is(video.rex-video, .rex-oembed):is(.img-left, .img-right) { float: none; width: 100%; margin: 1em 0; }
+}
+
 /* Größe im Textfluss */
 .rex-w-75 { width: 75%; }
 .rex-w-50 { width: 50%; }
