@@ -983,3 +983,9 @@ html.rex-tiptap-has-fullscreen {
 .rex-tiptap-pickers--end {
     align-self: end;
 }
+
+.rex-tiptap-dialog .rex-tiptap-hint {
+    align-self: center;
+    color: var(--_muted);
+    font-size: 13px;
+}

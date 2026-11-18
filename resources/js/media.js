@@ -413,15 +413,74 @@ export const mediaDialogs = {
         };
         autoplay.input.addEventListener('change', syncMuted);
         syncMuted();
-        const refresh = () => {
-            preview.src = media ? mediaSrc(config, media) : '';
-            preview.hidden = !media;
-            if (poster) {
-                preview.poster = mediaSrc(config, poster);
+        // Video-Editor (optional): Poster ohne eigene Wahl kommt bei der Ausgabe von dort (wird nicht gespeichert)
+        const ve = config.videoEditor ?? null;
+        let autoPoster = null;
+        const status = el('small', {className: 'rex-tiptap-hint', role: 'status'});
+        const veCall = async (action, extra = {}) => {
+            const body = new FormData();
+            body.append('action', action);
+            body.append('file', media);
+            for (const [k, v] of Object.entries(extra)) {
+                body.append(k, String(v));
+            }
+            const data = await (await fetch(ve.api, {method: 'POST', body, credentials: 'same-origin'})).json();
+            if (!data?.ok) {
+                throw new Error(data?.error || 'video_editor');
+            }
+            return data;
+        };
+        const loadAutoPoster = async () => {
+            autoPoster = null;
+            if (ve?.api && media && !poster) {
+                try {
+                    autoPoster = (await veCall('info')).poster?.src ?? null;
+                } catch {
+                    autoPoster = null;
+                }
+            }
+            showPoster();
+        };
+        const showPoster = () => {
+            const url = poster ? mediaSrc(config, poster) : autoPoster;
+            if (url) {
+                preview.poster = url;
             } else {
                 preview.removeAttribute('poster');
             }
+            posterInput.placeholder = !poster && ve ? (autoPoster ? t('videoPosterAuto') : t('videoPosterAutoNone')) : '';
         };
+        const refresh = () => {
+            preview.src = media ? mediaSrc(config, media) : '';
+            preview.hidden = !media;
+            showPoster();
+            if (captureButton) {
+                captureButton.disabled = !media;
+            }
+            if (editLink) {
+                editLink.hidden = !media;
+                editLink.href = media ? ve.edit.replace('__FILE__', encodeURIComponent(media)) : '#';
+            }
+        };
+        const capture = async () => {
+            captureButton.disabled = true;
+            status.textContent = t('videoPosterCapturing');
+            try {
+                const data = await veCall('poster', {time: preview.currentTime.toFixed(3)});
+                // eigenes Poster wieder freigeben: das Standbild gilt automatisch (auch nach späteren Änderungen)
+                poster = null;
+                posterInput.value = '';
+                autoPoster = data.poster?.src ?? autoPoster;
+                status.textContent = t('videoPosterCaptured');
+                showPoster();
+            } catch (e) {
+                status.textContent = e.message;
+            } finally {
+                captureButton.disabled = !media;
+            }
+        };
+        const captureButton = ve?.api ? el('button', {type: 'button', className: 'rex-tiptap-dialog-button', onclick: capture}, icon('image'), el('span', {text: t('videoPosterCapture')})) : null;
+        const editLink = ve?.edit ? el('a', {className: 'rex-tiptap-dialog-button', target: '_blank', rel: 'noopener', hidden: true}, icon('external'), el('span', {text: t('videoEditInEditor')})) : null;
 
         const chooseVideo = async () => {
             const [item] = await window.rex.pick('media', {types: config.video?.types ?? ['mp4', 'webm']}) ?? [];
@@ -429,6 +488,7 @@ export const mediaDialogs = {
                 media = item.value;
                 src.value = media;
                 refresh();
+                loadAutoPoster();
             }
         };
         const choosePoster = async () => {
@@ -443,6 +503,7 @@ export const mediaDialogs = {
             poster = null;
             posterInput.value = '';
             refresh();
+            loadAutoPoster();
         }});
 
         const fields = [];
@@ -451,6 +512,9 @@ export const mediaDialogs = {
                 el('button', {type: 'button', className: 'rex-tiptap-dialog-button', onclick: chooseVideo}, icon('media'), el('span', {text: t('videoMedia')}))));
         }
         fields.push(this.field(t('videoFile'), src), preview);
+        if (captureButton || editLink) {
+            fields.push(el('div', {className: 'rex-tiptap-pickers'}, captureButton, editLink, status));
+        }
         fields.push(el('div', {className: 'rex-tiptap-field-row'},
             this.field(t('videoPoster'), posterInput),
             pick ? el('div', {className: 'rex-tiptap-pickers rex-tiptap-pickers--end'},
@@ -478,6 +542,8 @@ export const mediaDialogs = {
                 class: joinClass(style?.value, ratioField.value),
             }, selection);
         });
+        refresh();
+        loadAutoPoster();
         if (!attrs.src && pick) {
             chooseVideo();
         }

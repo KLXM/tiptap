@@ -5,11 +5,13 @@ namespace Klxm\Tiptap;
 use Klxm\Tiptap\Media\EmbedSignApi;
 use Klxm\Tiptap\Media\HtmlEmbed;
 use Klxm\Tiptap\Media\OembedApi;
+use Klxm\VideoEditor\VideoEditor;
 use Redaxo\Core\Core;
 use Redaxo\Core\Filesystem\Url;
 use Redaxo\Core\Http\Response;
 use Redaxo\Core\View\HtmlAttributes;
 
+use function class_exists;
 use function in_array;
 use function json_encode;
 use function mb_substr;
@@ -121,6 +123,10 @@ final class Tiptap
             $config['recordApi'] = Url::backendController(RecordSearchApi::getUrlParams());
             // Titel/Vorschaubild von YouTube/Vimeo, Freigabe von HTML-Embeds (Recht tiptap[html_embed])
             $config['oembedApi'] = Url::backendController(OembedApi::getUrlParams());
+            // Video-Editor (optional): Standbild als Poster, Bearbeiten im Medienpool
+            if (class_exists(VideoEditor::class)) {
+                $config['videoEditor'] = ['api' => VideoEditor::apiUrl(), 'edit' => VideoEditor::editUrlTemplate()];
+            }
             if (HtmlEmbed::allowed($user)) {
                 $config['htmlEmbed'] = true;
                 $config['embedSignApi'] = Url::backendController(EmbedSignApi::getUrlParams());

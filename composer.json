@@ -49,5 +49,8 @@
         "branch-alias": {
             "dev-main": "1.x-dev"
         }
+    },
+    "suggest": {
+        "klxm/video_editor": "Poster, web versions and subtitles for videos from the media pool"
     }
 }

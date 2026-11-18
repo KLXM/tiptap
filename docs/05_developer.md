@@ -218,7 +218,10 @@ Die Werkzeuge `video`, `oembed` und `htmlEmbed` speichern:
 
 `Tiptap::render()` löst sie auf:
 
-- **Video:** Adressen aus dem Medienpool.
+- **Video:** Adressen aus dem Medienpool. Mit dem AddOn video_editor zusätzlich: Poster aus dem Video-Editor, wenn
+  keins gewählt ist (wird nicht gespeichert), Web-Fassungen als `<source>` (Hintergrundvideo – autoplay, muted, loop –
+  nur die kleineren), Untertitel als `<track>` mit der Sprache der Seite eingeschaltet. Im Video-Dialog lässt sich das
+  aktuelle Bild als Poster aufnehmen (Recht `video_editor[]`).
 - **YouTube/Vimeo:** 2-Klick-Platzhalter oder – mit Profil-Einstellung „2-Klick-Lösung“ aus – direkt der Player
   (`youtube-nocookie.com` bzw. Vimeo mit `dnt=1`). Titel und Vorschaubild holt der Server über oEmbed und legt sie im
   Datenordner ab (`?rex-api-call=tiptap_oembed`).

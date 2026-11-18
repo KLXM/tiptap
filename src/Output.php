@@ -9,11 +9,13 @@ use Redaxo\Core\MediaManager\MediaManager;
 use Redaxo\Core\MediaPool\Media;
 use Klxm\Tiptap\Media\HtmlEmbed;
 use Klxm\Tiptap\Media\Oembed;
+use Klxm\VideoEditor\VideoEditor;
 use Redaxo\Core\Language\Language;
 use Redaxo\Core\Translation\I18n;
 use Redaxo\Core\Util\Markdown\Markdown;
 use Throwable;
 
+use function class_exists;
 use function htmlspecialchars;
 use function html_entity_decode;
 use function parse_url;
@@ -164,26 +166,71 @@ final class Output
         }, $html);
     }
 
-    /** Videos aus dem Medienpool: `data-rex-media` → src, `data-rex-poster` → poster (Adresse aus dem Medienpool) */
+    /**
+     * Videos aus dem Medienpool: `data-rex-media` → Adresse, `data-rex-poster` → poster.
+     *
+     * Mit dem AddOn video_editor zusätzlich: Poster aus dem Video-Editor, wenn keins gewählt ist (wird nicht
+     * gespeichert – ein neues Standbild erscheint überall), Web-Fassungen als `<source>` (Hintergrundvideo: die
+     * kleineren) und Untertitel als `<track>` (Sprache der Seite eingeschaltet).
+     */
     public static function resolveVideo(string $html): string
     {
-        return (string) preg_replace_callback('~<video\b([^>]*)>~i', static function (array $m): string {
+        return (string) preg_replace_callback('~<video\b([^>]*)>(.*?)</video>~is', static function (array $m): string {
             $attrs = $m[1];
-            if (preg_match('~\sdata-rex-media="([^"]+)"~', $attrs, $file)) {
-                $src = self::mediaUrl(html_entity_decode($file[1], ENT_QUOTES));
+            $inner = $m[2];
+            $file = preg_match('~\sdata-rex-media="([^"]+)"~', $attrs, $f) ? html_entity_decode($f[1], ENT_QUOTES) : null;
+            $editor = null !== $file && class_exists(VideoEditor::class);
+            if (null !== $file) {
                 $attrs = (string) preg_replace('~\s(src|data-rex-media)="[^"]*"~', '', $attrs);
-                $attrs = ' src="' . htmlspecialchars($src, ENT_QUOTES) . '"' . $attrs;
+                $sources = $editor ? VideoEditor::sources($file, self::isBackground($attrs)) : [];
+                if ($sources) {
+                    // mehrere Fassungen: der Browser nimmt die erste passende <source>
+                    $inner = '';
+                    foreach ($sources as $source) {
+                        $inner .= '<source src="' . htmlspecialchars($source['url'], ENT_QUOTES) . '" type="' . htmlspecialchars($source['type'], ENT_QUOTES) . '"'
+                            . ('' !== $source['media'] ? ' media="' . htmlspecialchars($source['media'], ENT_QUOTES) . '"' : '') . '>';
+                    }
+                } else {
+                    $attrs = ' src="' . htmlspecialchars(self::mediaUrl($file), ENT_QUOTES) . '"' . $attrs;
+                }
             }
             if (preg_match('~\sdata-rex-poster="([^"]+)"~', $attrs, $poster)) {
                 $url = self::mediaUrl(html_entity_decode($poster[1], ENT_QUOTES));
-                $attrs = (string) preg_replace('~\s(poster|data-rex-poster)="[^"]*"~', '', $attrs);
-                $attrs .= ' poster="' . htmlspecialchars($url, ENT_QUOTES) . '"';
+                $attrs = (string) preg_replace('~\s(poster|data-rex-poster)="[^"]*"~', '', $attrs) . ' poster="' . htmlspecialchars($url, ENT_QUOTES) . '"';
             } elseif (preg_match('~\sposter="([^"]*)"~', $attrs, $poster) && !preg_match('~^(/|https://)~', html_entity_decode($poster[1], ENT_QUOTES))) {
                 $attrs = (string) preg_replace('~\sposter="[^"]*"~', '', $attrs);
             }
+            if ($editor && !str_contains($attrs, ' poster=') && null !== ($auto = VideoEditor::poster($file))) {
+                $attrs .= ' poster="' . htmlspecialchars($auto->getUrl() . '?v=' . $auto->updateDate, ENT_QUOTES) . '"';
+            }
+            if ($editor && !self::isBackground($attrs) && !str_contains($inner, '<track')) {
+                $lang = self::languageCode();
+                $on = false;
+                foreach (VideoEditor::tracks($file) as $track) {
+                    $default = !$on && 'chapters' !== $track['kind'] && $track['lang'] === $lang;
+                    $on = $on || $default;
+                    $inner .= '<track kind="' . htmlspecialchars($track['kind'], ENT_QUOTES) . '" src="' . htmlspecialchars($track['url'], ENT_QUOTES)
+                        . '" srclang="' . htmlspecialchars($track['lang'], ENT_QUOTES) . '" label="' . htmlspecialchars($track['label'], ENT_QUOTES) . '"' . ($default ? ' default' : '') . '>';
+                }
+            }
 
-            return '<video' . $attrs . '>';
+            return '<video' . $attrs . '>' . $inner . '</video>';
         }, $html);
+    }
+
+    /** Hintergrundvideo: automatisch, stumm, in Schleife */
+    private static function isBackground(string $attrs): bool
+    {
+        return 1 === preg_match('~\sautoplay\b~', $attrs) && 1 === preg_match('~\sloop\b~', $attrs) && 1 === preg_match('~\smuted\b~', $attrs);
+    }
+
+    private static function languageCode(): ?string
+    {
+        try {
+            return Core::isBackend() ? null : Language::getCurrent()->code;
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     public static function mediaUrl(string $file, string $type = ''): string
