@@ -14,6 +14,9 @@ Erste Fassung für REDAXO 6.
 - Einfügen von außen (Website, Word, Mail) wird bereinigt: keine Klassen, Stile, IDs, data-/on-Attribute, keine
   Bilder, Videos, iframes, Skripte, Formular- und Bedienelemente, keine leeren Listen/Absätze; Links nur http(s),
   mailto, tel, relativ. Kopieren innerhalb von tiptap bleibt unverändert
+- Dateien per Ziehen/Einfügen (auch Screenshots) landen im Medienpool und als Bild/Video im Text: Platzhalter mit
+  Fortschritt, Prüfung von Recht, Kategorie und Dateityp auf dem Server, Hinweis bei fehlendem Alternativtext;
+  Profil-Einstellungen „Hochladen“ und „Medienkategorie für Uploads“. Ohne Upload-Recht wird die Datei nur abgefangen
 - Toolbar-Builder sieht aus wie die echte Toolbar; Entfernen und Verschieben erscheinen beim Überfahren
 
 - Profile mit Toolbar-Builder (Gruppen, Drag & Drop, Tastatur), Einstellungen ohne Code, Live-Vorschau

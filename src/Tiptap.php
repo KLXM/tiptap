@@ -6,6 +6,7 @@ use Klxm\Tiptap\Media\EmbedSignApi;
 use Klxm\Tiptap\Media\HtmlEmbed;
 use Klxm\Tiptap\Media\MediaInfoApi;
 use Klxm\Tiptap\Media\OembedApi;
+use Klxm\Tiptap\Media\UploadApi;
 use Klxm\VideoEditor\VideoEditor;
 use Redaxo\Core\Core;
 use Redaxo\Core\Filesystem\Url;
@@ -123,6 +124,10 @@ final class Tiptap
                 }
             }
             $config['recordApi'] = Url::backendController(RecordSearchApi::getUrlParams());
+            // Dateien per Ziehen/Einfügen in den Medienpool (Recht auf die Zielkategorie prüft der Server noch einmal)
+            if ($config['upload']['enabled'] && $user->getComplexPerm('media')->hasMediaPerm()) {
+                $config['uploadApi'] = Url::backendController(UploadApi::getUrlParams());
+            }
             // Alternativtext aus dem Medienpool (klxm_meta) in der Sprache des Inhalts
             $config['mediaInfoApi'] = Url::backendController(MediaInfoApi::getUrlParams());
             $config['language'] = Language::getCurrentId();

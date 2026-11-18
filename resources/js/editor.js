@@ -17,7 +17,8 @@ import Link from '@tiptap/extension-link';
 import {registry} from './registry.js';
 import {mediaDialogs, rexHtmlEmbed, rexOembed, rexVideo} from './media.js';
 import {closeHistory} from '@tiptap/pm/history';
-import {cleanPastedHtml, fitHeadings, hrefFor, htmlIsPlain, isInternalPaste, looksLikeMarkdown, pasteTip, rememberCopy, rexAutoLink} from './smart.js';
+import {cleanPastedHtml, fitHeadings, hrefFor, htmlIsPlain, isInternalPaste, looksLikeMarkdown, pasteTip, rememberCopy, rexAutoLink, showNote} from './smart.js';
+import {rexUpload, uploadMethods} from './upload.js';
 
 let uid = 0;
 
@@ -243,6 +244,8 @@ export class RexTiptapEditor {
         if (any('link', 'unlink')) {
             extensions.push(rexAutoLink(config));
         }
+        // Dateien per Ziehen/Einfügen → Medienpool (immer abfangen, damit der Browser die Datei nicht öffnet)
+        extensions.push(rexUpload(this));
         extensions.push(...registry.pluginExtensions(this.ctx()));
         return extensions;
     }
@@ -276,7 +279,16 @@ export class RexTiptapEditor {
                         return false;
                     },
                 },
-                transformPastedHTML: html => this.pasteInternal ? html : cleanPastedHtml(html),
+                transformPastedHTML: html => {
+                    if (this.pasteInternal) {
+                        return html;
+                    }
+                    // Bilder/Videos fremder Seiten werden nie übernommen – sagen, warum sie fehlen
+                    if (/<(img|video|picture|iframe)\b/i.test(html)) {
+                        setTimeout(() => this.note(t('pasteMediaRemoved')), 0);
+                    }
+                    return cleanPastedHtml(html);
+                },
                 // Einfügen: reiner Text (Profil-Einstellung), Adresse von YouTube/Vimeo → Video, Markdown → Formatierung
                 handlePaste: (view, event) => {
                     const text = event.clipboardData?.getData('text/plain');
@@ -1312,4 +1324,9 @@ function formatHtml(html) {
         .trim();
 }
 
-Object.assign(RexTiptapEditor.prototype, mediaDialogs);
+Object.assign(RexTiptapEditor.prototype, mediaDialogs, uploadMethods, {
+    /** Hinweis unten im Editor */
+    note(text, actionLabel = null, onAction = null) {
+        showNote(this.root, text, actionLabel, onAction);
+    },
+});

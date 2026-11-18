@@ -174,42 +174,51 @@ export function rexAutoLink(config) {
 let tip = null;
 let tipTimer = 0;
 
-/** „Markdown umgewandelt · Als Text einfügen · ×“ unten im Editor (role="status", schließt nach 10 s) */
-export function pasteTip(host, onPlain) {
+/** Hinweis unten im Editor (role="status", schließt nach 10 s), optional mit einem Knopf */
+export function showNote(host, text, actionLabel = null, onAction = null) {
     tip?.remove();
     clearTimeout(tipTimer);
     tip = document.createElement('div');
     tip.className = 'rex-tiptap-tip';
     tip.setAttribute('role', 'status');
     const label = document.createElement('span');
-    label.textContent = t('markdownConverted');
-    const plain = document.createElement('button');
-    plain.type = 'button';
-    plain.className = 'rex-tiptap-tip-button';
-    plain.textContent = t('markdownAsText');
+    label.textContent = text;
+    tip.append(label);
+    if (actionLabel && onAction) {
+        const action = document.createElement('button');
+        action.type = 'button';
+        action.className = 'rex-tiptap-tip-button';
+        action.textContent = actionLabel;
+        action.addEventListener('click', () => {
+            const x = tip;
+            tip = null;
+            x.remove();
+            onAction();
+        });
+        tip.append(action);
+    }
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'rex-tiptap-tip-close';
     close.setAttribute('aria-label', t('close'));
     close.textContent = '×';
-    tip.append(label, plain, close);
-    // Klick lässt die Schreibmarke im Text (Rückgängig wirkt auf den Editor)
-    tip.addEventListener('mousedown', e => e.preventDefault());
-    plain.addEventListener('click', () => {
-        const x = tip;
-        tip = null;
-        x.remove();
-        onPlain();
-    });
     close.addEventListener('click', () => {
         tip?.remove();
         tip = null;
     });
+    tip.append(close);
+    // Klick lässt die Schreibmarke im Text (Rückgängig wirkt auf den Editor)
+    tip.addEventListener('mousedown', e => e.preventDefault());
     host.append(tip);
     tipTimer = setTimeout(() => {
         tip?.remove();
         tip = null;
     }, 10000);
+}
+
+/** „Markdown umgewandelt · Als Text einfügen · ×“ */
+export function pasteTip(host, onPlain) {
+    showNote(host, t('markdownConverted'), t('markdownAsText'), onPlain);
 }
 
 /* ---------- Eingefügtes HTML von außen bereinigen ---------- */

@@ -30,6 +30,8 @@ use function strtolower;
 use function substr;
 use function trim;
 
+use const PHP_INT_MAX;
+
 /**
  * Ein Editor-Profil: Speicherformat, Toolbar und Einstellungen.
  *
@@ -61,6 +63,8 @@ final readonly class Profile
         'link' => ['internal' => true, 'media' => true, 'external' => true, 'mailto' => true, 'tel' => true, 'targetBlank' => true, 'records' => []],
         'image' => ['types' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'], 'external' => false, 'mediaTypes' => [], 'mediaType' => '', 'styles' => []],
         'video' => ['types' => ['mp4', 'webm', 'ogv', 'm4v']],
+        // Dateien per Ziehen/Einfügen in den Medienpool hochladen (nur Backend-Redakteure mit Medienrecht); category 0 = ohne
+        'upload' => ['enabled' => true, 'category' => 0],
         // YouTube/Vimeo: Anbieter; consent = 2-Klick-Lösung (Player erst nach Klick bzw. Einwilligung)
         'embed' => ['providers' => ['youtube', 'vimeo'], 'consent' => true],
         'specialChars' => ['–', '—', '…', '„', '“', '‚', '‘', '«', '»', '€', '©', '®', '™', '§', '°', '±', '×', '÷', '½', '→', '←', '✓', "\u{00A0}", "\u{00AD}"],
@@ -264,6 +268,11 @@ final readonly class Profile
         ];
         $video = is_array($config['video'] ?? null) ? $config['video'] : [];
         $out['video'] = ['types' => self::extensions($video['types'] ?? null) ?: $d['video']['types']];
+        $upload = is_array($config['upload'] ?? null) ? $config['upload'] : [];
+        $out['upload'] = [
+            'enabled' => (bool) ($upload['enabled'] ?? $d['upload']['enabled']),
+            'category' => self::int($upload['category'] ?? null, 0, 0, PHP_INT_MAX),
+        ];
         $embed = is_array($config['embed'] ?? null) ? $config['embed'] : [];
         $providers = is_array($embed['providers'] ?? null) ? $embed['providers'] : $d['embed']['providers'];
         $out['embed'] = [

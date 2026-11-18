@@ -182,14 +182,28 @@ if ('edit' === $func || 'add' === $func) {
         . '<input class="rex-input" id="tt-desc" name="description" maxlength="1000" value="' . escape($profile->description) . '"></div>'
         . '<fieldset class="rex-field" data-layout="vertical"><legend class="rex-field-label">' . I18n::msg('tiptap_mode') . '</legend><div class="tt-mode-switch">' . $modes . '</div></fieldset>';
 
+    // Medienkategorien für das Ziel von Uploads: [id, Name mit Einrückung]
+    $mediaCategories = static function (): array {
+        $list = [];
+        $walk = static function (array $categories, int $depth) use (&$walk, &$list): void {
+            foreach ($categories as $category) {
+                $list[] = [$category->id, str_repeat('– ', $depth) . $category->name];
+                $walk($category->getChildren(), $depth + 1);
+            }
+        };
+        $walk(\Redaxo\Core\MediaPool\MediaCategory::getRootCategories(), 0);
+
+        return $list;
+    };
     $builder = '<div class="tt-b" data-tiptap-builder data-output="#tt-config"'
         . ' data-catalog="' . escape($json(Registry::catalog())) . '"'
         . ' data-media-url="' . escape(Output::basePath() . 'media/') . '"'
+        . ' data-media-categories="' . escape($json($mediaCategories())) . '"'
         . ' data-media-types="' . escape($json(array_keys(MediaTypeRegistry::all()))) . '"'
         . ' data-record-tables="' . escape($json(RecordLinks::tables())) . '"'
         . ' data-record-api="' . escape(Url::backendController(RecordSearchApi::getUrlParams())) . '"'
         // Laufzeit-Angaben wie im echten Editor (YouTube/Vimeo-Abfrage, Freigabe von HTML-Embeds nach Recht)
-        . ' data-runtime="' . escape($json(array_intersect_key(Tiptap::clientConfig(new Profile('preview', 'Preview')), array_flip(['oembedApi', 'htmlEmbed', 'embedSignApi', 'videoEditor', 'mediaInfoApi', 'language'])))) . '"'
+        . ' data-runtime="' . escape($json(array_intersect_key(Tiptap::clientConfig(new Profile('preview', 'Preview')), array_flip(['oembedApi', 'htmlEmbed', 'embedSignApi', 'videoEditor', 'mediaInfoApi', 'language', 'uploadApi'])))) . '"'
         . ' data-media-manager-url="' . escape(Output::basePath() . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__') . '"></div>'
         . '<textarea id="tt-config" name="config" hidden>' . escape($json($profile->config)) . '</textarea>';
 
