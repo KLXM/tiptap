@@ -61,7 +61,7 @@ Ein AddOn von [KLXM Crossmedia](https://klxm.de). · [English](README.md)
 ## Installation
 
 ```bash
-composer require klxm/tiptap
+composer require klxm/tiptap:^1.0@beta
 php bin/console migrate
 ```
 
