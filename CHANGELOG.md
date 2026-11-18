@@ -9,6 +9,8 @@ Erste Fassung für REDAXO 6.
   Seitenverhältnisse
 - Mit video_editor: Poster automatisch (ohne Speichern), Standbild im Video-Dialog aufnehmen, Web-Fassungen als
   `<source>`, Untertitel als `<track>`, Hintergrundvideos in kleiner Fassung
+- Alternativtext von Bildern aus dem Medienpool (klxm_meta, je Sprache, dekorativ = alt=""); im Bild-Dialog
+  überschreibbar oder als dekorativ markierbar
 - Toolbar-Builder sieht aus wie die echte Toolbar; Entfernen und Verschieben erscheinen beim Überfahren
 
 - Profile mit Toolbar-Builder (Gruppen, Drag & Drop, Tastatur), Einstellungen ohne Code, Live-Vorschau

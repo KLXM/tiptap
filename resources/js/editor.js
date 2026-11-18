@@ -1102,7 +1102,41 @@ export class RexTiptapEditor {
         let media = attrs.media ?? null;
 
         const src = el('input', {type: 'text', className: 'rex-input', value: attrs.src ?? '', readonly: !image.external, spellcheck: 'false'});
+        // Alternativtext: leer = aus dem Medienpool (klxm_meta, je Sprache, wird bei der Ausgabe eingesetzt),
+        // eigener Text überschreibt, „dekorativ“ = alt="". Ohne Medienpool (externe Adresse) gilt der Text hier.
         const alt = el('input', {type: 'text', className: 'rex-input', value: attrs.alt ?? ''});
+        const decorative = el('input', {type: 'checkbox'});
+        decorative.checked = '' === attrs.alt;
+        const altInfo = el('small', {className: 'rex-tiptap-hint', role: 'status'});
+        let poolAlt = null;
+        const showAlt = () => {
+            alt.disabled = decorative.checked;
+            if (!media) {
+                alt.placeholder = '';
+                altInfo.textContent = t('imageAltHint');
+                return;
+            }
+            alt.placeholder = poolAlt?.decorative ? t('imageAltPoolDecorative') : (poolAlt?.alt ? poolAlt.alt : '');
+            altInfo.textContent = decorative.checked ? t('imageAltDecorativeHint')
+                : alt.value.trim() ? t('imageAltOwn')
+                : poolAlt?.decorative ? t('imageAltPoolDecorativeHint')
+                : poolAlt?.alt ? t('imageAltFromPool')
+                : t('imageAltPoolMissing');
+        };
+        const loadPoolAlt = async () => {
+            poolAlt = null;
+            if (media && config.mediaInfoApi) {
+                try {
+                    const url = config.mediaInfoApi + '&file=' + encodeURIComponent(media) + '&language=' + (config.language ?? 0);
+                    poolAlt = await (await fetch(url, {credentials: 'same-origin'})).json();
+                } catch {
+                    poolAlt = null;
+                }
+            }
+            showAlt();
+        };
+        alt.addEventListener('input', showAlt);
+        decorative.addEventListener('change', showAlt);
         const title = el('input', {type: 'text', className: 'rex-input', value: attrs.title ?? ''});
         const preview = el('img', {className: 'rex-tiptap-image-preview', alt: '', hidden: !attrs.src, src: attrs.src || null});
 
@@ -1131,6 +1165,7 @@ export class RexTiptapEditor {
         src.addEventListener('change', () => {
             media = null;
             refresh();
+            showAlt();
         });
 
         const choose = async () => {
@@ -1139,6 +1174,7 @@ export class RexTiptapEditor {
             if (item) {
                 media = item.value;
                 refresh();
+                loadPoolAlt();
                 alt.focus();
             }
         };
@@ -1153,7 +1189,9 @@ export class RexTiptapEditor {
                 type ? this.field(t('imageSize'), type) : null,
                 style ? this.field(t('imageStyle'), style) : null));
         }
-        fields.push(this.field(t('imageAlt'), alt, t('imageAltHint')), this.field(t('imageTitleAttr'), title));
+        const altField = this.field(t('imageAlt'), alt);
+        altField.append(el('label', {className: 'rex-tiptap-check'}, decorative, el('span', {text: t('imageDecorative')})), altInfo);
+        fields.push(altField, this.field(t('imageTitleAttr'), title));
 
         this.openDialog(attrs.src ? t('imageEdit') : t('imageTitle'), fields, () => {
             const value = src.value.trim();
@@ -1165,13 +1203,15 @@ export class RexTiptapEditor {
             }
             restore(editor.chain().focus()).setImage({
                 src: value,
-                alt: alt.value.trim(),
+                // null = aus dem Medienpool, '' = dekorativ
+                alt: decorative.checked ? '' : (alt.value.trim() || (media ? null : '')),
                 title: title.value.trim() || null,
                 media,
                 mediaType: media ? (type?.value || null) : null,
                 class: style?.value || null,
             }).run();
         });
+        loadPoolAlt();
         if (!attrs.src && pick) {
             choose();
         }

@@ -9,6 +9,7 @@ use Redaxo\Core\MediaManager\MediaManager;
 use Redaxo\Core\MediaPool\Media;
 use Klxm\Tiptap\Media\HtmlEmbed;
 use Klxm\Tiptap\Media\Oembed;
+use Klxm\Meta\Alt;
 use Klxm\VideoEditor\VideoEditor;
 use Redaxo\Core\Language\Language;
 use Redaxo\Core\Translation\I18n;
@@ -153,6 +154,13 @@ final class Output
                 $type = preg_match('~\sdata-rex-media-type="([^"]+)"~', $attrs, $t) ? html_entity_decode($t[1], ENT_QUOTES) : '';
                 $src = self::mediaUrl($name, $type);
                 $attrs = (string) preg_replace('~\s(src|data-rex-media|data-rex-media-type)="[^"]*"~', '', $attrs);
+                // ohne eigenen Alternativtext: aus dem Medienpool (klxm_meta), dekorative Bilder alt=""
+                if (!preg_match('~\salt\b(?!-)~', $attrs)) {
+                    $attrs = ' alt="' . htmlspecialchars(Alt::attribute($name), ENT_QUOTES) . '"' . $attrs;
+                } else {
+                    // leeres alt (dekorativ) schreibt die Bereinigung ohne Wert
+                    $attrs = (string) preg_replace('~\salt(?=[\s/>]|$)(?!=)~', ' alt=""', $attrs);
+                }
 
                 return '<img src="' . htmlspecialchars($src, ENT_QUOTES) . '"' . $attrs . '>';
             }

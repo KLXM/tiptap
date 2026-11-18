@@ -128,6 +128,25 @@ final class MediaTest extends TestCase
         File::delete($cache);
     }
 
+    public function testImageAlt(): void
+    {
+        $file = 'tiptap-alt-test.gif';
+        $media = \Redaxo\Core\MediaPool\Media::get($file);
+        if (null === $media) {
+            $source = \Redaxo\Core\Filesystem\Path::addonCache('tiptap', $file);
+            File::put($source, (string) base64_decode('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', true));
+            $file = \Redaxo\Core\MediaPool\MediaHandler::add(['title' => 'Titel', 'category_id' => null, 'file' => new \Symfony\Component\HttpFoundation\File\File($source)], ['alt' => 'Aus dem Pool'], subindexing: false)->fileName;
+        }
+        try {
+            $profile = $this->profile([['image']]);
+            self::assertStringContainsString('alt="Aus dem Pool"', Tiptap::render('<img src="x" data-rex-media="' . $file . '">', $profile));
+            self::assertStringContainsString('alt=""', Tiptap::render('<img src="x" data-rex-media="' . $file . '" alt="">', $profile));
+            self::assertStringContainsString('alt="Eigen"', Tiptap::render('<img src="x" data-rex-media="' . $file . '" alt="Eigen">', $profile));
+        } finally {
+            \Redaxo\Core\MediaPool\MediaHandler::delete($file);
+        }
+    }
+
     /**
      * @param list<list<string>> $toolbar
      * @param array<string, mixed> $config

@@ -189,7 +189,7 @@ if ('edit' === $func || 'add' === $func) {
         . ' data-record-tables="' . escape($json(RecordLinks::tables())) . '"'
         . ' data-record-api="' . escape(Url::backendController(RecordSearchApi::getUrlParams())) . '"'
         // Laufzeit-Angaben wie im echten Editor (YouTube/Vimeo-Abfrage, Freigabe von HTML-Embeds nach Recht)
-        . ' data-runtime="' . escape($json(array_intersect_key(Tiptap::clientConfig(new Profile('preview', 'Preview')), array_flip(['oembedApi', 'htmlEmbed', 'embedSignApi', 'videoEditor'])))) . '"'
+        . ' data-runtime="' . escape($json(array_intersect_key(Tiptap::clientConfig(new Profile('preview', 'Preview')), array_flip(['oembedApi', 'htmlEmbed', 'embedSignApi', 'videoEditor', 'mediaInfoApi', 'language'])))) . '"'
         . ' data-media-manager-url="' . escape(Output::basePath() . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__') . '"></div>'
         . '<textarea id="tt-config" name="config" hidden>' . escape($json($profile->config)) . '</textarea>';
 
