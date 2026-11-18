@@ -19,6 +19,9 @@ export const RATIOS = [
     ['16x9', '16:9'], ['4x3', '4:3'], ['1x1', '1:1'], ['9x16', '9:16'], ['21x9', '21:9'],
 ];
 const RATIO_CLASSES = RATIOS.map(([k]) => 'rex-ratio-' + k);
+/** Größen (Breite im Textfluss) – damit Ausrichtung sichtbar wird */
+export const SIZES = [['75', '75 %'], ['50', '50 %'], ['33', '33 %']];
+const SIZE_CLASSES = SIZES.map(([k]) => 'rex-w-' + k);
 
 function tokens(value) {
     return (value ?? '').split(/\s+/).filter(Boolean);
@@ -78,7 +81,7 @@ export function mediaStyles(config, kind) {
 }
 
 function classAttribute(config, kind) {
-    const allowed = new Set([...mediaStyles(config, kind).flatMap(s => tokens(s.class)), ...RATIO_CLASSES]);
+    const allowed = new Set([...mediaStyles(config, kind).flatMap(s => tokens(s.class)), ...RATIO_CLASSES, ...SIZE_CLASSES, ...Object.values(config.align ?? {}).flatMap(tokens)]);
     return {
         default: null,
         parseHTML: el => tokens(el.getAttribute('class')).filter(c => allowed.has(c)).join(' ') || null,
@@ -87,26 +90,86 @@ function classAttribute(config, kind) {
 }
 
 /** Klasse aus Format und Verhältnis zusammensetzen bzw. zerlegen */
+let alignClasses = [];
+
 function splitClass(value) {
     const list = tokens(value);
     const ratio = list.find(c => RATIO_CLASSES.includes(c))?.slice('rex-ratio-'.length) ?? '';
-    return {ratio, style: list.filter(c => !RATIO_CLASSES.includes(c)).join(' ')};
+    const size = list.find(c => SIZE_CLASSES.includes(c)) ?? '';
+    const align = list.filter(c => alignClasses.includes(c));
+    // Größe läuft mit der Ausrichtung mit (beide betreffen die Lage im Textfluss)
+    return {ratio, align: [size, ...align].filter(Boolean).join(' '), style: list.filter(c => !RATIO_CLASSES.includes(c) && !SIZE_CLASSES.includes(c) && !align.includes(c)).join(' ')};
 }
 
-function joinClass(style, ratio) {
-    return [...tokens(style), ...(ratio ? ['rex-ratio-' + ratio] : [])].join(' ') || null;
+/** Format + Seitenverhältnis (+ Größe/Ausrichtung) zu einer Klasse */
+function joinClass(style, ratio, align = '') {
+    return [...tokens(style), ...(ratio ? ['rex-ratio-' + ratio] : []), ...tokens(align)].join(' ') || null;
+}
+
+/** Größe in den Klassen ersetzen ('' = volle Breite) */
+function withSize(value, size) {
+    return [...tokens(value).filter(c => !SIZE_CLASSES.includes(c)), ...(size ? ['rex-w-' + size] : [])].join(' ') || null;
+}
+
+function sizeOf(value) {
+    return tokens(value).find(c => SIZE_CLASSES.includes(c))?.slice('rex-w-'.length) ?? '';
+}
+
+function sizeSelect(value) {
+    const select = el('select', {className: 'rex-input'},
+        el('option', {value: '', text: t('sizeFull')}),
+        ...SIZES.map(([k, label]) => el('option', {value: k, text: label})));
+    select.value = value;
+    return select;
+}
+
+const MEDIA_NODES = ['rexVideo', 'rexOembed'];
+
+/** Ist ein Medien-Block gewählt (Ausrichtung wirkt dann auf ihn)? */
+export function selectedMedia(editor) {
+    const node = editor.state.selection.node;
+    return node && MEDIA_NODES.includes(node.type.name) ? node : null;
+}
+
+/** Ausrichtung eines gewählten Medien-Blocks setzen (links = ohne Klasse) */
+export function alignMedia(editor, config, side) {
+    const node = selectedMedia(editor);
+    alignClasses = Object.values(config.align ?? {}).flatMap(tokens);
+    const {ratio, style} = splitClass(node.attrs.class);
+    const klass = 'left' === side ? '' : (config.align?.[side] ?? '');
+    return editor.chain().focus().updateAttributes(node.type.name, {class: withSize(joinClass(style, ratio, klass), sizeOf(node.attrs.class))}).run();
+}
+
+export function mediaAlignActive(editor, config, side) {
+    const node = selectedMedia(editor);
+    const list = tokens(node?.attrs.class);
+    const has = s => !!config.align?.[s] && tokens(config.align[s]).every(c => list.includes(c));
+    return 'left' === side ? !['center', 'right', 'justify'].some(has) : has(side);
 }
 
 /* ---------- Gemeinsame Darstellung im Editor ---------- */
 
-function frame(kind, label, ...children) {
-    const dom = el('div', {className: 'rex-tiptap-media rex-tiptap-media--' + kind, contenteditable: 'false', 'data-drag-handle': ''});
-    dom.append(el('div', {className: 'rex-tiptap-media-head'}, icon(kind), el('span', {className: 'rex-tiptap-media-label', text: label})), ...children);
-    return dom;
+/**
+ * Block im Editor: das Medium selbst (mit Format-, Seitenverhältnis- und Ausrichtungsklassen wie auf der Website),
+ * die Bedienung als kleine Leiste oben rechts – nur beim Überfahren, bei Fokus oder wenn der Block gewählt ist.
+ */
+function frame(kind, ...children) {
+    const label = el('span', {className: 'rex-tiptap-media-label'});
+    const bar = el('div', {className: 'rex-tiptap-media-bar'}, icon(kind), label);
+    const dom = el('div', {className: 'rex-tiptap-media rex-tiptap-media--' + kind, contenteditable: 'false', 'data-drag-handle': ''}, ...children, bar);
+    return {dom, bar, label};
 }
 
-function actions(...buttons) {
-    return el('div', {className: 'rex-tiptap-media-actions'}, ...buttons.filter(Boolean));
+/** Klassen am Block und Ausrichtung (data-align: left/center/right aus den Klassen des Profils) */
+function applyClasses(dom, kind, value, config) {
+    dom.className = 'rex-tiptap-media rex-tiptap-media--' + kind + (value ? ' ' + value : '');
+    const list = tokens(value);
+    const side = Object.entries(config.align ?? {}).find(([, klass]) => klass && tokens(klass).every(c => list.includes(c)))?.[0];
+    if (side && 'left' !== side) {
+        dom.dataset.align = side;
+    } else {
+        delete dom.dataset.align;
+    }
 }
 
 function smallButton(label, iconName, onclick) {
@@ -173,10 +236,10 @@ export function rexVideo(config, ui) {
 
         addNodeView() {
             return ({node, editor, getPos}) => {
-                const video = el('video', {className: 'rex-tiptap-media-video', preload: 'metadata', muted: true, playsinline: true});
-                const info = el('span', {className: 'rex-tiptap-media-info'});
+                const video = el('video', {className: 'rex-tiptap-media-video', preload: 'metadata', muted: true, playsinline: true, controls: true});
                 const open = editHandler(editor, getPos, () => ui.videoDialog());
-                const dom = frame('video', t('video'), video, el('div', {className: 'rex-tiptap-media-foot'}, info, actions(smallButton(t('edit'), 'edit', open))));
+                const {dom, bar, label} = frame('video', video);
+                bar.append(smallButton(t('edit'), 'edit', open));
                 dom.addEventListener('dblclick', open);
                 const render = n => {
                     const a = n.attrs;
@@ -186,10 +249,10 @@ export function rexVideo(config, ui) {
                     } else {
                         video.removeAttribute('poster');
                     }
-                    video.controls = true;
                     const flags = ['autoplay', 'loop', 'muted'].filter(f => a[f]).map(f => t('video_' + f));
-                    info.textContent = [a.media ?? a.src, ...flags].filter(Boolean).join(' · ');
-                    dom.className = 'rex-tiptap-media rex-tiptap-media--video ' + (a.class ?? '');
+                    label.textContent = a.media ?? t('video');
+                    dom.title = [a.title || a.media || a.src, ...flags].filter(Boolean).join(' · ');
+                    applyClasses(dom, 'video', a.class, config);
                 };
                 render(node);
                 return {
@@ -242,7 +305,6 @@ export function rexOembed(config, ui) {
                 let current = node;
                 const thumb = el('img', {className: 'rex-tiptap-media-thumb', alt: '', loading: 'lazy'});
                 const stage = el('div', {className: 'rex-tiptap-media-stage'}, thumb);
-                const info = el('span', {className: 'rex-tiptap-media-info'});
                 const open = editHandler(editor, getPos, () => ui.oembedDialog());
                 const play = () => {
                     const video = parseVideoUrl(current.attrs.url);
@@ -256,21 +318,20 @@ export function rexOembed(config, ui) {
                         referrerpolicy: 'strict-origin-when-cross-origin',
                     }));
                 };
-                const playButton = smallButton(t('oembedPreview'), 'play', play);
-                const dom = frame('oembed', '', stage, el('div', {className: 'rex-tiptap-media-foot'}, info, actions(playButton, smallButton(t('edit'), 'edit', open))));
+                const {dom, bar, label} = frame('oembed', stage);
+                bar.append(smallButton(t('oembedPreview'), 'play', play), smallButton(t('edit'), 'edit', open));
                 dom.addEventListener('dblclick', e => e.target.closest('iframe') || open());
-                const label = dom.querySelector('.rex-tiptap-media-label');
                 const render = n => {
                     current = n;
                     const video = parseVideoUrl(n.attrs.url);
                     label.textContent = video ? PROVIDER_LABEL[video.provider] : t('oembed');
-                    info.textContent = n.attrs.title || n.attrs.url || '';
+                    dom.title = n.attrs.title || n.attrs.url || '';
                     stage.replaceChildren(thumb);
                     thumb.hidden = !video || !config.oembedApi;
                     if (video && config.oembedApi) {
                         thumb.src = config.oembedApi + '&thumb=1&url=' + encodeURIComponent(n.attrs.url);
                     }
-                    dom.className = 'rex-tiptap-media rex-tiptap-media--oembed ' + (n.attrs.class ?? '');
+                    applyClasses(dom, 'oembed', n.attrs.class, config);
                 };
                 render(node);
                 return {
@@ -315,25 +376,26 @@ export function rexHtmlEmbed(config, ui) {
         addNodeView() {
             return ({node, editor, getPos}) => {
                 const code = el('pre', {className: 'rex-tiptap-media-code'});
-                const info = el('span', {className: 'rex-tiptap-media-info'});
+                const info = el('small', {className: 'rex-tiptap-media-info'});
                 const canEdit = !!config.htmlEmbed;
                 const open = editHandler(editor, getPos, () => ui.htmlEmbedDialog());
-                const dom = frame('htmlEmbed', t('htmlEmbed'), code, el('div', {className: 'rex-tiptap-media-foot'}, info,
-                    actions(canEdit ? smallButton(t('edit'), 'edit', open) : null)));
+                const {dom, bar, label} = frame('htmlEmbed', code, info);
                 if (canEdit) {
+                    bar.append(smallButton(t('edit'), 'edit', open));
                     dom.addEventListener('dblclick', open);
                 }
-                const label = dom.querySelector('.rex-tiptap-media-label');
                 const render = n => {
                     const html = n.attrs.html ?? '';
                     label.textContent = n.attrs.label || t('htmlEmbed');
                     code.textContent = html.length > 600 ? html.slice(0, 600) + ' …' : html;
                     info.textContent = [
+                        n.attrs.label ? t('htmlEmbed') : '',
                         n.attrs.service ? t('embedService') + ': ' + n.attrs.service : '',
                         /<script/i.test(html) ? t('embedHasScript') : '',
                         n.attrs.sig ? '' : t('embedUnsigned'),
                         canEdit ? '' : t('embedNoPermission'),
                     ].filter(Boolean).join(' · ');
+                    info.hidden = !info.textContent;
                 };
                 render(node);
                 return {
@@ -387,6 +449,7 @@ function upsert(editor, name, attrs, selection) {
 export const mediaDialogs = {
     videoDialog() {
         const {editor, config} = this;
+        alignClasses = Object.values(config.align ?? {}).flatMap(tokens);
         const selection = editor.state.selection;
         const attrs = selection.node?.type.name === 'rexVideo' ? selection.node.attrs : {controls: true};
         const pick = config.backend && window.rex?.pick;
@@ -397,9 +460,10 @@ export const mediaDialogs = {
         const posterInput = el('input', {type: 'text', className: 'rex-input', value: poster ?? '', readonly: true, spellcheck: 'false'});
         const title = el('input', {type: 'text', className: 'rex-input', value: attrs.title ?? ''});
         const preview = el('video', {className: 'rex-tiptap-image-preview', controls: true, preload: 'metadata', hidden: !attrs.src, src: attrs.src || null});
-        const {ratio, style: styleValue} = splitClass(attrs.class);
+        const {ratio, align: alignValue, style: styleValue} = splitClass(attrs.class);
         const style = styleSelect(config, 'video', styleValue);
         const ratioField = ratioSelect(ratio, true);
+        const sizeField = sizeSelect(sizeOf(attrs.class));
         const controls = check(t('video_controls'), attrs.controls);
         const autoplay = check(t('video_autoplay'), attrs.autoplay);
         const loop = check(t('video_loop'), attrs.loop);
@@ -521,7 +585,8 @@ export const mediaDialogs = {
                 el('button', {type: 'button', className: 'rex-tiptap-dialog-button', onclick: choosePoster}, icon('image'), el('span', {text: t('videoPosterChoose')})), clearPoster) : null));
         fields.push(el('div', {className: 'rex-tiptap-field-row'},
             style ? this.field(t('mediaStyle'), style) : null,
-            this.field(t('ratio'), ratioField, t('ratioHintVideo'))));
+            this.field(t('ratio'), ratioField, t('ratioHintVideo')),
+            this.field(t('size'), sizeField)));
         fields.push(el('div', {className: 'rex-tiptap-checks'}, controls.node, autoplay.node, loop.node, muted.node));
         fields.push(this.field(t('videoTitle'), title, t('videoTitleHint')));
 
@@ -539,7 +604,7 @@ export const mediaDialogs = {
                 muted: muted.input.checked || autoplay.input.checked,
                 loop: loop.input.checked,
                 playsinline: autoplay.input.checked,
-                class: joinClass(style?.value, ratioField.value),
+                class: withSize(joinClass(style?.value, ratioField.value, alignValue), sizeField.value),
             }, selection);
         });
         refresh();
@@ -551,14 +616,16 @@ export const mediaDialogs = {
 
     oembedDialog(initialUrl = '') {
         const {editor, config} = this;
+        alignClasses = Object.values(config.align ?? {}).flatMap(tokens);
         const selection = editor.state.selection;
         const attrs = selection.node?.type.name === 'rexOembed' ? selection.node.attrs : {};
         const providers = config.embed?.providers ?? ['youtube', 'vimeo'];
         const url = el('input', {type: 'url', className: 'rex-input', value: attrs.url ?? initialUrl, placeholder: 'https://www.youtube.com/watch?v=…', spellcheck: 'false'});
         const title = el('input', {type: 'text', className: 'rex-input', value: attrs.title ?? ''});
-        const {ratio, style: styleValue} = splitClass(attrs.class);
+        const {ratio, align: alignValue, style: styleValue} = splitClass(attrs.class);
         const style = styleSelect(config, 'video', styleValue);
         const ratioField = ratioSelect(ratio || '16x9', false);
+        const sizeField = sizeSelect(sizeOf(attrs.class));
         const thumb = el('img', {className: 'rex-tiptap-image-preview', alt: '', hidden: true});
         const fetchMeta = async () => {
             const video = parseVideoUrl(url.value);
@@ -585,7 +652,8 @@ export const mediaDialogs = {
             this.field(t('oembedTitle'), title, t('oembedTitleHint')),
             el('div', {className: 'rex-tiptap-field-row'},
                 style ? this.field(t('mediaStyle'), style) : null,
-                this.field(t('ratio'), ratioField)),
+                this.field(t('ratio'), ratioField),
+                this.field(t('size'), sizeField)),
         ];
         this.openDialog(attrs.url ? t('oembedEdit') : t('oembedInsert'), fields, () => {
             const video = parseVideoUrl(url.value);
@@ -595,7 +663,7 @@ export const mediaDialogs = {
             upsert(editor, 'rexOembed', {
                 url: url.value.trim(),
                 title: title.value.trim() || null,
-                class: joinClass(style?.value, ratioField.value),
+                class: withSize(joinClass(style?.value, ratioField.value, alignValue), sizeField.value),
             }, selection);
         });
         if (url.value) {
@@ -709,7 +777,8 @@ export function mediaContext(name, ui) {
     }
     const kind = 'rexHtmlEmbed' === name ? null : 'video';
     const set = attrs => editor.chain().focus().updateAttributes(name, attrs).run();
-    const {ratio, style} = splitClass(node.attrs.class);
+    alignClasses = Object.values(config.align ?? {}).flatMap(tokens);
+    const {ratio, style, align} = splitClass(node.attrs.class);
     const entries = [];
     if ('rexVideo' === name) {
         entries.push({label: t('videoEdit'), icon: 'edit', run: () => ui.videoDialog()});
@@ -722,12 +791,26 @@ export function mediaContext(name, ui) {
         const styles = mediaStyles(config, kind);
         if (styles.length) {
             entries.push({separator: true},
-                {label: t('imageStyleNone'), radio: true, active: () => !style, run: () => set({class: joinClass('', ratio)})},
-                ...styles.map(s => ({label: s.label, radio: true, active: () => style === s.class, run: () => set({class: joinClass(s.class, ratio)})})));
+                {label: t('imageStyleNone'), radio: true, active: () => !style, run: () => set({class: joinClass('', ratio, align)})},
+                ...styles.map(s => ({label: s.label, radio: true, active: () => style === s.class, run: () => set({class: joinClass(s.class, ratio, align)})})));
+        }
+        const size = sizeOf(node.attrs.class);
+        entries.push({separator: true},
+            {label: t('sizeFull'), radio: true, active: () => !size, run: () => set({class: withSize(node.attrs.class, '')})},
+            ...SIZES.map(([k, label]) => ({label: t('size') + ' ' + label, radio: true, active: () => size === k, run: () => set({class: withSize(node.attrs.class, k)})})));
+        const sides = ['left', 'center', 'right'].filter(side => config.align?.[side]);
+        if (sides.length) {
+            entries.push({separator: true}, ...sides.map(side => ({
+                label: t('align' + side[0].toUpperCase() + side.slice(1)),
+                icon: 'align' + side[0].toUpperCase() + side.slice(1),
+                radio: true,
+                active: () => mediaAlignActive(editor, config, side),
+                run: () => alignMedia(editor, config, side),
+            })));
         }
         entries.push({separator: true},
-            ...('rexVideo' === name ? [{label: t('ratioOriginal'), radio: true, active: () => !ratio, run: () => set({class: joinClass(style, '')})}] : []),
-            ...RATIOS.map(([k, label]) => ({label, radio: true, active: () => ratio === k, run: () => set({class: joinClass(style, k)})})));
+            ...('rexVideo' === name ? [{label: t('ratioOriginal'), radio: true, active: () => !ratio, run: () => set({class: joinClass(style, '', align)})}] : []),
+            ...RATIOS.map(([k, label]) => ({label, radio: true, active: () => ratio === k, run: () => set({class: joinClass(style, k, align)})})));
     }
     entries.push({separator: true}, {label: t('remove'), icon: 'trash', danger: true, run: () => editor.chain().focus().deleteSelection().run()});
     return entries;

@@ -2,7 +2,7 @@
 
 import {t} from './i18n.js';
 import {blockHasClass, CLASS_NODES, mediaSrc, nearestList, nodeOfElement, updateNearestList} from './extensions.js';
-import {mediaContext} from './media.js';
+import {alignMedia, mediaAlignActive, mediaContext, selectedMedia} from './media.js';
 
 const chain = editor => editor.chain().focus();
 
@@ -38,13 +38,18 @@ function alignItem(side) {
         label: t(alignKey(side)),
         icon: alignKey(side),
         run: ({editor, config}) => {
+            // gewähltes Video / YouTube: Ausrichtung am Block
+            if (selectedMedia(editor)) {
+                alignMedia(editor, config, side);
+                return;
+            }
             const klass = config.align[side];
             // links ist Standard: Klasse entfernen, wenn schon linksbündig
             const set = blockHasClass(editor, klass) || 'left' === side ? null : klass;
             editor.chain().focus().setBlockClass(Object.values(config.align), set).run();
         },
-        active: ({editor, config}) => blockHasClass(editor, config.align[side])
-            || ('left' === side && !ALIGN.some(s => blockHasClass(editor, config.align[s]))),
+        active: ({editor, config}) => selectedMedia(editor) ? mediaAlignActive(editor, config, side) : (blockHasClass(editor, config.align[side])
+            || ('left' === side && !ALIGN.some(s => blockHasClass(editor, config.align[s])))),
     };
 }
 
@@ -274,7 +279,7 @@ export const builtinItems = {
     align: {
         label: t('align'),
         icon: 'align',
-        currentIcon: ({editor, config}) => alignKey(ALIGN.find(s => blockHasClass(editor, config.align[s])) ?? 'left'),
+        currentIcon: ({editor, config}) => alignKey(ALIGN.find(s => (selectedMedia(editor) ? mediaAlignActive(editor, config, s) && 'left' !== s : blockHasClass(editor, config.align[s]))) ?? 'left'),
         menu: ctx => ALIGN.map(side => ({...alignItem(side), radio: true, active: () => alignItem(side).active(ctx), run: () => alignItem(side).run(ctx)})),
     },
     alignLeft: alignItem('left'),

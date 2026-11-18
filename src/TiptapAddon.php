@@ -133,7 +133,7 @@ final class TiptapAddon extends Addon
             }
             // Videos, Platzhalter von YouTube/Vimeo, HTML-Embeds mit Einwilligung: Stile und Skript dazu
             if (!Core::isBackend() && !str_contains($html, 'tiptap-media.js')
-                && (str_contains($html, 'rex-oembed') || str_contains($html, 'rex-embed-consent') || str_contains($html, 'rex-ratio-'))) {
+                && (str_contains($html, 'rex-oembed') || str_contains($html, 'rex-embed-consent') || str_contains($html, 'rex-ratio-') || str_contains($html, 'rex-video'))) {
                 $html = $this->injectMediaAssets($html);
             }
 

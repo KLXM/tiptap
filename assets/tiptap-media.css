@@ -7,7 +7,7 @@
 .rex-ratio-9x16 { aspect-ratio: 9 / 16; }
 .rex-ratio-21x9 { aspect-ratio: 21 / 9; }
 
-video[data-rex-media],
+video.rex-video,
 video[class*="rex-ratio-"] {
     display: block;
     max-width: 100%;
@@ -18,6 +18,21 @@ video[class*="rex-ratio-"] {
     width: 100%;
     object-fit: cover;
 }
+
+/* Größe im Textfluss */
+.rex-w-75 { width: 75%; }
+.rex-w-50 { width: 50%; }
+.rex-w-33 { width: 33.333%; }
+@media (max-width: 640px) {
+    .rex-w-75, .rex-w-50, .rex-w-33 { width: 100%; }
+}
+
+/* Ausrichtung (Standardklassen der Profile; eigene Klassen brauchen eigenes CSS) */
+video.rex-video.text-center,
+.rex-oembed.text-center { margin-inline: auto; }
+video.rex-video.text-right,
+.rex-oembed.text-right { margin-left: auto; margin-right: 0; }
+.rex-oembed { max-width: min(100%, 960px); }
 
 .rex-oembed {
     position: relative;

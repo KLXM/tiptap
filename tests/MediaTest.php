@@ -100,7 +100,7 @@ final class MediaTest extends TestCase
         // Adresse aus dem Medienpool (im Test ../media/, im Frontend /media/)
         self::assertMatchesRegularExpression('~<video src="[./]*media/film\.mp4"~', $out);
         self::assertMatchesRegularExpression('~ poster="[./]*media/bild\.jpg"~', $out);
-        self::assertStringContainsString('class="wide rex-ratio-4x3"', $out);
+        self::assertStringContainsString('class="rex-video wide rex-ratio-4x3"', $out);
         self::assertStringNotContainsString('onplay', $out);
         self::assertStringNotContainsString('data-rex-', $out);
     }

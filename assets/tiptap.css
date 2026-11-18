@@ -810,68 +810,137 @@ html.rex-tiptap-has-fullscreen {
 
 /* ---------- Medien-Blöcke im Editor (Video, YouTube/Vimeo, HTML-Embed) ---------- */
 
+/* Der Block ist das Medium selbst: Format-, Seitenverhältnis- und Ausrichtungsklassen wirken wie auf der Website */
 .rex-tiptap-media {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-width: 640px;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
     margin: 1em 0;
-    padding: 8px;
-    border: 1px solid var(--_border-soft);
-    border-radius: var(--_radius);
-    background: var(--_surface);
-    color: var(--_text);
-    font-size: 13px;
-    line-height: 1.4;
+    border-radius: calc(var(--_radius) - 2px);
     cursor: grab;
     user-select: none;
 }
+
+.rex-tiptap-media.rex-w-75 { width: 75%; }
+.rex-tiptap-media.rex-w-50 { width: 50%; }
+.rex-tiptap-media.rex-w-33 { width: 33.333%; }
+.rex-tiptap-media[class*="rex-w-"] .rex-tiptap-media-video { width: 100%; }
+
+.rex-tiptap-media[data-align="center"] { margin-inline: auto; }
+.rex-tiptap-media[data-align="right"] { margin-left: auto; margin-right: 0; }
 
 .rex-tiptap-media.ProseMirror-selectednode {
     outline: 2px solid var(--_accent);
     outline-offset: 2px;
 }
 
-.rex-tiptap-media-head,
-.rex-tiptap-media-foot {
+.rex-tiptap-media-video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: inherit;
+    background: #111;
+}
+
+/* YouTube/Vimeo: Breite wie ein Video, Höhe aus dem Seitenverhältnis */
+.rex-tiptap-media--oembed {
+    width: min(100%, 640px);
+}
+
+.rex-tiptap-media-stage {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border-radius: inherit;
+    background: #111;
+}
+
+.rex-tiptap-media.rex-ratio-4x3 .rex-tiptap-media-stage,
+.rex-tiptap-media.rex-ratio-4x3 .rex-tiptap-media-video { aspect-ratio: 4 / 3; }
+.rex-tiptap-media.rex-ratio-1x1 .rex-tiptap-media-stage,
+.rex-tiptap-media.rex-ratio-1x1 .rex-tiptap-media-video { aspect-ratio: 1 / 1; }
+.rex-tiptap-media.rex-ratio-21x9 .rex-tiptap-media-stage,
+.rex-tiptap-media.rex-ratio-21x9 .rex-tiptap-media-video { aspect-ratio: 21 / 9; }
+.rex-tiptap-media.rex-ratio-16x9 .rex-tiptap-media-video { aspect-ratio: 16 / 9; }
+.rex-tiptap-media.rex-ratio-9x16 .rex-tiptap-media-stage,
+.rex-tiptap-media.rex-ratio-9x16 .rex-tiptap-media-video { aspect-ratio: 9 / 16; }
+.rex-tiptap-media--oembed.rex-ratio-9x16 { width: min(100%, 300px); }
+.rex-tiptap-media[class*="rex-ratio-"] .rex-tiptap-media-video { width: 100%; object-fit: cover; }
+
+.rex-tiptap-media-thumb,
+.rex-tiptap-media-stage iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+}
+
+/* Bedienung: kleine Leiste oben rechts, nur bei Hover/Fokus/Auswahl */
+.rex-tiptap-media-bar {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
     display: flex;
     align-items: center;
-    gap: 6px;
-    min-width: 0;
+    gap: 4px;
+    max-width: calc(100% - 12px);
+    padding: 3px 3px 3px 8px;
+    border: 1px solid var(--_border-soft);
+    border-radius: var(--_radius);
+    background: var(--_raised);
+    color: var(--_text);
+    box-shadow: var(--_shadow);
+    font-size: 12px;
+    line-height: 1.3;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .12s, visibility 0s .12s;
 }
 
-.rex-tiptap-media-head {
+.rex-tiptap-media:hover > .rex-tiptap-media-bar,
+.rex-tiptap-media:focus-within > .rex-tiptap-media-bar,
+.rex-tiptap-media.ProseMirror-selectednode > .rex-tiptap-media-bar {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .12s;
+}
+
+@media (hover: none) {
+    .rex-tiptap-media > .rex-tiptap-media-bar {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.rex-tiptap-media-bar > .rex-tiptap-icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
     color: var(--_muted);
-    font-weight: 600;
 }
 
-.rex-tiptap-media-foot {
-    justify-content: space-between;
-}
-
-.rex-tiptap-media-info {
+.rex-tiptap-media-label {
     overflow: hidden;
+    max-width: 200px;
     color: var(--_muted);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.rex-tiptap-media-actions {
-    display: flex;
-    flex: none;
-    gap: 4px;
-}
-
 .rex-tiptap-media-button {
     display: inline-flex;
+    flex: none;
     align-items: center;
     gap: 4px;
-    height: 28px;
+    height: 26px;
     padding: 0 8px;
     border: 1px solid var(--_border);
     border-radius: calc(var(--_radius) - 2px);
-    background: var(--_raised);
+    background: var(--_bg);
     color: var(--_text);
     font: inherit;
     cursor: pointer;
@@ -887,44 +956,17 @@ html.rex-tiptap-has-fullscreen {
 }
 
 .rex-tiptap-media-button .rex-tiptap-icon {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
 }
 
-.rex-tiptap-media-video,
-.rex-tiptap-media-stage {
-    display: block;
+/* HTML-Embed: Code-Kasten (kein sichtbares Medium) */
+.rex-tiptap-media--htmlEmbed {
     width: 100%;
-    aspect-ratio: 16 / 9;
-    border-radius: calc(var(--_radius) - 2px);
-    background: #111;
-    object-fit: contain;
-}
-
-.rex-tiptap-media-stage {
-    position: relative;
-    overflow: hidden;
-}
-
-.rex-tiptap-media.rex-ratio-4x3 .rex-tiptap-media-stage,
-.rex-tiptap-media.rex-ratio-4x3 .rex-tiptap-media-video { aspect-ratio: 4 / 3; }
-.rex-tiptap-media.rex-ratio-1x1 .rex-tiptap-media-stage,
-.rex-tiptap-media.rex-ratio-1x1 .rex-tiptap-media-video { aspect-ratio: 1 / 1; }
-.rex-tiptap-media.rex-ratio-21x9 .rex-tiptap-media-stage,
-.rex-tiptap-media.rex-ratio-21x9 .rex-tiptap-media-video { aspect-ratio: 21 / 9; }
-.rex-tiptap-media.rex-ratio-9x16 { max-width: 300px; }
-.rex-tiptap-media.rex-ratio-9x16 .rex-tiptap-media-stage,
-.rex-tiptap-media.rex-ratio-9x16 .rex-tiptap-media-video { aspect-ratio: 9 / 16; }
-.rex-tiptap-media[class*="rex-ratio-"] .rex-tiptap-media-video { object-fit: cover; }
-
-.rex-tiptap-media-thumb,
-.rex-tiptap-media-stage iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    object-fit: cover;
+    max-width: 640px;
+    padding: 8px;
+    border: 1px dashed var(--_border);
+    background: var(--_surface);
 }
 
 .rex-tiptap-media-code {
@@ -939,6 +981,13 @@ html.rex-tiptap-has-fullscreen {
     font-size: 12px;
     white-space: pre-wrap;
     word-break: break-all;
+}
+
+.rex-tiptap-media-info {
+    display: block;
+    margin-top: 6px;
+    color: var(--_muted);
+    font-size: 12px;
 }
 
 /* Dialoge */

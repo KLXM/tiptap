@@ -44,6 +44,9 @@ final readonly class Profile
     /** Seitenverhältnisse für Videos (feste Klassen, CSS in assets/tiptap-media.css) */
     public const array RATIO_CLASSES = ['rex-ratio-16x9', 'rex-ratio-4x3', 'rex-ratio-1x1', 'rex-ratio-9x16', 'rex-ratio-21x9'];
 
+    /** Größen für Videos (Breite im Textfluss) */
+    public const array SIZE_CLASSES = ['rex-w-75', 'rex-w-50', 'rex-w-33'];
+
     /** Voreinstellungen eines leeren Profils */
     public const array DEFAULTS = [
         'toolbar' => [['undo', 'redo'], ['heading'], ['bold', 'italic'], ['bulletList', 'orderedList'], ['link']],

@@ -222,6 +222,13 @@ final class Output
                 }
             }
 
+            // Klasse für Stile und Ausrichtung auf der Website (tiptap-media.css)
+            if (null !== $file) {
+                $attrs = preg_match('~\sclass="([^"]*)"~', $attrs)
+                    ? (string) preg_replace('~\sclass="([^"]*)"~', ' class="rex-video $1"', $attrs, 1)
+                    : $attrs . ' class="rex-video"';
+            }
+
             return '<video' . $attrs . '>' . $inner . '</video>';
         }, $html);
     }

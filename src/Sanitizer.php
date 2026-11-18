@@ -161,7 +161,7 @@ final class Sanitizer
             }
         }
         if ($profile->hasItem('video', 'oembed')) {
-            $classes = array_merge($classes, Profile::RATIO_CLASSES);
+            $classes = array_merge($classes, Profile::RATIO_CLASSES, Profile::SIZE_CLASSES);
         }
         if ($profile->hasItem('align', 'alignLeft', 'alignCenter', 'alignRight', 'alignJustify')) {
             foreach ($profile->config['align'] as $class) {
