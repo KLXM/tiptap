@@ -989,3 +989,52 @@ html.rex-tiptap-has-fullscreen {
     color: var(--_muted);
     font-size: 13px;
 }
+
+/* Hinweis nach dem Einfügen (Markdown umgewandelt) */
+
+.rex-tiptap {
+    position: relative;
+}
+
+.rex-tiptap-tip {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 16px);
+    padding: 6px 6px 6px 12px;
+    border: 1px solid var(--_border-soft);
+    border-radius: var(--_radius);
+    background: var(--_raised);
+    color: var(--_text);
+    box-shadow: var(--_shadow);
+    font-size: 13px;
+}
+
+.rex-tiptap-tip-button,
+.rex-tiptap-tip-close {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--_border);
+    border-radius: calc(var(--_radius) - 2px);
+    background: var(--_bg);
+    color: var(--_text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.rex-tiptap-tip-close {
+    width: 28px;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    font-size: 16px;
+}
+
+.rex-tiptap-tip-button:hover,
+.rex-tiptap-tip-close:hover {
+    background: var(--_hover);
+}

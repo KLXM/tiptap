@@ -16,6 +16,8 @@ import {allowedUrl, BlockClass, InlineStyle, mediaSrc, nearestList, normalizeUrl
 import Link from '@tiptap/extension-link';
 import {registry} from './registry.js';
 import {mediaDialogs, rexHtmlEmbed, rexOembed, rexVideo} from './media.js';
+import {closeHistory} from '@tiptap/pm/history';
+import {fitHeadings, hrefFor, htmlIsPlain, looksLikeMarkdown, pasteTip, rexAutoLink} from './smart.js';
 
 let uid = 0;
 
@@ -236,8 +238,10 @@ export class RexTiptapEditor {
         if (has('inlineStyle') && !this.markdown) {
             extensions.push(InlineStyle.configure({allowed: config.inlineStyles.flatMap(s => s.class.split(' '))}));
         }
-        if (this.markdown) {
-            extensions.push(Markdown);
+        // Markdown: Speicherformat der Markdown-Profile; in HTML-Profilen nur zum Umwandeln beim Einfügen
+        extensions.push(Markdown);
+        if (any('link', 'unlink')) {
+            extensions.push(rexAutoLink(config));
         }
         extensions.push(...registry.pluginExtensions(this.ctx()));
         return extensions;
@@ -263,29 +267,23 @@ export class RexTiptapEditor {
                     'aria-multiline': 'true',
                     spellcheck: 'true',
                 },
-                // Adresse von YouTube/Vimeo allein in einer leeren Zeile → Video
-                ...(!config.pasteText && this.has('oembed') ? {
-                    handlePaste: (view, event) => {
-                        const text = event.clipboardData?.getData('text/plain');
-                        if (text && this.pasteVideoUrl(text)) {
-                            event.preventDefault();
-                            return true;
-                        }
+                // Einfügen: reiner Text (Profil-Einstellung), Adresse von YouTube/Vimeo → Video, Markdown → Formatierung
+                handlePaste: (view, event) => {
+                    const text = event.clipboardData?.getData('text/plain');
+                    if (null === text || undefined === text) {
                         return false;
-                    },
-                } : {}),
-                // Einfügen als reiner Text (z. B. für Gäste)
-                ...(config.pasteText ? {
-                    handlePaste: (view, event) => {
-                        const text = event.clipboardData?.getData('text/plain');
-                        if (null === text || undefined === text) {
-                            return false;
-                        }
+                    }
+                    if (config.pasteText) {
                         event.preventDefault();
-                        this.editor.commands.insertContent(text.split(/\r?\n\r?\n/).map(p => ({type: 'paragraph', content: p ? [{type: 'text', text: p.replace(/\r?\n/g, ' ')}] : []})));
+                        this.insertPlain(text);
                         return true;
-                    },
-                } : {}),
+                    }
+                    if (this.pasteVideoUrl(text) || this.pasteMarkdown(text, event.clipboardData.getData('text/html'))) {
+                        event.preventDefault();
+                        return true;
+                    }
+                    return false;
+                },
             },
             onUpdate: () => this.sync(),
             onSelectionUpdate: () => this.update(),
@@ -906,6 +904,33 @@ export class RexTiptapEditor {
         return el('div', {className: 'rex-tiptap-field'}, ...children);
     }
 
+    /** Text als Absätze einfügen (Leerzeile = neuer Absatz) */
+    insertPlain(text) {
+        const hardBreak = !!this.editor.schema.nodes.hardBreak;
+        this.editor.commands.insertContent(text.replace(/\r\n?/g, '\n').split(/\n{2,}/).map(p => ({
+            type: 'paragraph',
+            // einfache Zeilenumbrüche bleiben (Umbruch im Absatz)
+            content: p.split('\n').flatMap((line, i) => [...(i && hardBreak ? [{type: 'hardBreak'}] : i ? [{type: 'text', text: ' '}] : []), ...(line ? [{type: 'text', text: line}] : [])]),
+        })));
+    }
+
+    /** Reiner Text, der eindeutig nach Markdown aussieht → Formatierung (mit „Als Text einfügen“) */
+    pasteMarkdown(text, html) {
+        if (!htmlIsPlain(html) || !looksLikeMarkdown(text)) {
+            return false;
+        }
+        // eigener Schritt im Verlauf: „Als Text einfügen“ nimmt nur die Umwandlung zurück
+        this.editor.view.dispatch(closeHistory(this.editor.state.tr));
+        const ok = this.editor.chain().focus().insertContent(fitHeadings(text, this.config.headings), {contentType: 'markdown'}).run();
+        if (ok) {
+            pasteTip(this.root, () => {
+                this.editor.chain().focus().undo().run();
+                this.insertPlain(text);
+            });
+        }
+        return ok;
+    }
+
     linkDialog() {
         const {editor, config} = this;
         const link = config.link;
@@ -914,6 +939,14 @@ export class RexTiptapEditor {
         const empty = editor.state.selection.empty && !editing;
         // Markierung merken: Linkmap und Medienpool nehmen dem Editor den Fokus
         const {from, to} = editor.state.selection;
+        // markierte Adresse (E-Mail, Web, Domain, Telefon) → sofort Link, ohne Dialog
+        if (!editing && !empty) {
+            const href = hrefFor(editor.state.doc.textBetween(from, to, ' '), link, true);
+            if (href) {
+                editor.chain().focus().setLink({href}).run();
+                return;
+            }
+        }
 
         const url = el('input', {type: 'text', className: 'rex-input', value: attrs.href ?? '', placeholder: link.external ? 'https://' : '', autocomplete: 'off', spellcheck: 'false'});
         const text = el('input', {type: 'text', className: 'rex-input'});
