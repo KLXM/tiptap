@@ -17,7 +17,7 @@ import Link from '@tiptap/extension-link';
 import {registry} from './registry.js';
 import {mediaDialogs, rexHtmlEmbed, rexOembed, rexVideo} from './media.js';
 import {closeHistory} from '@tiptap/pm/history';
-import {fitHeadings, hrefFor, htmlIsPlain, looksLikeMarkdown, pasteTip, rexAutoLink} from './smart.js';
+import {cleanPastedHtml, fitHeadings, hrefFor, htmlIsPlain, isInternalPaste, looksLikeMarkdown, pasteTip, rememberCopy, rexAutoLink} from './smart.js';
 
 let uid = 0;
 
@@ -267,6 +267,16 @@ export class RexTiptapEditor {
                     'aria-multiline': 'true',
                     spellcheck: 'true',
                 },
+                // Fremdes HTML (andere Website, Word, Mail) bereinigen; Kopieren innerhalb von tiptap bleibt unverändert
+                handleDOMEvents: {
+                    copy: view => rememberCopy(view.state.doc.textBetween(view.state.selection.from, view.state.selection.to, '\n\n')),
+                    cut: view => rememberCopy(view.state.doc.textBetween(view.state.selection.from, view.state.selection.to, '\n\n')),
+                    paste: (view, event) => {
+                        this.pasteInternal = isInternalPaste(event.clipboardData?.getData('text/plain'));
+                        return false;
+                    },
+                },
+                transformPastedHTML: html => this.pasteInternal ? html : cleanPastedHtml(html),
                 // Einfügen: reiner Text (Profil-Einstellung), Adresse von YouTube/Vimeo → Video, Markdown → Formatierung
                 handlePaste: (view, event) => {
                     const text = event.clipboardData?.getData('text/plain');

@@ -211,3 +211,90 @@ export function pasteTip(host, onPlain) {
         tip = null;
     }, 10000);
 }
+
+/* ---------- Eingefügtes HTML von außen bereinigen ---------- */
+
+/** Ganz entfernen (samt Inhalt): Medien, Skripte, Formulare und Bedienelemente fremder Seiten */
+const DROP = 'script,style,noscript,template,iframe,object,embed,frame,frameset,img,picture,source,video,audio,track,canvas,svg,math,map,area,'
+    + 'form,input,select,option,optgroup,textarea,button,label,dialog,meta,link,base,head,title,nav,aside,header,footer,figure>figcaption:only-child';
+
+/** Elemente, deren Inhalt bleibt, die selbst aber wegfallen (Container ohne Bedeutung) */
+const UNWRAP = 'span,font,small,big,abbr,acronym,cite,dfn,kbd,samp,var,time,mark,u,ins,del,s,strike,bdi,bdo,wbr';
+
+/** Container: mit Blöcken darin auspacken, mit nur Text darin zum Absatz machen (sonst läuft Text zusammen) */
+const CONTAINERS = 'div,section,article,main,figure,figcaption,center,address,details,summary,dd,dt,dl';
+const BLOCKS = 'p,h1,h2,h3,h4,h5,h6,ul,ol,li,blockquote,pre,table,hr,' + CONTAINERS;
+
+/** Attribute, die bleiben dürfen (der Editor prüft danach noch einmal gegen das Profil) */
+const KEEP_ATTRS = {a: ['href'], ol: ['start', 'type'], td: ['colspan', 'rowspan'], th: ['colspan', 'rowspan']};
+
+/**
+ * HTML aus der Zwischenablage (fremde Website, Word, Mail) auf reinen Inhalt bringen: keine Klassen, Stile, IDs,
+ * data-Attribute, keine Bilder/Videos/iframes, keine Formular- und Bedienelemente, keine leeren Listen und Absätze.
+ * Was übrig bleibt (Überschriften, Absätze, Listen, Links, fett, kursiv, Tabellen …), filtert der Editor nach dem
+ * Profil; gespeichert wird zusätzlich serverseitig bereinigt.
+ */
+export function cleanPastedHtml(html) {
+    // Ereignis- und Stil-Attribute schon vor dem Einlesen weg (CSP-Meldungen, nichts davon darf je wirken)
+    html = html.replace(/\s(?:on[a-z]+|style)\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const body = doc.body;
+    body.querySelectorAll(DROP).forEach(n => n.remove());
+    // Kommentare (z. B. Word: <!--[if …]>)
+    const walker = doc.createTreeWalker(body, NodeFilter.SHOW_COMMENT);
+    const comments = [];
+    while (walker.nextNode()) {
+        comments.push(walker.currentNode);
+    }
+    comments.forEach(c => c.remove());
+    // Word-Namensräume (o:p, w:…) und Inline-Container auspacken
+    [...body.querySelectorAll('*')].reverse().forEach(n => {
+        const tag = n.tagName.toLowerCase();
+        if (tag.includes(':') || n.matches(UNWRAP)) {
+            n.replaceWith(...n.childNodes);
+        }
+    });
+    // Block-Container: von innen nach außen
+    [...body.querySelectorAll(CONTAINERS)].reverse().forEach(n => {
+        if ([...n.children].some(c => c.matches(BLOCKS))) {
+            n.replaceWith(...n.childNodes);
+        } else {
+            const p = doc.createElement('p');
+            p.append(...n.childNodes);
+            n.replaceWith(p);
+        }
+    });
+    // Attribute auf das Nötigste
+    body.querySelectorAll('*').forEach(n => {
+        const keep = KEEP_ATTRS[n.tagName.toLowerCase()] ?? [];
+        for (const {name} of [...n.attributes]) {
+            if (!keep.includes(name)) {
+                n.removeAttribute(name);
+            }
+        }
+        if ('A' === n.tagName && !/^(https?:|mailto:|tel:|\/|#)/i.test(n.getAttribute('href') ?? '')) {
+            n.replaceWith(...n.childNodes);
+        }
+    });
+    // Leeres entfernen (von innen nach außen): Listeneinträge, Listen, Absätze, Überschriften, Links
+    const isEmpty = n => '' === (n.textContent ?? '').replace(/[\s ​]+/g, '');
+    for (let pass = 0; pass < 3; pass++) {
+        [...body.querySelectorAll('li, ul, ol, p, h1, h2, h3, h4, h5, h6, blockquote, a, strong, b, em, i, table, tr')].reverse()
+            .filter(isEmpty)
+            .forEach(n => n.remove());
+    }
+    return body.innerHTML;
+}
+
+/** Zuletzt in einem tiptap-Editor kopierter Text – Einfügen davon gilt als intern (Medien bleiben erhalten) */
+let lastCopied = null;
+
+const normal = text => String(text ?? '').replace(/\s+/g, ' ').trim();
+
+export function rememberCopy(text) {
+    lastCopied = normal(text);
+}
+
+export function isInternalPaste(text) {
+    return null !== lastCopied && normal(text) === lastCopied;
+}

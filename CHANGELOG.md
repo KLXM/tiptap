@@ -11,6 +11,9 @@ Erste Fassung für REDAXO 6.
   `<source>`, Untertitel als `<track>`, Hintergrundvideos in kleiner Fassung
 - Alternativtext von Bildern aus dem Medienpool (klxm_meta, je Sprache, dekorativ = alt=""); im Bild-Dialog
   überschreibbar oder als dekorativ markierbar
+- Einfügen von außen (Website, Word, Mail) wird bereinigt: keine Klassen, Stile, IDs, data-/on-Attribute, keine
+  Bilder, Videos, iframes, Skripte, Formular- und Bedienelemente, keine leeren Listen/Absätze; Links nur http(s),
+  mailto, tel, relativ. Kopieren innerhalb von tiptap bleibt unverändert
 - Toolbar-Builder sieht aus wie die echte Toolbar; Entfernen und Verschieben erscheinen beim Überfahren
 
 - Profile mit Toolbar-Builder (Gruppen, Drag & Drop, Tastatur), Einstellungen ohne Code, Live-Vorschau
