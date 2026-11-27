@@ -15,13 +15,12 @@ use function explode;
 use function implode;
 use function in_array;
 use function is_array;
-use function is_bool;
 use function is_int;
 use function is_numeric;
 use function is_string;
 use function max;
-use function min;
 use function mb_substr;
+use function min;
 use function preg_match;
 use function preg_replace;
 use function sort;
@@ -60,7 +59,7 @@ final readonly class Profile
         'listStyles' => [],
         'linkStyles' => [],
         'align' => ['left' => 'text-left', 'center' => 'text-center', 'right' => 'text-right', 'justify' => 'text-justify'],
-        'link' => ['internal' => true, 'media' => true, 'external' => true, 'mailto' => true, 'tel' => true, 'targetBlank' => true, 'records' => []],
+        'link' => ['internal' => true, 'media' => true, 'external' => true, 'mailto' => true, 'tel' => true, 'targetBlank' => true, 'records' => [], 'schemes' => []],
         'image' => ['types' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'], 'external' => false, 'mediaTypes' => [], 'mediaType' => '', 'styles' => []],
         'video' => ['types' => ['mp4', 'webm', 'ogv', 'm4v']],
         // Dateien per Ziehen/Einfügen in den Medienpool hochladen (nur Backend-Redakteure mit Medienrecht); category 0 = ohne
@@ -248,12 +247,15 @@ final readonly class Profile
 
         $link = is_array($config['link'] ?? null) ? $config['link'] : [];
         foreach ($d['link'] as $key => $default) {
-            if ('records' !== $key) {
+            if (!in_array($key, ['records', 'schemes'], true)) {
                 $out['link'][$key] = (bool) ($link[$key] ?? $default);
             }
         }
         // YForm-Tabellen, deren Datensätze sich verlinken lassen
         $out['link']['records'] = self::names($link['records'] ?? []);
+        // further link schemes the project or an addon resolves itself (e.g. `media://datei`), lowercase names
+        $out['link']['schemes'] = array_values(array_filter(self::names($link['schemes'] ?? []),
+            static fn (string $s): bool => 1 === preg_match('~^[a-z][a-z0-9+.-]*$~', $s) && !in_array($s, ['javascript', 'data', 'vbscript'], true)));
         $image = is_array($config['image'] ?? null) ? $config['image'] : [];
         $mediaTypes = self::names($image['mediaTypes'] ?? []);
         $mediaType = is_string($image['mediaType'] ?? null) && in_array($image['mediaType'], $mediaTypes, true) ? $image['mediaType'] : '';

@@ -36,6 +36,10 @@ final class NewsProfile extends ProfileDefinition
 }
 ```
 
+**Eigene Link-Formate:** `'link' => ['schemes' => ['media', 'detail']]` lässt weitere Schemata wie `media://plan.pdf`
+zu – im Editor und im Sanitizer. Aufgelöst werden sie vom Projekt oder AddOn, das sie einführt (z. B. fluid).
+`javascript`, `data` und `vbscript` sind nie erlaubt.
+
 Verwendet wird es wie jedes andere Profil:
 
 - im Modul mit `#[Editor('Text', profile: 'tiptap.news')]`,

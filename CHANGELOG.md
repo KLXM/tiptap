@@ -5,6 +5,8 @@
 - **Inline-Modus** `RexTiptap.inline(element, profil, {value, label, layer})`: Editor direkt auf einem Element der Seite
   (Bearbeiten im Kontext, z. B. fluid), schwebende Werkzeugleiste und Link-Leiste; Änderungen als `rex-tiptap:change`
   am Element, `destroy()` zeigt den Wert wieder im Element. Klasse `RexTiptap.Inline` zum Erweitern.
+- Profil-Option `link.schemes`: weitere Link-Schemata (z. B. `media://`), die das Projekt oder ein AddOn selbst
+  auflöst – im Editor und im Sanitizer erlaubt.
 - Editoren funktionieren im Shadow DOM (Fokus über `getRootNode()`, Klicks über `composedPath()`).
 - `RexTiptapEditor`: Aufbau in `buildToolbar()`, `layout()`, `listen()` und `placeBubble()` geteilt – überschreibbar.
 

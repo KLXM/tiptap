@@ -246,8 +246,10 @@ export function allowedUrl(url, link) {
     if (/^(https?:)?\/\//i.test(value)) {
         return !!link.external;
     }
-    if (/^[a-z][a-z0-9+.-]*:/i.test(value)) {
-        return false;
+    // further schemes of the profile (link.schemes), resolved by the project or an addon on output
+    const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(value)?.[1]?.toLowerCase();
+    if (scheme) {
+        return (link.schemes ?? []).includes(scheme);
     }
     // relative Adresse: Dateien aus dem Medienpool oder interne Pfade
     return !!(link.media || link.internal);

@@ -115,6 +115,7 @@ final class Sanitizer
         if ($link['records']) {
             $schemes[] = 'yform';
         }
+        $schemes = [...$schemes, ...$link['schemes']];
         $config = $config->allowLinkSchemes($schemes ?: ['https'])
             ->allowRelativeLinks($link['internal'] || $link['media'])
             ->allowMediaSchemes($profile->config['image']['external'] ? ['http', 'https'] : [])
