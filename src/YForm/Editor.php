@@ -15,6 +15,9 @@ use function preg_replace;
 use function strip_tags;
 use function trim;
 
+use const ENT_HTML5;
+use const ENT_QUOTES;
+
 /**
  * YForm-6-Feld mit TipTap-Editor (Tabellen und Formulare, Backend und Frontend).
  *
@@ -70,7 +73,7 @@ class Editor extends Textarea
 
     private static function plain(string $html): string
     {
-        $html = (string) preg_replace('~</(p|h[1-6]|li|blockquote|tr)>~i', "$0 ", $html);
+        $html = (string) preg_replace('~</(p|h[1-6]|li|blockquote|tr)>~i', '$0 ', $html);
 
         return trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5)));
     }

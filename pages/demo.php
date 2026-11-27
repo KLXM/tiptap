@@ -24,7 +24,7 @@ if ('post' === Request::requestMethod()) {
     }
 }
 $value ??= Mode::Markdown === $profile->mode
-    ? "## " . I18n::msg('tiptap_demo_heading') . "\n\n" . I18n::msg('tiptap_demo_text_md') . "\n\n- Linkmap: [REDAXO](https://redaxo.org)\n- **fett** und *kursiv*\n"
+    ? '## ' . I18n::msg('tiptap_demo_heading') . "\n\n" . I18n::msg('tiptap_demo_text_md') . "\n\n- Linkmap: [REDAXO](https://redaxo.org)\n- **fett** und *kursiv*\n"
     : '<h2>' . I18n::msg('tiptap_demo_heading') . '</h2><p>' . I18n::rawMsg('tiptap_demo_text') . '</p><ul><li><strong>fett</strong>, <em>kursiv</em></li><li><a href="https://redaxo.org">redaxo.org</a></li></ul>';
 
 $options = '';

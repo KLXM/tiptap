@@ -3,35 +3,38 @@
 namespace Klxm\Tiptap;
 
 use JsonException;
+use Redaxo\Core\Addon\Addon;
 use Redaxo\Core\ClassDiscovery;
 use Redaxo\Core\Core;
 use Redaxo\Core\Database\Sql;
+use ReflectionClass;
 use RuntimeException;
+use Throwable;
 
-use function array_is_list;
 use function array_filter;
-use function dechex;
-use function mb_ord;
-use function preg_match;
-use function preg_replace_callback;
-use function strtoupper;
+use function array_is_list;
 use function array_key_first;
-use function implode;
-use function is_bool;
-use function realpath;
-use function rtrim;
-use function str_repeat;
-use function str_starts_with;
-use function strlen;
-use function substr;
-use function str_replace;
-use function ucwords;
 use function array_map;
 use function date;
+use function dechex;
+use function implode;
 use function is_array;
+use function is_bool;
 use function is_string;
 use function json_decode;
 use function json_encode;
+use function mb_ord;
+use function preg_match;
+use function preg_replace_callback;
+use function realpath;
+use function rtrim;
+use function str_repeat;
+use function str_replace;
+use function str_starts_with;
+use function strlen;
+use function strtoupper;
+use function substr;
+use function ucwords;
 
 use const JSON_PRETTY_PRINT;
 use const JSON_THROW_ON_ERROR;
@@ -146,7 +149,7 @@ final class Profiles
                 // Klassen anderer Pakete gewinnen gegen gleichnamige mitgelieferte
                 $key = ($builtin ? 'builtin:' : '') . $profile->name;
                 $profiles[$key] ??= new Profile($profile->name, $profile->label, $profile->mode, $profile->description, $profile->config, $class, $builtin);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // fehlerhafte Klasse überspringen statt den Editor lahmzulegen
             }
         }
@@ -170,8 +173,8 @@ final class Profiles
      */
     public static function origin(string $class): string
     {
-        $file = (string) new \ReflectionClass($class)->getFileName();
-        foreach (\Redaxo\Core\Addon\Addon::getAll() as $addon) {
+        $file = (string) new ReflectionClass($class)->getFileName();
+        foreach (Addon::getAll() as $addon) {
             $path = rtrim((string) realpath($addon->path), '/') . '/';
             if ('/' !== $path && str_starts_with((string) realpath($file), $path)) {
                 return $addon->name;
@@ -348,7 +351,7 @@ final class Profiles
             . "use Klxm\\Tiptap\\AsProfile;\n"
             . (Mode::Html !== $profile->mode ? "use Klxm\\Tiptap\\Mode;\n" : '')
             . "use Klxm\\Tiptap\\ProfileDefinition;\nuse Override;\n\n"
-            . "#[AsProfile(" . implode(', ', $args) . ")]\n"
+            . '#[AsProfile(' . implode(', ', $args) . ")]\n"
             . "final class {$className} extends ProfileDefinition\n{\n"
             . "    #[Override]\n    public function config(): array\n    {\n"
             . '        return ' . self::phpValue($config, 2) . ";\n"
@@ -444,7 +447,7 @@ final class Profiles
                 'mode' => $row['mode'],
                 'config' => is_array($config) ? $config : [],
             ]);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }

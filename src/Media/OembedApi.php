@@ -2,6 +2,7 @@
 
 namespace Klxm\Tiptap\Media;
 
+use Klxm\Tiptap\Output;
 use Override;
 use Redaxo\Core\ApiFunction\ApiFunction;
 use Redaxo\Core\ApiFunction\AsApiFunction;
@@ -17,7 +18,7 @@ use function mb_substr;
  * `?rex-api-call=tiptap_oembed&url=…` (JSON) bzw. `&thumb=1` (Bild).
  *
  * Öffentlich, damit Platzhalter im Frontend das Vorschaubild zeigen. Beim Anbieter nachgefragt wird nur für angemeldete
- * Redakteure im Backend (Editor) und bei der Ausgabe ({@see \Klxm\Tiptap\Output}) – Besucher bekommen nur, was schon
+ * Redakteure im Backend (Editor) und bei der Ausgabe ({@see Output}) – Besucher bekommen nur, was schon
  * abgelegt ist.
  */
 #[AsApiFunction('tiptap_oembed')]

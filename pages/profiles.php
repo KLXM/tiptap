@@ -2,16 +2,17 @@
 
 use Klxm\Tiptap\Mode;
 use Klxm\Tiptap\Output;
-use Klxm\Tiptap\Tiptap;
-use Klxm\Tiptap\RecordLinks;
-use Klxm\Tiptap\RecordSearchApi;
-use Redaxo\Core\MediaManager\MediaTypeRegistry;
 use Klxm\Tiptap\Profile;
 use Klxm\Tiptap\Profiles;
+use Klxm\Tiptap\RecordLinks;
+use Klxm\Tiptap\RecordSearchApi;
 use Klxm\Tiptap\Registry;
+use Klxm\Tiptap\Tiptap;
 use Redaxo\Core\Filesystem\Url;
 use Redaxo\Core\Http\Request;
 use Redaxo\Core\Http\Response;
+use Redaxo\Core\MediaManager\MediaTypeRegistry;
+use Redaxo\Core\MediaPool\MediaCategory;
 use Redaxo\Core\Security\CsrfToken;
 use Redaxo\Core\Translation\I18n;
 use Redaxo\Core\View\Component\Section;
@@ -168,7 +169,7 @@ if ('edit' === $func || 'add' === $func) {
     $usage = '<pre class="rex-code"><code>'
         . escape("// Modul / Collection / Formular des Cores\n#[\\Klxm\\Tiptap\\Field\\Editor('Text', profile: '" . $profile->name . "')]\npublic string \$text = '';\n\n"
             . "// Ausgabe\necho \\Klxm\\Tiptap\\Tiptap::render(\$this->text, '" . $profile->name . "');\n\n"
-            . "// YForm 6 / eigenes Formular: Attribut an der Textarea\ndata-tiptap=\"" . $profile->name . "\"")
+            . "// YForm 6 / eigenes Formular: Attribut an der Textarea\ndata-tiptap=\"" . $profile->name . '"')
         . '</code></pre>';
 
     $body = '<div class="tt-form-row">'
@@ -191,7 +192,7 @@ if ('edit' === $func || 'add' === $func) {
                 $walk($category->getChildren(), $depth + 1);
             }
         };
-        $walk(\Redaxo\Core\MediaPool\MediaCategory::getRootCategories(), 0);
+        $walk(MediaCategory::getRootCategories(), 0);
 
         return $list;
     };
@@ -278,7 +279,7 @@ foreach (Profiles::all() as $profile) {
         . ($profile->isCode() ? ' <span class="tt-profile-code" title="' . escape((string) $profile->class) . '"><i class="rex-icon fa-solid fa-code" aria-hidden="true"></i> ' . I18n::msg('tiptap_code') . ' · ' . escape(Profiles::origin((string) $profile->class)) . '</span>' : '')
         . (Profiles::isShadowed($profile->name) ? '<br><small class="rex-u-text-warning">' . I18n::msg('tiptap_shadowed') . '</small>' : '')
         . ('' !== $profile->description ? '<br><small class="rex-u-text-muted">' . escape($profile->description) . '</small>' : '') . '</td>'
-        . '<td><span class="tt-profile-mode" data-mode="' . $profile->mode->value . '">' . ($profile->mode === Mode::Markdown ? 'Markdown' : 'HTML') . '</span></td>'
+        . '<td><span class="tt-profile-mode" data-mode="' . $profile->mode->value . '">' . (Mode::Markdown === $profile->mode ? 'Markdown' : 'HTML') . '</span></td>'
         . '<td><div class="tt-toolbar-mini" data-tiptap-mini="' . escape($json($profile->config['toolbar'])) . '"></div></td>'
         . '<td><div class="tt-actions">'
         . '<a class="rex-button" data-size="sm" href="' . $edit . '" title="' . I18n::msg('tiptap_edit') . '" aria-label="' . escape(I18n::msg('tiptap_edit') . ': ' . $profile->label) . '"><i class="rex-icon fa-solid fa-pen" aria-hidden="true"></i></a>'
@@ -292,7 +293,7 @@ foreach (Profiles::all() as $profile) {
                 : '',
             default => $post('delete', I18n::msg('tiptap_delete'), 'fa-trash', 'danger', I18n::msg('tiptap_delete_confirm', $profile->label)),
         }
-        . '</div></td></tr>';
+    . '</div></td></tr>';
 }
 
 $table = '<table class="rex-table"><thead><tr>'

@@ -17,13 +17,11 @@ use Yakamara\YForm\Table\Tables;
 
 use function addcslashes;
 use function class_exists;
-use function http_build_query;
 use function is_array;
 use function is_string;
 use function parse_str;
 use function preg_match;
 use function preg_split;
-use function str_contains;
 use function str_replace;
 use function trim;
 

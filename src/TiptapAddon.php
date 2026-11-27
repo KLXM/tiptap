@@ -2,6 +2,8 @@
 
 namespace Klxm\Tiptap;
 
+use Klxm\Tiptap\Media\HtmlEmbed;
+use Klxm\Tiptap\Media\Oembed;
 use Override;
 use Redaxo\Core\Addon\Addon;
 use Redaxo\Core\Addon\OwnedSchema;
@@ -14,8 +16,6 @@ use Redaxo\Core\Database\Table;
 use Redaxo\Core\ExtensionPoint\Extension;
 use Redaxo\Core\ExtensionPoint\ExtensionLevel;
 use Redaxo\Core\ExtensionPoint\ExtensionPoint;
-use Klxm\Tiptap\Media\HtmlEmbed;
-use Klxm\Tiptap\Media\Oembed;
 use Redaxo\Core\Http\Request;
 use Redaxo\Core\Http\Response;
 use Redaxo\Core\Security\ContentSecurityPolicy;
@@ -24,9 +24,9 @@ use Redaxo\Core\Translation\I18n;
 use Redaxo\Core\View\Asset;
 
 use function filemtime;
+use function htmlspecialchars;
 use function is_file;
 use function str_contains;
-use function htmlspecialchars;
 use function str_starts_with;
 use function stripos;
 use function strrpos;

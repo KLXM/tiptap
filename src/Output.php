@@ -2,23 +2,23 @@
 
 namespace Klxm\Tiptap;
 
+use Klxm\Meta\Alt;
+use Klxm\Tiptap\Media\HtmlEmbed;
+use Klxm\Tiptap\Media\Oembed;
+use Klxm\VideoEditor\VideoEditor;
 use Redaxo\Core\Content\Article;
 use Redaxo\Core\Core;
 use Redaxo\Core\Filesystem\Url;
+use Redaxo\Core\Language\Language;
 use Redaxo\Core\MediaManager\MediaManager;
 use Redaxo\Core\MediaPool\Media;
-use Klxm\Tiptap\Media\HtmlEmbed;
-use Klxm\Tiptap\Media\Oembed;
-use Klxm\Meta\Alt;
-use Klxm\VideoEditor\VideoEditor;
-use Redaxo\Core\Language\Language;
 use Redaxo\Core\Translation\I18n;
 use Redaxo\Core\Util\Markdown\Markdown;
 use Throwable;
 
 use function class_exists;
-use function htmlspecialchars;
 use function html_entity_decode;
+use function htmlspecialchars;
 use function parse_url;
 use function preg_match;
 use function preg_replace;
@@ -261,9 +261,7 @@ final class Output
         }
     }
 
-    /**
-     * Text für die Website in der Sprache der Seite (clang-Code de, en … → de_de, en_gb), sonst Backend-Sprache.
-     */
+    /** Text für die Website in der Sprache der Seite (clang-Code de, en … → de_de, en_gb), sonst Backend-Sprache. */
     public static function text(string $key, string|int ...$replacements): string
     {
         if (!Core::isBackend()) {

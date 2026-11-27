@@ -7,9 +7,9 @@ use Klxm\Tiptap\Tiptap;
 use Override;
 use Redaxo\Core\Form\BoundField;
 use Redaxo\Core\Form\Field\Field;
+use Redaxo\Core\Form\InvalidValueException;
 use Redaxo\Core\Form\ValueType;
 use Redaxo\Core\Translation\Translatable;
-use Redaxo\Core\Form\InvalidValueException;
 use Redaxo\Core\Util\Type;
 use Redaxo\Core\View\Renderable;
 
