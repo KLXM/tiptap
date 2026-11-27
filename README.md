@@ -38,7 +38,8 @@ An addon by [KLXM Crossmedia](https://klxm.de). · [Deutsch](README.de.md)
   profile. Logged-in backend users get the same tools on the website as in the backend (linkmap, media pool,
   records); without a login existing links are kept.
 - **Editing in context (inline mode):** `RexTiptap.inline(element, profile)` turns an element of the page itself into
-  the editor – with a floating toolbar and link bar, shadow DOM included. This is how
+  the editor – with a floating toolbar on one line (what doesn't fit goes behind “⋯”) and link bar, shadow DOM
+  included. The text keeps the website's own typography, so formats look exactly as visitors see them. This is how
   [fluid](https://github.com/KLXM/fluid) (editing on the website) uses it.
 - **Page and media picker on the website:** an interface like fluid plugs in its own picker (`RexTiptap.pick`); in the
   backend it stays `rex.pick()`.

@@ -39,7 +39,8 @@ Ein AddOn von [KLXM Crossmedia](https://klxm.de). · [English](README.md)
   Profil bereinigt. Angemeldete Backend-Benutzer haben auf der Website dieselben Werkzeuge wie im Backend (Linkmap,
   Medienpool, Datensätze); ohne Anmeldung bleiben vorhandene Links erhalten.
 - **Bearbeiten im Kontext (Inline-Modus):** `RexTiptap.inline(element, profil)` macht ein Element der Seite selbst zum
-  Editor – mit schwebender Werkzeugleiste und Link-Leiste, auch im Shadow DOM. So arbeitet z. B.
+  Editor – mit schwebender Werkzeugleiste in einer Zeile (was nicht passt, liegt hinter „⋯“) und Link-Leiste, auch im
+  Shadow DOM. Der Text behält die Typografie der Website, Formate sehen aus wie für Besucher. So arbeitet z. B.
   [fluid](https://github.com/KLXM/fluid) (Bearbeiten auf der Website).
 - **Seiten- und Medienauswahl auf der Website:** Eine Oberfläche wie fluid hängt ihre eigene Auswahl ein
   (`RexTiptap.pick`), im Backend bleibt es `rex.pick()`.

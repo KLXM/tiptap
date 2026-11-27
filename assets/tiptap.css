@@ -616,7 +616,8 @@ html.rex-tiptap-has-fullscreen {
 
 /* hidden gewinnt gegen display-Regeln (z. B. .rex-input des Backends) */
 .rex-tiptap [hidden],
-.rex-tiptap-dialog [hidden] {
+.rex-tiptap-dialog [hidden],
+.rex-tiptap-bubble[hidden] {
     display: none !important;
 }
 

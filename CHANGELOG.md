@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-beta.5 – 2026-11-27
+
+- Fix Inline-Modus: Die schwebende Link-Leiste blieb nach dem ersten Link sichtbar – `hidden` wirkte nur innerhalb der
+  Editor-Box.
+- README: Bild des Inline-Modus mit der einzeiligen Leiste.
+
 ## 1.0.0-beta.4 – 2026-11-27
 
 - Inline-Modus: Der Text hat keine eigene Typografie des Editors mehr (`rex-tiptap-prose`) – es gilt nur das CSS der
