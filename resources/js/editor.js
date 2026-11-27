@@ -350,7 +350,9 @@ export class RexTiptapEditor {
 
     labelEditor() {
         const id = this.root.dataset.labelFor || this.textarea.id;
-        const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
+        // the label may sit in the same shadow root as the editor
+        const scope = this.root.getRootNode();
+        const label = id ? scope.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
         const dom = this.editor.view.dom;
         if (label) {
             label.id ||= this.id + '-label';

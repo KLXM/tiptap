@@ -10,6 +10,9 @@
 - Fix: Skripte und Stile von Plugins anderer AddOns fehlten im Backend, wenn das AddOn nach TipTap startet (es setzt
   TipTap voraus) – gesammelt wird jetzt bei `PACKAGES_INCLUDED`.
 - Seiten- und Medienauswahl auch auf der Website: `RexTiptap.pick` (z. B. fluid), sonst wie bisher `rex.pick()` im Backend.
+- Fix: Im Frontend verschwanden vorhandene Links auf Seiten und Dateien aus dem Text, weil die Link-Arten pauschal
+  abgeschaltet wurden. Angemeldete Backend-Benutzer haben auf der Website jetzt dieselben Werkzeuge wie im Backend; ohne
+  Anmeldung gelten die Link-Arten des Profils (nur ohne Auswahl).
 - Editoren funktionieren im Shadow DOM (Fokus über `getRootNode()`, Klicks über `composedPath()`).
 - `RexTiptapEditor`: Aufbau in `buildToolbar()`, `layout()`, `listen()` und `placeBubble()` geteilt – überschreibbar.
 

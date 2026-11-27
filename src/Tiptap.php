@@ -12,13 +12,16 @@ use Redaxo\Core\Core;
 use Redaxo\Core\Filesystem\Url;
 use Redaxo\Core\Http\Response;
 use Redaxo\Core\Language\Language;
+use Redaxo\Core\Security\BackendLogin;
 use Redaxo\Core\View\HtmlAttributes;
 
 use function class_exists;
 use function in_array;
 use function json_encode;
 use function mb_substr;
+use function preg_match;
 use function Redaxo\Core\View\escape;
+use function substr;
 
 use const JSON_HEX_AMP;
 use const JSON_HEX_APOS;
@@ -94,6 +97,15 @@ final class Tiptap
             . escape((string) $value) . '</textarea></rex-tiptap>';
     }
 
+    /**
+     * Address of a plugin file for the website: addons register their plugin in boot(), where getAssetsUrl() is still
+     * relative (`./assets/…`) – below a nice URL like /seite/unterseite that would miss, so it starts at the site root.
+     */
+    public static function pluginUrl(string $url): string
+    {
+        return preg_match('~^\./(?=assets/)~', $url) ? Output::basePath() . substr($url, 2) : $url;
+    }
+
     /** Einstellungen eines Profils als JSON für `data-config` */
     public static function configJson(Profile $profile): string
     {
@@ -104,16 +116,16 @@ final class Tiptap
     public static function clientConfig(Profile $profile): array
     {
         $config = $profile->clientConfig();
-        $user = Core::isBackend() ? Core::getUser() : null;
+        // on the website a logged-in backend user (editing in context, e.g. fluid) has the same tools as in the backend
+        $user = Core::isBackend() ? Core::getUser() : BackendLogin::createUser();
         $config['backend'] = null !== $user;
         // Adressen ab der Website-Wurzel: stimmen im Backend wie im Frontend
         $base = Output::basePath();
         $config['mediaUrl'] = $base . 'media/';
         $config['mediaManagerUrl'] = $base . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__';
         if (null === $user) {
-            // Im Frontend gibt es weder Linkmap noch Medienpool noch Datensatz-Auswahl
-            $config['link']['internal'] = false;
-            $config['link']['media'] = false;
+            // Without login there is no record search; link types stay as the profile says – existing links must not
+            // get lost while editing, and the server cleans input after the profile anyway (Tiptap::sanitize())
             $config['link']['records'] = [];
         } else {
             $tables = RecordLinks::tables($user);
@@ -167,10 +179,10 @@ final class Tiptap
                 continue;
             }
             if ($plugin->style) {
-                $html .= '<link rel="stylesheet" href="' . escape($plugin->style) . '">';
+                $html .= '<link rel="stylesheet" href="' . escape(self::pluginUrl($plugin->style)) . '">';
             }
             if ($plugin->script) {
-                $html .= '<script defer nonce="' . $nonce . '" src="' . escape($plugin->script) . '"></script>';
+                $html .= '<script defer nonce="' . $nonce . '" src="' . escape(self::pluginUrl($plugin->script)) . '"></script>';
             }
         }
         if ($withProfiles) {
