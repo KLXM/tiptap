@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-beta.6 – 2026-11-27
+
+- **Formate anmelden mit `#[AsStyles]`:** AddOns und Projekt geben vorhandenen Profilen eigene Block-, Text-, Listen-
+  und Linkformate mit – als Klasse wie `#[AsModule]`, mit Kennung `präfix.name` und Profilauswahl (`tiptap.*`).
+  Gilt zur Laufzeit in Editor, Sanitizer und Ausgabe, wird nie gespeichert. Die Profil-Übersicht zeigt, woher weitere
+  Formate kommen.
+- `Profile::styleClasses($element)`: erlaubte Format-Klassen je Element für eigene Ausgabefilter.
+
 ## 1.0.0-beta.5 – 2026-11-27
 
 - Fix Inline-Modus: Die schwebende Link-Leiste blieb nach dem ersten Link sichtbar – `hidden` wirkte nur innerhalb der

@@ -24,6 +24,7 @@ Tiptap::editor(string $name, ?string $value, string|Profile|null $profile = null
 Tiptap::assets(bool $withProfiles = false): string                             // Frontend-Skripte/Stile
 Tiptap::profile(?string $name): Profile                                        // Profil oder „tiptap.default“
 Tiptap::register(Plugin $plugin): void                                         // Erweiterung anmelden
+#[AsStyles('präfix.name', 'Name', profiles: […])]                              // Formate für Profile anmelden
 ```
 
 Profile gehören am besten als Klasse in den Code, siehe [Profile als PHP-Klassen](04_code.md). Für Sonderfälle
@@ -151,6 +152,61 @@ Soll ein eigener Knoten auch in Markdown-Profilen funktionieren, braucht die Tip
 `renderMarkdown` bzw. `parseMarkdown` (siehe TipTap-Doku zu `@tiptap/markdown`). Im PHP-Item dann
 `markdown: true` setzen. Für Markdown-Profile kennt der Sanitizer nur Markdown-Elemente.
 
+## Formate anmelden (`#[AsStyles]`)
+
+Ein AddOn oder das Projekt kann vorhandenen Profilen eigene **Formate** mitgeben: Block-, Text-, Listen- und
+Linkformate. Ein Beispiel ist der Link „Cookie-Einstellungen“ eines Consent-AddOns oder die Farben eines Themes. Das
+geht wie bei Modulen (`#[AsModule]`) über eine Klasse mit Attribut. Die Klassenerkennung des Cores findet sie im
+Projekt und in allen AddOns, ein Aufruf in `boot()` ist nicht nötig.
+
+```php
+<?php
+
+namespace Klxm\ConsentKit\Tiptap;
+
+use Klxm\Tiptap\AsStyles;
+use Klxm\Tiptap\StyleDefinition;
+use Override;
+
+#[AsStyles('consent_kit.links', 'Consent Kit', profiles: ['tiptap.default', 'tiptap.fluid'])]
+final class ConsentStyles extends StyleDefinition
+{
+    #[Override]
+    public function styles(): array
+    {
+        return [
+            'linkStyles' => [['label' => 'Cookie-Einstellungen öffnen', 'class' => 'consent-settings']],
+        ];
+    }
+}
+```
+
+| Angabe | Bedeutung |
+|---|---|
+| Kennung | `präfix.name` wie bei fluid-Elementen, z. B. `consent_kit.links`. Je Kennung gilt eine Klasse; eine Klasse im Projekt ersetzt die eines AddOns mit derselben Kennung. |
+| Name | erscheint in der Profil-Übersicht („Weitere Formate von: …“); Text oder `new Translatable('schlüssel')` |
+| `profiles` | Profilnamen, `tiptap.*` für alle mit dem Präfix; leer für alle HTML-Profile |
+| `priority` | Reihenfolge mehrerer Klassen (kleiner zuerst) |
+
+`styles()` liefert dieselben Schlüssel wie ein Profil: `blockStyles` (mit `element`: `p`, `heading`, `h2` …),
+`inlineStyles`, `listStyles` (mit `list`: `ul`, `ol`, `both`) und `linkStyles`. Mit `applies(Profile $profile)`
+entscheidet die Klasse zur Laufzeit, ob sie gilt, etwa nur bei einer bestimmten Einstellung.
+
+Was dabei gilt:
+
+- **Nur zur Laufzeit:** Die Formate kommen in Editor, Sanitizer und Ausgabe (`Tiptap::profile()`, `render()`,
+  `sanitize()`, `editor()`, `assets(true)`), werden aber nie mit dem Profil gespeichert. Im Profil-Builder bleibt
+  das Profil, wie es ist.
+- **Das Profil zuerst:** Eigene Formate des Profils stehen vorn. Doppelte Klassen kommen nicht hinzu. Ungültige
+  Klassennamen fallen weg, Markdown-Profile bekommen keine Formate.
+- **Die Leiste entscheidet das Profil:** Ein Format erscheint nur, wenn das Profil das Werkzeug dafür hat
+  (`blockStyle`, `inlineStyle`, Listen, `link`).
+- **Das CSS bringt das AddOn mit:** Für die Darstellung auf der Website sorgt das AddOn selbst.
+
+Wer HTML selbst filtert, fragt die erlaubten Klassen je Element ab:
+`Tiptap::profile('tiptap.fluid')->styleClasses('a')`. fluid macht das in seiner Ausgabe und meldet die Formate seiner
+Kits genauso an: `#[AsStyles('fluid.kit', …)]`.
+
 ## JavaScript-API
 
 ```js
@@ -229,8 +285,8 @@ selbst auf. Beim Verschieben im DOM, etwa beim Sortieren einer Collection, bleib
 Für die Integration in fluid sind vorgesehen:
 
 - **Klasse des Inhaltsbereichs** im Profil: Damit gelten im Editor die Typografie-Stile des Frontends.
-- **Blockformate und Textformate** als Klassenvertrag. Ein Kit kann seine Formate als Profil importieren oder per
-  `Profiles::save()` anlegen.
+- **Block-, Text-, Listen- und Linkformate** als Klassenvertrag. Die Kits melden sie per `#[AsStyles]` für
+  `tiptap.fluid` an, siehe [Formate anmelden](#formate-anmelden-asstyles).
 - **`Tiptap::register()`** für Kit-eigene Werkzeuge, z. B. Hinweisboxen oder Buttons.
 - **CSS-Variablen** `--rex-tiptap-*` für die Farben des Kits.
 

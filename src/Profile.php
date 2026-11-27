@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use function array_filter;
 use function array_intersect;
 use function array_key_exists;
+use function array_keys;
 use function array_map;
 use function array_slice;
 use function array_unique;
@@ -169,6 +170,31 @@ final readonly class Profile
     public function hasItem(string ...$ids): bool
     {
         return [] !== array_filter($ids, fn (string $id) => in_array($id, $this->items(), true));
+    }
+
+    /**
+     * Classes of the profile's text formats allowed on an element (single class names) – for own output filters:
+     * `p` and `h1`–`h6` (block formats), `span` (text formats), `ul`/`ol` (list formats), `a` (link formats).
+     *
+     * @return list<string>
+     */
+    public function styleClasses(string $element): array
+    {
+        $element = strtolower($element);
+        $styles = match (true) {
+            'span' === $element => $this->config['inlineStyles'],
+            'a' === $element => $this->config['linkStyles'],
+            'ul' === $element, 'ol' === $element => array_filter($this->config['listStyles'], static fn (array $s): bool => in_array($s['list'] ?? 'both', ['both', $element], true)),
+            default => array_filter($this->config['blockStyles'], static fn (array $s): bool => $element === $s['element'] || ('heading' === $s['element'] && 1 === preg_match('/^h[1-6]$/', $element))),
+        };
+        $classes = [];
+        foreach ($styles as $style) {
+            foreach (explode(' ', $style['class']) as $class) {
+                $classes[$class] = true;
+            }
+        }
+
+        return array_keys($classes);
     }
 
     /**

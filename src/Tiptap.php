@@ -55,9 +55,10 @@ final class Tiptap
         Registry::addPlugin($plugin);
     }
 
+    /** The profile with the text formats of other addons ({@see AsStyles}) – for editor, sanitizer and output */
     public static function profile(string|Profile|null $profile = null): Profile
     {
-        return $profile instanceof Profile ? $profile : Profiles::getOrDefault($profile);
+        return ProfileStyles::apply($profile instanceof Profile ? $profile : Profiles::getOrDefault($profile));
     }
 
     /** Outputs stored content: HTML sanitized, Markdown converted, `redaxo://ID` resolved */
@@ -202,7 +203,7 @@ final class Tiptap
         $profiles = [];
         foreach (Profiles::all() as $profile) {
             if (null === $names || in_array($profile->name, $names, true)) {
-                $profiles[$profile->name] = self::clientConfig($profile);
+                $profiles[$profile->name] = self::clientConfig(ProfileStyles::apply($profile));
             }
         }
 

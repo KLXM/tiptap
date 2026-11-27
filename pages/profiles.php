@@ -4,6 +4,7 @@ use Klxm\Tiptap\Mode;
 use Klxm\Tiptap\Output;
 use Klxm\Tiptap\Profile;
 use Klxm\Tiptap\Profiles;
+use Klxm\Tiptap\ProfileStyles;
 use Klxm\Tiptap\RecordLinks;
 use Klxm\Tiptap\RecordSearchApi;
 use Klxm\Tiptap\Registry;
@@ -277,6 +278,7 @@ foreach (Profiles::all() as $profile) {
         . '<td><a href="' . $edit . '"><strong>' . escape($profile->label) . '</strong></a><br><code>' . escape($profile->name) . '</code>'
         . (isset(Profiles::builtin()[$profile->name]) && !$profile->isCode() ? ' <span class="tt-profile-code" data-builtin><i class="rex-icon fa-solid fa-box" aria-hidden="true"></i> ' . I18n::msg(Profiles::isCustomized($profile->name) ? 'tiptap_builtin_customized' : 'tiptap_builtin') . '</span>' : '')
         . ($profile->isCode() ? ' <span class="tt-profile-code" title="' . escape((string) $profile->class) . '"><i class="rex-icon fa-solid fa-code" aria-hidden="true"></i> ' . I18n::msg('tiptap_code') . ' · ' . escape(Profiles::origin((string) $profile->class)) . '</span>' : '')
+        . ([] !== ($styles = ProfileStyles::names($profile)) ? '<br><small class="rex-u-text-muted"><i class="rex-icon fa-solid fa-palette" aria-hidden="true"></i> ' . I18n::msg('tiptap_styles_from', escape(implode(', ', $styles))) . '</small>' : '')
         . (Profiles::isShadowed($profile->name) ? '<br><small class="rex-u-text-warning">' . I18n::msg('tiptap_shadowed') . '</small>' : '')
         . ('' !== $profile->description ? '<br><small class="rex-u-text-muted">' . escape($profile->description) . '</small>' : '') . '</td>'
         . '<td><span class="tt-profile-mode" data-mode="' . $profile->mode->value . '">' . (Mode::Markdown === $profile->mode ? 'Markdown' : 'HTML') . '</span></td>'

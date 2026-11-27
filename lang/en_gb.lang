@@ -140,3 +140,4 @@ tiptap_builtin_customized_note = Built-in profile, customized here. “Reset” 
 tiptap_reset = Reset
 tiptap_reset_confirm = Discard the changes to “{0}” and restore the built-in profile?
 tiptap_profile_reset = Profile “{0}” reset.
+tiptap_styles_from = More formats from: {0}
