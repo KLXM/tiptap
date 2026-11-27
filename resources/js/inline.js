@@ -36,6 +36,8 @@ export class RexTiptapInline extends RexTiptapEditor {
         pending = null;
         this.layer = this.options.layer ?? document.body;
         root.classList.add('rex-tiptap-inline');
+        // the text keeps the typography of the website: no class with the editor's own text styles
+        this.proseClass = 'rex-tiptap-inline-prose';
         root.dataset.mode = config.mode;
         this.content = root;
         this.body = root;
@@ -155,7 +157,6 @@ export class RexTiptapInline extends RexTiptapEditor {
 
     createEditor() {
         super.createEditor();
-        this.editor.view.dom.classList.add('rex-tiptap-inline-prose');
         if (this.options.label) {
             this.editor.view.dom.setAttribute('aria-label', this.options.label);
         }

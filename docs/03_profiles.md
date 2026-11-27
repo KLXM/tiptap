@@ -39,7 +39,8 @@ Werkzeuge anderer AddOns erscheinen in eigenen Bereichen.
 
 - **Überschriften:** welche Ebenen das Absatzformat anbietet.
 - **Blockformate:** Bezeichnung, CSS-Klasse und Element (`<p>`, `<h2>`, `<blockquote>`, `<ul>` …). Ein Format
-  für `<h2>` macht den Block zur Überschrift und setzt die Klasse.
+  für `<h2>` macht den Block zur Überschrift und setzt die Klasse. Element `heading` gilt für jede Überschrift und
+  behält ihre Ebene (ein Absatz wird zur ersten erlaubten Ebene).
 - **Textformate:** Bezeichnung und Klasse für `<span class="…">` um markierten Text.
 - **Listen:**
   - **Zählweisen** nummerierter Listen: 1, a, A, i, I. Sie stehen als HTML-Attribut `type` an `<ol>` und brauchen

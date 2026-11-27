@@ -205,8 +205,9 @@ export const builtinItems = {
                             // paragraph/heading: convert the block into the element first
                             if ('paragraph' === target.type) {
                                 c.setParagraph();
-                            } else if ('heading' === target.type) {
-                                c.setHeading({level: target.level});
+                            } else if ('heading' === target.type && (null !== target.level || !editor.isActive('heading'))) {
+                                // a format for any heading keeps the level; a paragraph becomes the first level
+                                c.setHeading({level: target.level ?? config.headings[0]});
                             }
                             const on = blockHasClass(editor, style.class, types);
                             c.setBlockClass(all, on ? null : style.class, types).run();

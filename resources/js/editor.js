@@ -190,7 +190,7 @@ export class RexTiptapEditor {
         const any = (...ids) => ids.some(has);
         const extensions = [
             StarterKit.configure({
-                heading: has('heading') || config.blockStyles.some(s => /^h[1-6]$/.test(s.element ?? '')) ? {levels: config.headings} : false,
+                heading: has('heading') || config.blockStyles.some(s => /^(h[1-6]|heading)$/.test(s.element ?? '')) ? {levels: config.headings} : false,
                 bold: has('bold') ? {} : false,
                 italic: has('italic') ? {} : false,
                 underline: has('underline') ? {} : false,
@@ -283,7 +283,8 @@ export class RexTiptapEditor {
             editorProps: {
                 attributes: {
                     id: this.id,
-                    class: 'rex-tiptap-prose',
+                    // inline mode: no typography of its own – the website's applies (inline.js)
+                    class: this.proseClass ?? 'rex-tiptap-prose',
                     role: 'textbox',
                     'aria-multiline': 'true',
                     spellcheck: 'true',

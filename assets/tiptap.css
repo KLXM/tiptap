@@ -334,10 +334,11 @@ i.rex-tiptap-icon {
 .rex-tiptap-prose .text-justify { text-align: justify; }
 
 /* Beispiel-Blockformate der Standardprofile */
-.rex-tiptap .lead { font-size: 1.2em; }
-.rex-tiptap .small { font-size: .85em; }
+.rex-tiptap-prose .lead { font-size: 1.2em; }
+.rex-tiptap-prose .small { font-size: .85em; }
 
-.rex-tiptap-prose p.is-editor-empty:first-child::before {
+/* editor mechanics – also in the inline mode, whose text otherwise only has the website's styles */
+:is(.rex-tiptap-prose, .rex-tiptap-inline-prose) p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     float: left;
     height: 0;
@@ -345,9 +346,9 @@ i.rex-tiptap-icon {
     pointer-events: none;
 }
 
-.rex-tiptap-prose .ProseMirror-gapcursor { position: relative; display: none; pointer-events: none; }
-.rex-tiptap-prose .ProseMirror-gapcursor::after { content: ""; position: absolute; top: -2px; display: block; width: 20px; border-top: 1px solid var(--_text); animation: rex-tiptap-blink 1.1s steps(2, start) infinite; }
-.rex-tiptap-prose.ProseMirror-focused .ProseMirror-gapcursor { display: block; }
+:is(.rex-tiptap-prose, .rex-tiptap-inline-prose) .ProseMirror-gapcursor { position: relative; display: none; pointer-events: none; }
+:is(.rex-tiptap-prose, .rex-tiptap-inline-prose) .ProseMirror-gapcursor::after { content: ""; position: absolute; top: -2px; display: block; width: 20px; border-top: 1px solid var(--_text); animation: rex-tiptap-blink 1.1s steps(2, start) infinite; }
+:is(.rex-tiptap-prose, .rex-tiptap-inline-prose).ProseMirror-focused .ProseMirror-gapcursor { display: block; }
 @keyframes rex-tiptap-blink { to { visibility: hidden; } }
 
 .rex-tiptap-prose[contenteditable="false"] { background: var(--_surface); color: var(--_muted); }

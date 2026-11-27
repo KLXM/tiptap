@@ -320,7 +320,7 @@ final readonly class Profile
             if ($block) {
                 // Block formats apply to paragraphs or specific elements
                 $element = is_string($style['element'] ?? null) ? $style['element'] : 'p';
-                $entry['element'] = in_array($element, ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'table'], true) ? $element : 'p';
+                $entry['element'] = in_array($element, ['p', 'heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'table'], true) ? $element : 'p';
             }
             $out[] = $entry;
         }

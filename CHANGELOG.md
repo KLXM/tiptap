@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-beta.4 – 2026-11-27
+
+- Inline-Modus: Der Text hat keine eigene Typografie des Editors mehr (`rex-tiptap-prose`) – es gilt nur das CSS der
+  Website, auch für Link- und Listenformate. Nur Platzhalter und Cursor-Hilfen kommen vom Editor.
+- Blockformate mit `element: 'heading'` gelten für jede Überschrift und behalten die Ebene.
+- Fix: Textformate (`span`) behielten beim Laden Klassen, die das Profil nicht kennt.
+
 ## 1.0.0-beta.3 – 2026-11-27
 
 - Inline-Modus: Die schwebende Werkzeugleiste bricht nicht mehr um. Was nicht in eine Zeile passt, liegt hinter „⋯“

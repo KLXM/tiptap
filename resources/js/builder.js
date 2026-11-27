@@ -596,7 +596,7 @@ class Builder {
 
     styleList(key, block, listKind = false, mediaKind = false) {
         const wrap = el('div', {className: 'tt-b-styles'});
-        const elements = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'table'];
+        const elements = ['p', 'heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'table'];
         const draw = () => {
             const parts = key.split('.');
             let owner = this.config;

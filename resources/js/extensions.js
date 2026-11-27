@@ -7,8 +7,11 @@ export const CLASS_NODES = ['paragraph', 'heading', 'blockquote', 'bulletList', 
 
 const ELEMENT_NODE = {p: 'paragraph', blockquote: 'blockquote', ul: 'bulletList', ol: 'orderedList', table: 'table'};
 
-/** Node type + level for an element of the block format (p, h2, blockquote …) */
+/** Node type + level for an element of the block format (p, h2, blockquote …); `heading` = any heading, level null */
 export function nodeOfElement(element) {
+    if ('heading' === element) {
+        return {type: 'heading', level: null};
+    }
     const h = /^h([1-6])$/.exec(element);
     return h ? {type: 'heading', level: Number(h[1])} : {type: ELEMENT_NODE[element] ?? 'paragraph'};
 }
@@ -99,7 +102,9 @@ export const InlineStyle = Mark.create({
     },
 
     addAttributes() {
-        return {class: {default: null}};
+        // filter here as well: TipTap reads the attribute itself and would overwrite the value of getAttrs
+        const allowed = new Set(this.options.allowed);
+        return {class: {default: null, parseHTML: el => tokens(el.getAttribute('class')).filter(c => allowed.has(c)).join(' ') || null}};
     },
 
     parseHTML() {
