@@ -97,8 +97,10 @@ const texts = {
     },
 };
 
+/** Language of the editor: set by the page (`<html data-rex-tiptap-lang="en">`, e.g. the editor's language on a website
+ * in another language), else the language of the document or the browser */
 function lang() {
-    const l = (document.documentElement.lang || navigator.language || 'de').slice(0, 2).toLowerCase();
+    const l = (document.documentElement.dataset.rexTiptapLang || document.documentElement.lang || navigator.language || 'de').slice(0, 2).toLowerCase();
     return texts[l] ? l : 'en';
 }
 

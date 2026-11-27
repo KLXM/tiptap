@@ -3,6 +3,7 @@
 namespace Klxm\Tiptap;
 
 use Attribute;
+use Redaxo\Core\Translation\Translatable;
 
 /**
  * Registers an editor profile as a PHP class – versioned with the project instead of in the database.
@@ -25,9 +26,9 @@ final readonly class AsProfile
     public function __construct(
         /** Name (key) with the prefix `tiptap.`, as in `#[Editor('Text', profile: 'tiptap.news')]` */
         public string $name,
-        public string $label = '',
+        public string|Translatable $label = '',
         public Mode $mode = Mode::Html,
-        public string $description = '',
+        public string|Translatable $description = '',
         /** Position in the profile list (lower first) */
         public int $priority = 0,
     ) {}

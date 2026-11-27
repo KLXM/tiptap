@@ -141,3 +141,22 @@ tiptap_reset = Zurücksetzen
 tiptap_reset_confirm = Anpassungen an „{0}“ verwerfen und das mitgelieferte Profil wiederherstellen?
 tiptap_profile_reset = Profil „{0}“ zurückgesetzt.
 tiptap_styles_from = Weitere Formate von: {0}
+
+# Mitgelieferte Profile
+tiptap_profile_default = Standard
+tiptap_profile_default_desc = Alle wichtigen Werkzeuge für redaktionelle Texte.
+tiptap_profile_simple = Einfach
+tiptap_profile_simple_desc = Fett, kursiv, Listen und Links – für kurze Texte und Collections.
+tiptap_profile_markdown_desc = Speichert Markdown statt HTML.
+tiptap_profile_guest = Gäste (Frontend)
+tiptap_profile_guest_desc = Minimal für Eingaben von Besuchern: fett, kursiv, Listen, externe Links.
+tiptap_style_lead = Einleitung
+tiptap_style_small = Kleingedruckt
+tiptap_style_outline = Gegliedert (1.1, 1.2)
+tiptap_style_check = Häkchen
+tiptap_style_plain = Ohne Zeichen
+tiptap_style_button = Als Button
+tiptap_style_img_left = Links umflossen
+tiptap_style_img_right = Rechts umflossen
+tiptap_style_img_center = Zentriert
+tiptap_style_img_full = Volle Breite

@@ -6,9 +6,10 @@ use Klxm\Tiptap\AsProfile;
 use Klxm\Tiptap\Mode;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
+use Redaxo\Core\Translation\Translatable;
 
 /** Shipped: stores Markdown instead of HTML. */
-#[AsProfile('tiptap.markdown', 'Markdown', mode: Mode::Markdown, description: 'Speichert Markdown statt HTML.', priority: -20)]
+#[AsProfile('tiptap.markdown', 'Markdown', mode: Mode::Markdown, description: new Translatable('tiptap_profile_markdown_desc'), priority: -20)]
 final class MarkdownProfile extends ProfileDefinition
 {
     #[Override]

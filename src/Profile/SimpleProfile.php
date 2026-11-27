@@ -5,9 +5,10 @@ namespace Klxm\Tiptap\Profile;
 use Klxm\Tiptap\AsProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
+use Redaxo\Core\Translation\Translatable;
 
 /** Shipped: bold, italic, lists and links – for short texts and collections. */
-#[AsProfile('tiptap.simple', 'Einfach', description: 'Fett, kursiv, Listen und Links – für kurze Texte und Collections.', priority: -30)]
+#[AsProfile('tiptap.simple', new Translatable('tiptap_profile_simple'), description: new Translatable('tiptap_profile_simple_desc'), priority: -30)]
 final class SimpleProfile extends ProfileDefinition
 {
     #[Override]

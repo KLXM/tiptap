@@ -7,6 +7,7 @@ use Redaxo\Core\Addon\Addon;
 use Redaxo\Core\ClassDiscovery;
 use Redaxo\Core\Core;
 use Redaxo\Core\Database\Sql;
+use Redaxo\Core\Translation\Translatable;
 use ReflectionClass;
 use RuntimeException;
 use Throwable;
@@ -140,8 +141,8 @@ final class Profiles
             try {
                 $profile = Profile::fromArray([
                     'name' => $attr->name,
-                    'label' => $attr->label,
-                    'description' => $attr->description,
+                    'label' => Translatable::text($attr->label),
+                    'description' => Translatable::text($attr->description),
                     'mode' => $attr->mode->value,
                     'config' => new $class()->config(),
                 ]);

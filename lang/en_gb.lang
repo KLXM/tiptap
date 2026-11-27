@@ -141,3 +141,22 @@ tiptap_reset = Reset
 tiptap_reset_confirm = Discard the changes to “{0}” and restore the built-in profile?
 tiptap_profile_reset = Profile “{0}” reset.
 tiptap_styles_from = More formats from: {0}
+
+# Shipped profiles
+tiptap_profile_default = Default
+tiptap_profile_default_desc = All important tools for editorial texts.
+tiptap_profile_simple = Simple
+tiptap_profile_simple_desc = Bold, italic, lists and links – for short texts and collections.
+tiptap_profile_markdown_desc = Stores Markdown instead of HTML.
+tiptap_profile_guest = Guests (frontend)
+tiptap_profile_guest_desc = Minimal for input of visitors: bold, italic, lists, external links.
+tiptap_style_lead = Lead
+tiptap_style_small = Small print
+tiptap_style_outline = Outlined (1.1, 1.2)
+tiptap_style_check = Check marks
+tiptap_style_plain = No markers
+tiptap_style_button = As button
+tiptap_style_img_left = Float left
+tiptap_style_img_right = Float right
+tiptap_style_img_center = Centered
+tiptap_style_img_full = Full width
