@@ -5,7 +5,7 @@ namespace Klxm\Tiptap;
 use Attribute;
 
 /**
- * Meldet ein Editor-Profil als PHP-Klasse an – versioniert mit dem Projekt statt in der Datenbank.
+ * Registers an editor profile as a PHP class – versioned with the project instead of in the database.
  *
  *     #[AsProfile('tiptap.news', 'Meldungen', mode: Mode::Html)]
  *     final class NewsProfile extends ProfileDefinition
@@ -16,19 +16,19 @@ use Attribute;
  *         }
  *     }
  *
- * Gefunden wird die Klasse von der ClassDiscovery des Cores (Projekt, AddOns). Ein Profil aus Code hat Vorrang vor
- * einem gleichnamigen Profil aus der Datenbank und ist im Backend schreibgeschützt.
+ * The class is found by the core's ClassDiscovery (project, addons). A profile from code takes precedence over a
+ * database profile with the same name and is read-only in the backend.
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class AsProfile
 {
     public function __construct(
-        /** Name (Schlüssel) mit der Kennung `tiptap.`, wie in `#[Editor('Text', profile: 'tiptap.news')]` */
+        /** Name (key) with the prefix `tiptap.`, as in `#[Editor('Text', profile: 'tiptap.news')]` */
         public string $name,
         public string $label = '',
         public Mode $mode = Mode::Html,
         public string $description = '',
-        /** Reihenfolge in der Profilliste (kleiner zuerst) */
+        /** Position in the profile list (lower first) */
         public int $priority = 0,
     ) {}
 }

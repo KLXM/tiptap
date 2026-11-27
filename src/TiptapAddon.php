@@ -35,14 +35,14 @@ use function substr_replace;
 use const ENT_QUOTES;
 
 /**
- * TipTap-Editor für REDAXO 6: Profile, Feld {@see Field\Editor}, Frontend über {@see Tiptap}.
+ * TipTap editor for REDAXO 6: profiles, field {@see Field\Editor}, frontend via {@see Tiptap}.
  */
 final class TiptapAddon extends Addon
 {
     public protected(set) array $defaultConfig = [
-        // interne Links (redaxo://ID) in der Frontend-Ausgabe auflösen, auch ohne Tiptap::render()
+        // resolve internal links (redaxo://ID) in the frontend output, even without Tiptap::render()
         'resolve_links' => true,
-        // Adress-Vorlagen für verlinkte YForm-Datensätze: Tabelle => z. B. redaxo://12?news_id={id}
+        // URL templates for linked YForm records: table => e.g. redaxo://12?news_id={id}
         'record_urls' => [],
     ];
 
@@ -63,7 +63,7 @@ final class TiptapAddon extends Addon
             ->ensureColumn(new Column('updateuser', 'varchar(255)'))
             ->ensureIndex(new Index('name', ['name'], Index::UNIQUE))
             ->ensure();
-        // die mitgelieferten Profile sind Klassen (src/Profile), nicht in der Datenbank
+        // the shipped profiles are classes (src/Profile), not in the database
     }
 
     #[Override]
@@ -95,7 +95,7 @@ final class TiptapAddon extends Addon
             if (null === Core::getUser()) {
                 return;
             }
-            // Vorschau von YouTube/Vimeo im Editor (erst auf Klick)
+            // preview of YouTube/Vimeo in the editor (only on click)
             ContentSecurityPolicy::backend()->add('frame-src', ...Oembed::frameHosts());
             Asset::addCssFile($this->assetUrl('tiptap.css'));
             Asset::addJsFile($this->assetUrl('tiptap-loader.js'), [Asset::JS_DEFERED => true]);
@@ -119,11 +119,11 @@ final class TiptapAddon extends Addon
         Extension::register('OUTPUT_FILTER', function (ExtensionPoint $ep): string {
             $html = (string) $ep->subject;
             $inject = '';
-            // Frontend: Skripte von selbst nachladen, sobald ein Editor auf der Seite steht (YForm-Formular, Modul …)
+            // Frontend: load the scripts automatically as soon as an editor is on the page (YForm form, module …)
             if (!Core::isBackend() && (str_contains($html, '<rex-tiptap') || str_contains($html, 'data-tiptap=')) && !str_contains($html, 'tiptap-loader.js')) {
                 $inject .= Tiptap::assets();
             }
-            // Textareas mit data-tiptap="profil" (YForm, eigene Formulare) brauchen die Profile auf der Seite
+            // textareas with data-tiptap="profile" (YForm, custom forms) need the profiles on the page
             if (str_contains($html, 'data-tiptap=') && !str_contains($html, 'id="rex-tiptap-profiles"')) {
                 $inject .= Tiptap::profilesScript();
             }
@@ -134,7 +134,7 @@ final class TiptapAddon extends Addon
             if (!Core::isBackend() && $this->getConfig('resolve_links')) {
                 $html = Output::resolve($html);
             }
-            // Videos, Platzhalter von YouTube/Vimeo, HTML-Embeds mit Einwilligung: Stile und Skript dazu
+            // videos, YouTube/Vimeo placeholders, HTML embeds with consent: their styles and script
             if (!Core::isBackend() && !str_contains($html, 'tiptap-media.js')
                 && (str_contains($html, 'rex-oembed') || str_contains($html, 'rex-embed-consent') || str_contains($html, 'rex-ratio-') || str_contains($html, 'rex-video'))) {
                 $html = $this->injectMediaAssets($html);
@@ -144,7 +144,7 @@ final class TiptapAddon extends Addon
         }, ExtensionLevel::Late);
     }
 
-    /** Stile in den head, Skript ans Ende des body (mit Nonce der Antwort) */
+    /** Styles into the head, script at the end of the body (with the nonce of the response) */
     private function injectMediaAssets(string $html): string
     {
         $css = '<link rel="stylesheet" href="' . htmlspecialchars($this->assetUrl('tiptap-media.css'), ENT_QUOTES) . '">';
@@ -156,7 +156,7 @@ final class TiptapAddon extends Addon
         return false === $body ? $html . $js : substr_replace($html, $js, $body, 0);
     }
 
-    /** Adresse einer Datei aus assets/ mit Version gegen veraltete Caches */
+    /** URL of a file from assets/ with version against stale caches */
     public function assetUrl(string $file): string
     {
         $path = $this->getPath('assets/' . $file);

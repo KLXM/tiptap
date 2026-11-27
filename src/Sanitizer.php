@@ -20,14 +20,14 @@ use function str_contains;
 use function strtolower;
 
 /**
- * Bereinigt HTML nach dem, was ein Profil erlaubt: nur die Elemente der Werkzeuge in der Toolbar, nur die Klassen aus
- * Block-/Textformaten und Ausrichtung, keine style-Attribute, keine Skripte.
+ * Sanitizes HTML according to what a profile allows: only the elements of the tools in the toolbar, only the classes
+ * of block/text formats and alignment, no style attributes, no scripts.
  *
- * Wichtig für Eingaben aus dem Frontend: das Skript im Browser lässt sich umgehen, maßgeblich ist der Server.
+ * Important for input from the frontend: the script in the browser can be bypassed, the server is authoritative.
  */
 final class Sanitizer
 {
-    /** Elemente, deren Text bleibt, wenn das Profil sie nicht erlaubt */
+    /** Elements whose text is kept if the profile does not allow them */
     private const array KEEP_CONTENT = [
         'p', 'div', 'span', 'font', 'section', 'article', 'header', 'footer', 'main', 'aside', 'nav', 'figure', 'figcaption',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del', 'ins', 'mark', 'small',
@@ -41,13 +41,13 @@ final class Sanitizer
     public static function clean(string $html, Profile $profile): string
     {
         $html = Str::sanitizeHtml($html, self::config($profile));
-        // Links, deren Adresse nicht erlaubt war, bleiben als Text
+        // links whose URL was not allowed remain as text
         $html = (string) preg_replace('~<a(?:\s+(?:target|rel|title)="[^"]*")*\s*>(.*?)</a>~is', '$1', $html);
 
         return self::filterClasses($html, $profile);
     }
 
-    /** Allowlist des Profils für den Symfony-Sanitizer */
+    /** Allowlist of the profile for the Symfony sanitizer */
     public static function config(Profile $profile): HtmlSanitizerConfig
     {
         $key = $profile->name . ':' . md5(serialize($profile->config) . $profile->mode->value);
@@ -61,13 +61,13 @@ final class Sanitizer
                 $elements[$element] = array_merge($elements[$element] ?? [], $attributes);
             }
         }
-        // Überschriften nur in den gewählten Ebenen
+        // headings only in the selected levels
         foreach ([1, 2, 3, 4, 5, 6] as $level) {
             if (!in_array($level, $profile->config['headings'], true)) {
                 unset($elements['h' . $level]);
             }
         }
-        // Markdown-Tabellen und Codeblöcke kennen keinen Unterschied – thead/tbody gehören zur Tabelle
+        // Markdown tables and code blocks know no difference – thead/tbody belong to the table
         if (isset($elements['code']) && !isset($elements['pre']) && $profile->hasItem('codeBlock')) {
             $elements['pre'] = [];
         }
@@ -86,14 +86,14 @@ final class Sanitizer
         foreach ($elements as $element => $attributes) {
             $config = $config->allowElement($element, array_values(array_unique($attributes)));
         }
-        // Nicht erlaubte Textelemente entfernen, ihren Inhalt aber behalten (sonst verschwindet z. B. eine Überschrift samt Text)
+        // Remove disallowed text elements but keep their content (otherwise e.g. a heading would vanish with its text)
         foreach (self::KEEP_CONTENT as $element) {
             if (!isset($elements[$element])) {
                 $config = $config->blockElement($element);
             }
         }
 
-        // Klassen: auf allen Elementen erlaubt, gefiltert wird danach gegen die Liste des Profils
+        // Classes: allowed on all elements, filtered afterwards against the profile's list
         if (self::classes($profile)) {
             $config = $config->allowAttribute('class', '*');
         }
@@ -129,7 +129,7 @@ final class Sanitizer
     }
 
     /**
-     * Erlaubte Klassen des Profils (aus Block-, Textformaten, Ausrichtung und Plugins).
+     * Allowed classes of the profile (from block and text formats, alignment and plugins).
      *
      * @return list<string>
      */

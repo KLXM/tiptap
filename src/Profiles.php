@@ -42,27 +42,27 @@ use const JSON_UNESCAPED_SLASHES;
 use const JSON_UNESCAPED_UNICODE;
 
 /**
- * Ablage der Profile in `rex_tiptap_profile`, Import und Export.
+ * Storage of the profiles in `rex_tiptap_profile`, import and export.
  */
 final class Profiles
 {
     public const string TABLE = 'rex_tiptap_profile';
-    /** Profil ohne Angabe (mitgeliefert als {@see Profile\DefaultProfile}) */
+    /** Profile used when none is given (shipped as {@see Profile\DefaultProfile}) */
     public const string DEFAULT = 'tiptap.default';
-    /** Kennung im Export, damit ein Import fremde JSON-Dateien erkennt */
+    /** Marker in the export so an import recognizes foreign JSON files */
     public const string EXPORT_FORMAT = 'redaxo-tiptap-profiles';
 
     /** @var array<string, Profile>|null */
     private static ?array $cache = null;
 
     /**
-     * Alle Profile. Reihenfolge des Vorrangs bei gleichem Namen:
+     * All profiles. Order of precedence for equal names:
      *
-     * 1. Klassen aus Projekt und AddOns ({@see AsProfile}) – verbindlich, im Backend schreibgeschützt
-     * 2. Profile aus der Datenbank (im Backend angelegt oder angepasst)
-     * 3. die mitgelieferten Profile des AddOns (`tiptap.*`, src/Profile)
+     * 1. classes from the project and addons ({@see AsProfile}) – binding, read-only in the backend
+     * 2. profiles from the database (created or customized in the backend)
+     * 3. the profiles shipped with the addon (`tiptap.*`, src/Profile)
      *
-     * @return array<string, Profile> nach Name
+     * @return array<string, Profile> by name
      */
     public static function all(): array
     {
@@ -83,7 +83,7 @@ final class Profiles
     }
 
     /**
-     * Die mitgelieferten Profile (Klassen im AddOn selbst).
+     * The shipped profiles (classes in the addon itself).
      *
      * @return array<string, Profile>
      */
@@ -92,7 +92,7 @@ final class Profiles
         return array_filter(self::discover(), static fn (Profile $p) => $p->builtin);
     }
 
-    /** Ist ein Profil mitgeliefert und in der Datenbank angepasst? */
+    /** Is a profile shipped and customized in the database? */
     public static function isCustomized(string $name): bool
     {
         return isset(self::builtin()[$name]) && isset(self::fromDatabase()[$name]);
@@ -113,7 +113,7 @@ final class Profiles
     }
 
     /**
-     * Profile aus Klassen von Projekt und AddOns (ohne die mitgelieferten).
+     * Profiles from classes of the project and addons (without the shipped ones).
      *
      * @return array<string, Profile>
      */
@@ -146,14 +146,14 @@ final class Profiles
                     'config' => new $class()->config(),
                 ]);
                 $builtin = 'tiptap' === self::origin($class);
-                // Klassen anderer Pakete gewinnen gegen gleichnamige mitgelieferte
+                // classes of other packages win over shipped ones with the same name
                 $key = ($builtin ? 'builtin:' : '') . $profile->name;
                 $profiles[$key] ??= new Profile($profile->name, $profile->label, $profile->mode, $profile->description, $profile->config, $class, $builtin);
             } catch (Throwable) {
-                // fehlerhafte Klasse überspringen statt den Editor lahmzulegen
+                // skip a broken class instead of crippling the editor
             }
         }
-        // zuerst Klassen aus Projekt und AddOns, dann die mitgelieferten, soweit nicht ersetzt
+        // first classes from the project and addons, then the shipped ones unless replaced
         $result = [];
         foreach ([false, true] as $builtin) {
             foreach ($profiles as $profile) {
@@ -167,7 +167,7 @@ final class Profiles
     }
 
     /**
-     * Woher ein Profil aus Code kommt: `project` oder der Name des AddOns – anhand des Speicherorts der Klasse.
+     * Where a profile from code comes from: `project` or the name of the addon – based on the location of the class.
      *
      * @param class-string $class
      */
@@ -184,7 +184,7 @@ final class Profiles
         return 'project';
     }
 
-    /** Gibt es ein gleichnamiges Profil in der Datenbank, das ein Profil aus Code überdeckt? */
+    /** Is there a profile with the same name in the database that is shadowed by a profile from code? */
     public static function isShadowed(string $name): bool
     {
         return (self::all()[$name] ?? null)?->isCode() && isset(self::fromDatabase()[$name]);
@@ -195,7 +195,7 @@ final class Profiles
         return self::all()[$name] ?? null;
     }
 
-    /** Das Profil oder – wenn es fehlt – das erste vorhandene bzw. die Voreinstellung */
+    /** The profile or – if it is missing – the first existing one or the default */
     public static function getOrDefault(?string $name): Profile
     {
         return (null !== $name ? self::get($name) : null)
@@ -251,7 +251,7 @@ final class Profiles
         self::$cache = null;
     }
 
-    /** Freier Name: `name`, `name-2`, `name-3` … */
+    /** Free name: `name`, `name-2`, `name-3` … */
     public static function freeName(string $name): string
     {
         $base = $name;
@@ -274,9 +274,9 @@ final class Profiles
     }
 
     /**
-     * Liest einen Export (auch ein einzelnes Profil-Objekt).
+     * Reads an export (also a single profile object).
      *
-     * @throws RuntimeException bei ungültigem Inhalt
+     * @throws RuntimeException on invalid content
      * @return list<Profile>
      */
     public static function parse(string $json): array
@@ -307,10 +307,10 @@ final class Profiles
     }
 
     /**
-     * Importiert Profile; vorhandene Namen werden überschrieben oder umbenannt.
+     * Imports profiles; existing names are overwritten or renamed.
      *
      * @param list<Profile> $profiles
-     * @return list<string> gespeicherte Namen
+     * @return list<string> saved names
      */
     public static function import(array $profiles, bool $overwrite): array
     {
@@ -327,16 +327,16 @@ final class Profiles
     }
 
     /**
-     * PHP-Klasse für ein Profil (zum Einchecken ins Projekt).
+     * PHP class for a profile (to be committed to the project).
      *
-     * @param string $namespace z. B. `Project\\Tiptap`
+     * @param string $namespace e.g. `Project\\Tiptap`
      */
     public static function toPhp(Profile $profile, string $namespace = 'Project\\Tiptap', ?string $className = null): string
     {
-        // Klassenname ohne Kennung: tiptap.news → NewsProfile
+        // class name without prefix: tiptap.news → NewsProfile
         $short = null === $profile->prefix() ? $profile->name : substr($profile->name, strlen($profile->prefix()) + 1);
         $className ??= str_replace(' ', '', ucwords(str_replace(['-', '_', '.'], ' ', $short))) . 'Profile';
-        // nur, was von den Voreinstellungen abweicht – kürzer und besser zu lesen
+        // only what differs from the defaults – shorter and easier to read
         $config = self::diff($profile->config, Profile::normalize([], $profile->mode));
         $config = ['toolbar' => $profile->config['toolbar']] + $config;
         $args = [self::phpValue($profile->name), self::phpValue($profile->label)];
@@ -359,7 +359,7 @@ final class Profiles
     }
 
     /**
-     * Nur die Werte, die von den Voreinstellungen abweichen – bei Gruppen (link, image, align) je Unterschlüssel.
+     * Only the values that differ from the defaults – for groups (link, image, align) per subkey.
      *
      * @param array<string, mixed> $values
      * @param array<string, mixed> $defaults
@@ -383,11 +383,11 @@ final class Profiles
         return $out;
     }
 
-    /** Kurze Array-Schreibweise, Listen von Werten in einer Zeile */
+    /** Short array syntax, lists of values on one line */
     private static function phpValue(mixed $value, int $level = 0): string
     {
         if (is_string($value)) {
-            // unsichtbare Zeichen lesbar: "\u{00A0}"
+            // invisible characters readable: "\u{00A0}"
             if (preg_match('/[\x{00A0}\x{00AD}\x{200B}]/u', $value)) {
                 return '"' . preg_replace_callback('/[\x{00A0}\x{00AD}\x{200B}]/u', static fn (array $m) => '\\u{' . strtoupper(dechex(mb_ord($m[0]))) . '}', str_replace(['\\', '"', '$'], ['\\\\', '\\"', '\\$'], $value)) . '"';
             }

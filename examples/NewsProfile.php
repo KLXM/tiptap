@@ -7,8 +7,8 @@ use Klxm\Tiptap\ProfileDefinition;
 use Override;
 
 /**
- * Beispiel: Editor-Profil als PHP-Klasse – versioniert mit dem Projekt, kein Abgleich der Datenbank zwischen Stage
- * und Live. In src/Tiptap des Projekts legen; Verwendung: #[Editor('Text', profile: 'tiptap.news')].
+ * Example: editor profile as a PHP class – versioned with the project, no syncing of the database between stage
+ * and live. Put it into src/Tiptap of the project; usage: #[Editor('Text', profile: 'tiptap.news')].
  */
 #[AsProfile('tiptap.news', 'Meldungen', description: 'Kurztexte für Meldungen – fett, kursiv, Listen, Links auf Seiten und Datensätze.')]
 final class NewsProfile extends ProfileDefinition

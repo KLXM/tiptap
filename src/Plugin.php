@@ -3,8 +3,8 @@
 namespace Klxm\Tiptap;
 
 /**
- * Erweiterung aus einem anderen AddOn: Skript und Stile, die mit dem Editor geladen werden, und die Werkzeuge, die
- * der Profil-Builder anbietet.
+ * Extension from another addon: script and styles loaded with the editor, and the tools offered by the profile
+ * builder.
  *
  *     Tiptap::register(new Plugin(
  *         id: 'myaddon',
@@ -18,15 +18,15 @@ final readonly class Plugin
     public function __construct(
         public string $id,
         public string $label,
-        /** Adresse des Skripts, das `RexTiptap.register({...})` aufruft */
+        /** URL of the script that calls `RexTiptap.register({...})` */
         public ?string $script = null,
-        /** Adresse zusätzlicher Stile (Editor und Ausgabe) */
+        /** URL of additional styles (editor and output) */
         public ?string $style = null,
         /** @var list<Item> */
         public array $items = [],
-        /** Auch im Frontend laden (Tiptap::assets()) */
+        /** Also load in the frontend (Tiptap::assets()) */
         public bool $frontend = true,
-        /** @var list<string> Zusätzliche Klassen, die der Sanitizer bei Profilen mit diesem Plugin erlaubt */
+        /** @var list<string> Additional classes the sanitizer allows for profiles with this plugin */
         public array $classes = [],
     ) {}
 }

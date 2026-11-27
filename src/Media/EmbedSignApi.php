@@ -11,8 +11,8 @@ use Redaxo\Core\Http\Request;
 use Redaxo\Core\Http\Response;
 
 /**
- * Gibt einen HTML-Embed frei: signiert Code und Dienst für Benutzer mit dem Recht `tiptap[html_embed]`
- * (POST, mit CSRF-Token). Ohne gültige Signatur gibt {@see HtmlEmbed::render()} den Code nicht aus.
+ * Approves an HTML embed: signs code and service for users with the permission `tiptap[html_embed]`
+ * (POST, with CSRF token). Without a valid signature {@see HtmlEmbed::render()} does not output the code.
  */
 #[AsApiFunction('tiptap_embed_sign')]
 final class EmbedSignApi extends ApiFunction

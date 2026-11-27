@@ -6,7 +6,7 @@ use Klxm\Tiptap\AsProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
 
-/** Mitgeliefert: minimal für Eingaben von Besuchern im Frontend. */
+/** Shipped: minimal, for input by visitors in the frontend. */
 #[AsProfile('tiptap.guest', 'Gäste (Frontend)', description: 'Minimal für Eingaben von Besuchern: fett, kursiv, Listen, externe Links.', priority: -10)]
 final class GuestProfile extends ProfileDefinition
 {

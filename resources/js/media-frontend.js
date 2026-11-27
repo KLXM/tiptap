@@ -1,11 +1,11 @@
 /*
- * Frontend der Medien-Blöcke (tiptap-media.js): 2-Klick-Platzhalter für YouTube/Vimeo und HTML-Embeds mit Dienst.
+ * Frontend of the media blocks (tiptap-media.js): two-click placeholder for YouTube/Vimeo and HTML embeds with a service.
  *
- * Schnittstelle zu Einwilligungs-Tools (z. B. consent_kit), anbieterneutral:
- *   Platzhalter  [data-consent-service="youtube"][data-consent-src="…"] mit [data-consent-load] / [data-consent-allow]
- *   Zustand      data-consent-state="blocked|loaded"
- *   JS           window.ConsentKit (Alias cmsConsent): has(key), accept(key); Ereignisse consentkit:ready / consentkit:change
- * Ohne Einwilligungs-Tool lädt ein Klick auf „Video laden“ bzw. „Inhalt laden“ den Inhalt.
+ * Interface to consent tools (e.g. consent_kit), vendor-neutral:
+ *   Placeholder  [data-consent-service="youtube"][data-consent-src="…"] with [data-consent-load] / [data-consent-allow]
+ *   State        data-consent-state="blocked|loaded"
+ *   JS           window.ConsentKit (alias cmsConsent): has(key), accept(key); events consentkit:ready / consentkit:change
+ * Without a consent tool, a click on „Video laden“ or „Inhalt laden“ loads the content.
  */
 
 const SELECTOR = '.rex-oembed-frame[data-consent-service], .rex-embed-consent[data-consent-service]';
@@ -23,7 +23,7 @@ const allowed = service => {
     }
 };
 
-/** Skripte aus einer Vorlage neu anlegen – geklonte Skripte führt der Browser sonst nicht aus */
+/** Recreate scripts from a template – the browser doesn't execute cloned scripts otherwise */
 function revive(fragment) {
     fragment.querySelectorAll('script').forEach(old => {
         const script = document.createElement('script');
@@ -75,7 +75,7 @@ function setup(el) {
         return;
     }
     el.dataset.consentState = 'blocked';
-    // Mit Einwilligungs-Tool: „… immer erlauben“
+    // with a consent tool: „… immer erlauben“
     if (kit()?.accept && !el.querySelector('[data-consent-allow]')) {
         const allow = document.createElement('button');
         allow.type = 'button';
@@ -101,13 +101,13 @@ document.addEventListener('click', e => {
         try {
             kit()?.accept?.(el.dataset.consentService);
         } catch {
-            // trotzdem laden
+            // load anyway
         }
     }
     activate(el, true);
 });
 
-// Einwilligung erteilt (consent_kit): alle Platzhalter dieses Dienstes laden
+// consent given (consent_kit): load all placeholders of this service
 document.addEventListener('consentkit:change', e => {
     const accepted = e.detail?.accepted ?? [];
     document.querySelectorAll(SELECTOR).forEach(el => {

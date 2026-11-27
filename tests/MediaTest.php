@@ -22,7 +22,7 @@ use function touch;
 use const ENT_QUOTES;
 
 /**
- * Medien-Blöcke: Erkennung von YouTube/Vimeo, Signatur der HTML-Embeds, Bereinigung und Ausgabe.
+ * Media blocks: detection of YouTube/Vimeo, signature of HTML embeds, sanitizing and output.
  *
  * @internal
  */
@@ -100,7 +100,7 @@ final class MediaTest extends TestCase
         $profile = $this->profile([['video']], ['image' => ['styles' => [['label' => 'Breit', 'class' => 'wide', 'media' => 'video']]]]);
         $html = '<video src="x" data-rex-media="film.mp4" data-rex-poster="bild.jpg" controls muted onplay="alert(1)" class="wide rex-ratio-4x3 fremd" preload="metadata"></video>';
         $out = Tiptap::render($html, $profile);
-        // Adresse aus dem Medienpool (im Test ../media/, im Frontend /media/)
+        // URL from the media pool (../media/ in the test, /media/ in the frontend)
         self::assertMatchesRegularExpression('~<video src="[./]*media/film\.mp4"~', $out);
         self::assertMatchesRegularExpression('~ poster="[./]*media/bild\.jpg"~', $out);
         self::assertStringContainsString('class="rex-video wide rex-ratio-4x3"', $out);
@@ -110,7 +110,7 @@ final class MediaTest extends TestCase
 
     public function testRenderOembed(): void
     {
-        // ohne Netz: Titel vorab ablegen
+        // without network: store the title beforehand
         $cache = TiptapAddon::instance()->getDataPath('oembed/youtube-test1234567.json');
         File::put($cache, '{"title":"Testvideo"}');
         touch($cache);

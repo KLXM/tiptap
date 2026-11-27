@@ -33,8 +33,8 @@ use const ENT_QUOTES;
 use const PHP_URL_PATH;
 
 /**
- * Ausgabe gespeicherter Inhalte: Markdown wird zu HTML, alles wird nach dem Profil bereinigt; interne Links
- * (`redaxo://ID`), Datensätze (`yform://tabelle/id`) und Bilder aus dem Medienpool bekommen ihre aktuelle Adresse.
+ * Output of stored content: Markdown becomes HTML, everything is sanitized according to the profile; internal links
+ * (`redaxo://ID`), records (`yform://table/id`) and images from the media pool get their current URL.
  */
 final class Output
 {
@@ -57,10 +57,10 @@ final class Output
     }
 
     /**
-     * Links, Bilder, Videos und YouTube/Vimeo auflösen – auch auf beliebiges HTML anwendbar, z. B. im OUTPUT_FILTER.
-     * HTML-Embeds nur über {@see self::render()} (Profil mit Werkzeug htmlEmbed, signierter Code).
+     * Resolves links, images, videos and YouTube/Vimeo – also usable on arbitrary HTML, e.g. in OUTPUT_FILTER.
+     * HTML embeds only via {@see self::render()} (profile with the htmlEmbed tool, signed code).
      *
-     * @param bool $twoClick YouTube/Vimeo erst nach Klick laden (Platzhalter mit Vorschaubild)
+     * @param bool $twoClick Load YouTube/Vimeo only after a click (placeholder with thumbnail)
      */
     public static function resolve(string $html, bool $twoClick = true): string
     {
@@ -68,9 +68,9 @@ final class Output
     }
 
     /**
-     * `<figure data-rex-oembed="…">` (YouTube/Vimeo) → Platzhalter mit Vorschaubild und „Video laden“ bzw. direkt der
-     * Player. Schnittstelle zu Einwilligungs-Tools: `data-consent-service`, `data-consent-src`, `[data-consent-load]`,
-     * `[data-consent-allow]` (siehe tiptap-media.js).
+     * `<figure data-rex-oembed="…">` (YouTube/Vimeo) → placeholder with thumbnail and „Video laden“, or the player
+     * directly. Interface to consent tools: `data-consent-service`, `data-consent-src`, `[data-consent-load]`,
+     * `[data-consent-allow]` (see tiptap-media.js).
      */
     public static function resolveOembed(string $html, bool $twoClick = true): string
     {
@@ -109,8 +109,8 @@ final class Output
     }
 
     /**
-     * Ersetzt in href `redaxo://ID` (optional `redaxo://ID-SPRACHE`, `#anker`) durch die Adresse des Artikels und
-     * `yform://tabelle/ID` durch die Adresse des Datensatzes.
+     * Replaces `redaxo://ID` in href (optionally `redaxo://ID-LANGUAGE`, `#anchor`) with the URL of the article and
+     * `yform://table/ID` with the URL of the record.
      */
     public static function resolveLinks(string $html): string
     {
@@ -134,9 +134,9 @@ final class Output
     }
 
     /**
-     * Bilder aus dem Medienpool (`data-rex-media`, optional `data-rex-media-type`): Adresse über den Mediamanager bzw.
-     * den Medienpool – so stimmt sie im Frontend, auch nach einem Umzug. Alte relative Adressen (`../media/…`) aus dem
-     * Backend werden korrigiert.
+     * Images from the media pool (`data-rex-media`, optionally `data-rex-media-type`): URL via the media manager or the
+     * media pool – so it is correct in the frontend, even after a move. Old relative URLs (`../media/…`) from the
+     * backend are corrected.
      */
     public static function resolveMedia(string $html): string
     {
@@ -154,11 +154,11 @@ final class Output
                 $type = preg_match('~\sdata-rex-media-type="([^"]+)"~', $attrs, $t) ? html_entity_decode($t[1], ENT_QUOTES) : '';
                 $src = self::mediaUrl($name, $type);
                 $attrs = (string) preg_replace('~\s(src|data-rex-media|data-rex-media-type)="[^"]*"~', '', $attrs);
-                // ohne eigenen Alternativtext: aus dem Medienpool (klxm_meta), dekorative Bilder alt=""
+                // without own alt text: from the media pool (klxm_meta), decorative images alt=""
                 if (!preg_match('~\salt\b(?!-)~', $attrs)) {
                     $attrs = ' alt="' . htmlspecialchars(Alt::attribute($name), ENT_QUOTES) . '"' . $attrs;
                 } else {
-                    // leeres alt (dekorativ) schreibt die Bereinigung ohne Wert
+                    // the sanitizer writes an empty alt (decorative) without value
                     $attrs = (string) preg_replace('~\salt(?=[\s/>]|$)(?!=)~', ' alt=""', $attrs);
                 }
 
@@ -175,11 +175,11 @@ final class Output
     }
 
     /**
-     * Videos aus dem Medienpool: `data-rex-media` → Adresse, `data-rex-poster` → poster.
+     * Videos from the media pool: `data-rex-media` → URL, `data-rex-poster` → poster.
      *
-     * Mit dem AddOn video_editor zusätzlich: Poster aus dem Video-Editor, wenn keins gewählt ist (wird nicht
-     * gespeichert – ein neues Standbild erscheint überall), Web-Fassungen als `<source>` (Hintergrundvideo: die
-     * kleineren) und Untertitel als `<track>` (Sprache der Seite eingeschaltet).
+     * Additionally with the video_editor addon: poster from the video editor if none is selected (not stored – a new
+     * still appears everywhere), web versions as `<source>` (background video: the smaller ones) and subtitles as
+     * `<track>` (language of the page enabled).
      */
     public static function resolveVideo(string $html): string
     {
@@ -192,7 +192,7 @@ final class Output
                 $attrs = (string) preg_replace('~\s(src|data-rex-media)="[^"]*"~', '', $attrs);
                 $sources = $editor ? VideoEditor::sources($file, self::isBackground($attrs)) : [];
                 if ($sources) {
-                    // mehrere Fassungen: der Browser nimmt die erste passende <source>
+                    // several versions: the browser takes the first matching <source>
                     $inner = '';
                     foreach ($sources as $source) {
                         $inner .= '<source src="' . htmlspecialchars($source['url'], ENT_QUOTES) . '" type="' . htmlspecialchars($source['type'], ENT_QUOTES) . '"'
@@ -222,7 +222,7 @@ final class Output
                 }
             }
 
-            // Klasse für Stile und Ausrichtung auf der Website (tiptap-media.css)
+            // class for styles and alignment on the website (tiptap-media.css)
             if (null !== $file) {
                 $attrs = preg_match('~\sclass="([^"]*)"~', $attrs)
                     ? (string) preg_replace('~\sclass="([^"]*)"~', ' class="rex-video $1"', $attrs, 1)
@@ -233,7 +233,7 @@ final class Output
         }, $html);
     }
 
-    /** Hintergrundvideo: automatisch, stumm, in Schleife */
+    /** Background video: autoplay, muted, looped */
     private static function isBackground(string $attrs): bool
     {
         return 1 === preg_match('~\sautoplay\b~', $attrs) && 1 === preg_match('~\sloop\b~', $attrs) && 1 === preg_match('~\smuted\b~', $attrs);
@@ -261,7 +261,7 @@ final class Output
         }
     }
 
-    /** Text für die Website in der Sprache der Seite (clang-Code de, en … → de_de, en_gb), sonst Backend-Sprache. */
+    /** Text for the website in the language of the page (clang code de, en … → de_de, en_gb), else backend language. */
     public static function text(string $key, string|int ...$replacements): string
     {
         if (!Core::isBackend()) {
@@ -273,14 +273,14 @@ final class Output
                     }
                 }
             } catch (Throwable) {
-                // Backend-Sprache
+                // backend language
             }
         }
 
         return I18n::rawMsg($key, ...$replacements);
     }
 
-    /** Pfad der Website-Wurzel (`/` oder `/unterordner/`) – gleich im Backend und im Frontend */
+    /** Path of the website root (`/` or `/subfolder/`) – the same in backend and frontend */
     public static function basePath(): string
     {
         try {

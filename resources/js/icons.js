@@ -1,4 +1,4 @@
-/* Symbole der Toolbar: Lucide (ISC), eingebettet – funktioniert ohne Font Awesome, also auch im Frontend */
+/* Toolbar icons: Lucide (ISC), embedded – works without Font Awesome, hence also in the frontend */
 
 import {
     LetterB, Italic, Underline, Strikethrough, Code, Highlighter, Subscript, Superscript, RemoveFormatting,
@@ -45,7 +45,7 @@ function build(node) {
 }
 
 /**
- * Symbol als Element: Name aus dem Satz oben, Font-Awesome-Klassen („fa-…“) oder ein SVG-String.
+ * Icon as element: name from the set above, Font Awesome classes ("fa-…") or an SVG string.
  */
 export function icon(name) {
     if (Array.isArray(name)) {
@@ -68,7 +68,7 @@ export function icon(name) {
     return build(icons[name] ?? Puzzle);
 }
 
-/** Eigene Symbole ergänzen: `RexTiptap.icons.add('hint', [['circle', {cx: 12, cy: 12, r: 10}]])` */
+/** Add custom icons: `RexTiptap.icons.add('hint', [['circle', {cx: 12, cy: 12, r: 10}]])` */
 export function addIcon(name, node) {
     icons[name] = node;
 }

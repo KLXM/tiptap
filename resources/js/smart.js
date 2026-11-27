@@ -1,24 +1,24 @@
 /*
- * Komfort beim Schreiben (wie im Editor von fluid):
- *  - Markdown einfügen: reiner Text, der eindeutig nach Markdown aussieht, wird umgewandelt; ein Hinweis bietet
- *    „Als Text einfügen“ (macht die Umwandlung rückgängig).
- *  - Auto-Links: E-Mail- und Web-Adressen sowie Telefonnummern werden beim Tippen (nach Leerzeichen, Enter,
- *    Satzzeichen) zu Links; markierte Adressen werden mit „Link“ sofort verlinkt.
- * Was das Profil nicht erlaubt (mailto, tel, externe Adressen, Überschriften-Ebenen …), bleibt Text.
+ * Writing comfort (as in the fluid editor):
+ *  - Paste Markdown: plain text that clearly looks like Markdown is converted; a notice offers
+ *    "paste as text" (undoes the conversion).
+ *  - Auto-links: email and web addresses as well as phone numbers become links while typing (after space, Enter,
+ *    punctuation); selected addresses are linked immediately with "Link".
+ * Whatever the profile doesn't allow (mailto, tel, external addresses, heading levels …) stays text.
  */
 
 import {Extension} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {t} from './i18n.js';
 
-/* ---------- Markdown erkennen (gleiche Regeln wie fluid) ---------- */
+/* ---------- Detect Markdown (same rules as fluid) ---------- */
 
 const TABLE_SEP = /^ *\|? *:?-{2,}:? *(\| *:?-{2,}:? *)*\|? *$/;
 
 /**
- * Sieht reiner Text eindeutig nach Markdown aus? Starke Zeichen (eines reicht): Überschrift „# …“, Code-Zaun,
- * [Text](Adresse), **fett**, Aufgabenliste, Tabelle, Bild. Schwache (zwei nötig): ≥ 2 Listenzeilen, > Zitat,
- * *kursiv*, _kursiv_, `Code`. Normale Sätze mit Bindestrich-Aufzählung bleiben reiner Text.
+ * Does plain text clearly look like Markdown? Strong signs (one is enough): heading "# …", code fence,
+ * [text](address), **bold**, task list, table, image. Weak ones (two needed): ≥ 2 list lines, > quote,
+ * *italic*, _italic_, `code`. Normal sentences with hyphen bullets stay plain text.
  */
 export function looksLikeMarkdown(text) {
     const s = String(text || '').replace(/\r\n?/g, '\n');
@@ -36,10 +36,10 @@ export function looksLikeMarkdown(text) {
     return strong + (table ? 1 : 0) >= 1 || weak >= 2;
 }
 
-/** HTML in der Zwischenablage ohne echte Formatierung (Code-Editoren: nur div/span/pre/br) → wie reiner Text */
+/** HTML in the clipboard without real formatting (code editors: only div/span/pre/br) → treat as plain text */
 export const htmlIsPlain = html => !html || !/<(p|h[1-6]|ul|ol|li|b|strong|em|i|a|table|blockquote|img)\b/i.test(html.replace(/<(meta|style)\b[\s\S]*?(<\/style>|>)/gi, ''));
 
-/** Überschriften auf die erlaubten Ebenen schieben (# → kleinste erlaubte Ebene …), sonst Absatz */
+/** Shift headings to the allowed levels (# → smallest allowed level …), otherwise paragraph */
 export function fitHeadings(markdown, levels) {
     const allowed = [...(levels ?? [])].sort();
     let fence = false;
@@ -56,12 +56,12 @@ export function fitHeadings(markdown, levels) {
     }).join('\n');
 }
 
-/* ---------- Adressen erkennen (gleiche Regeln wie fluid) ---------- */
+/* ---------- Detect addresses (same rules as fluid) ---------- */
 
 const EMAIL = /^[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}$/i;
 const URL_RE = /^(?:https?:\/\/[^\s<>"]+|www\.[\w-]+(?:\.[\w-]+)+(?:[/?#][^\s<>"]*)?)$/i;
 const DOMAIN = /^[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}(?:[/?#][^\s<>"]*)?$/i;
-// Telefon: beginnt mit + oder 0 (auch „(0…)“), Ziffern mit Leerzeichen, / - . ( ) – 6 bis 15 Ziffern
+// Phone: starts with + or 0 (also "(0…)"), digits with spaces, / - . ( ) – 6 to 15 digits
 const TEL = /^(?:\+|00|\(?0)[\d\s/().-]*\d$/;
 const TEL_END = /(?:\+|\(?0)[\d\s/().-]*\d$/;
 const END = /(?:[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}|https?:\/\/[^\s<>"]+|www\.[\w-]+(?:\.[\w-]+)+(?:[/?#][^\s<>"]*)?)$/i;
@@ -70,7 +70,7 @@ const telOk = v => {
     return n >= 6 && n <= 15 && !/\d{1,2}\.\d{1,2}\.\d{2,4}$/.test(v) && !/\s{2,}/.test(v);
 };
 
-/** tel:-Adresse in internationaler Form (0… → +49…) */
+/** tel: address in international format (0… → +49…) */
 export function telHref(value) {
     let n = String(value || '').trim().replace(/^tel:/i, '').replace(/\(0\)/g, '').replace(/[^\d+]/g, '');
     if (n.startsWith('00')) {
@@ -83,7 +83,7 @@ export function telHref(value) {
     return n.replace(/\D/g, '').length >= 5 ? 'tel:' + n : null;
 }
 
-/** Link-Ziel zu einer Adresse im Text (E-Mail → mailto:, www./Domain → https://, Telefon → tel:) oder null */
+/** Link target for an address in the text (email → mailto:, www./domain → https://, phone → tel:) or null */
 export function hrefFor(text, link, domains = false) {
     const v = String(text || '').trim();
     if (EMAIL.test(v)) {
@@ -101,12 +101,12 @@ export function hrefFor(text, link, domains = false) {
     return null;
 }
 
-/** Adresse am Ende des Textes vor dem Cursor: {from, to, href} relativ zum Textanfang */
+/** Address at the end of the text before the cursor: {from, to, href} relative to the start of the text */
 function addressAtEnd(text, link, punct) {
     const before = text.replace(/[\s.,;:!?)\]'"»“]+$/, '');
     let m = before.match(END);
     if (!m && link?.tel) {
-        // längste passende Nummer am Ende („Tel. 02841 35656“ → „02841 35656“)
+        // longest matching number at the end ("Tel. 02841 35656" → "02841 35656")
         const t2 = before.match(TEL_END);
         if (t2) {
             let v = t2[0].replace(/^[\s/.-]+/, '');
@@ -122,14 +122,14 @@ function addressAtEnd(text, link, punct) {
         return null;
     }
     const href = hrefFor(m[0], link);
-    // ? : ; ! ) können in Web-Adressen stehen – dort erst bei Leerzeichen/Enter
+    // ? : ; ! ) can appear in web addresses – there only on space/Enter
     if (!href || (punct && /^https?:/i.test(href))) {
         return null;
     }
     return {from: before.length - m[0].length, to: before.length, href};
 }
 
-/** Auto-Links beim Tippen: nach Leerzeichen, Enter oder Satzzeichen wird die Adresse davor verlinkt */
+/** Auto-links while typing: after space, Enter or punctuation the address before it is linked */
 export function rexAutoLink(config) {
     return Extension.create({
         name: 'rexAutoLink',
@@ -169,12 +169,12 @@ export function rexAutoLink(config) {
     });
 }
 
-/* ---------- Hinweis nach dem Einfügen ---------- */
+/* ---------- Notice after pasting ---------- */
 
 let tip = null;
 let tipTimer = 0;
 
-/** Hinweis unten im Editor (role="status", schließt nach 10 s), optional mit einem Knopf */
+/** Notice at the bottom of the editor (role="status", closes after 10 s), optionally with a button */
 export function showNote(host, text, actionLabel = null, onAction = null) {
     tip?.remove();
     clearTimeout(tipTimer);
@@ -207,7 +207,7 @@ export function showNote(host, text, actionLabel = null, onAction = null) {
         tip = null;
     });
     tip.append(close);
-    // Klick lässt die Schreibmarke im Text (Rückgängig wirkt auf den Editor)
+    // click keeps the caret in the text (undo acts on the editor)
     tip.addEventListener('mousedown', e => e.preventDefault());
     host.append(tip);
     tipTimer = setTimeout(() => {
@@ -216,54 +216,54 @@ export function showNote(host, text, actionLabel = null, onAction = null) {
     }, 10000);
 }
 
-/** „Markdown umgewandelt · Als Text einfügen · ×“ */
+/** "Markdown converted · Paste as text · ×" */
 export function pasteTip(host, onPlain) {
     showNote(host, t('markdownConverted'), t('markdownAsText'), onPlain);
 }
 
-/* ---------- Eingefügtes HTML von außen bereinigen ---------- */
+/* ---------- Clean up HTML pasted from outside ---------- */
 
-/** Ganz entfernen (samt Inhalt): Medien, Skripte, Formulare und Bedienelemente fremder Seiten */
+/** Remove entirely (including content): media, scripts, forms and controls of foreign pages */
 const DROP = 'script,style,noscript,template,iframe,object,embed,frame,frameset,img,picture,source,video,audio,track,canvas,svg,math,map,area,'
     + 'form,input,select,option,optgroup,textarea,button,label,dialog,meta,link,base,head,title,nav,aside,header,footer,figure>figcaption:only-child';
 
-/** Elemente, deren Inhalt bleibt, die selbst aber wegfallen (Container ohne Bedeutung) */
+/** Elements whose content is kept but which are dropped themselves (containers without meaning) */
 const UNWRAP = 'span,font,small,big,abbr,acronym,cite,dfn,kbd,samp,var,time,mark,u,ins,del,s,strike,bdi,bdo,wbr';
 
-/** Container: mit Blöcken darin auspacken, mit nur Text darin zum Absatz machen (sonst läuft Text zusammen) */
+/** Containers: unwrap if they contain blocks, turn into a paragraph if only text (otherwise text runs together) */
 const CONTAINERS = 'div,section,article,main,figure,figcaption,center,address,details,summary,dd,dt,dl';
 const BLOCKS = 'p,h1,h2,h3,h4,h5,h6,ul,ol,li,blockquote,pre,table,hr,' + CONTAINERS;
 
-/** Attribute, die bleiben dürfen (der Editor prüft danach noch einmal gegen das Profil) */
+/** Attributes that may stay (the editor checks against the profile again afterwards) */
 const KEEP_ATTRS = {a: ['href'], ol: ['start', 'type'], td: ['colspan', 'rowspan'], th: ['colspan', 'rowspan']};
 
 /**
- * HTML aus der Zwischenablage (fremde Website, Word, Mail) auf reinen Inhalt bringen: keine Klassen, Stile, IDs,
- * data-Attribute, keine Bilder/Videos/iframes, keine Formular- und Bedienelemente, keine leeren Listen und Absätze.
- * Was übrig bleibt (Überschriften, Absätze, Listen, Links, fett, kursiv, Tabellen …), filtert der Editor nach dem
- * Profil; gespeichert wird zusätzlich serverseitig bereinigt.
+ * Reduce HTML from the clipboard (foreign website, Word, mail) to pure content: no classes, styles, IDs,
+ * data attributes, no images/videos/iframes, no form elements and controls, no empty lists and paragraphs.
+ * Whatever remains (headings, paragraphs, lists, links, bold, italic, tables …) is filtered by the editor according
+ * to the profile; on save it is additionally sanitized on the server.
  */
 export function cleanPastedHtml(html) {
-    // Ereignis- und Stil-Attribute schon vor dem Einlesen weg (CSP-Meldungen, nichts davon darf je wirken)
+    // remove event and style attributes before parsing (CSP reports, none of it may ever take effect)
     html = html.replace(/\s(?:on[a-z]+|style)\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const body = doc.body;
     body.querySelectorAll(DROP).forEach(n => n.remove());
-    // Kommentare (z. B. Word: <!--[if …]>)
+    // comments (e.g. Word: <!--[if …]>)
     const walker = doc.createTreeWalker(body, NodeFilter.SHOW_COMMENT);
     const comments = [];
     while (walker.nextNode()) {
         comments.push(walker.currentNode);
     }
     comments.forEach(c => c.remove());
-    // Word-Namensräume (o:p, w:…) und Inline-Container auspacken
+    // unwrap Word namespaces (o:p, w:…) and inline containers
     [...body.querySelectorAll('*')].reverse().forEach(n => {
         const tag = n.tagName.toLowerCase();
         if (tag.includes(':') || n.matches(UNWRAP)) {
             n.replaceWith(...n.childNodes);
         }
     });
-    // Block-Container: von innen nach außen
+    // block containers: from the inside out
     [...body.querySelectorAll(CONTAINERS)].reverse().forEach(n => {
         if ([...n.children].some(c => c.matches(BLOCKS))) {
             n.replaceWith(...n.childNodes);
@@ -273,7 +273,7 @@ export function cleanPastedHtml(html) {
             n.replaceWith(p);
         }
     });
-    // Attribute auf das Nötigste
+    // attributes down to the essentials
     body.querySelectorAll('*').forEach(n => {
         const keep = KEEP_ATTRS[n.tagName.toLowerCase()] ?? [];
         for (const {name} of [...n.attributes]) {
@@ -285,7 +285,7 @@ export function cleanPastedHtml(html) {
             n.replaceWith(...n.childNodes);
         }
     });
-    // Leeres entfernen (von innen nach außen): Listeneinträge, Listen, Absätze, Überschriften, Links
+    // remove empty elements (from the inside out): list items, lists, paragraphs, headings, links
     const isEmpty = n => '' === (n.textContent ?? '').replace(/[\s ​]+/g, '');
     for (let pass = 0; pass < 3; pass++) {
         [...body.querySelectorAll('li, ul, ol, p, h1, h2, h3, h4, h5, h6, blockquote, a, strong, b, em, i, table, tr')].reverse()
@@ -295,7 +295,7 @@ export function cleanPastedHtml(html) {
     return body.innerHTML;
 }
 
-/** Zuletzt in einem tiptap-Editor kopierter Text – Einfügen davon gilt als intern (Medien bleiben erhalten) */
+/** Text last copied in a tiptap editor – pasting it counts as internal (media are kept) */
 let lastCopied = null;
 
 const normal = text => String(text ?? '').replace(/\s+/g, ' ').trim();

@@ -6,7 +6,7 @@ use Klxm\Tiptap\AsProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
 
-/** Mitgeliefert: alle wichtigen Werkzeuge für redaktionelle Texte – auch die Voreinstellung ohne Profilangabe. */
+/** Shipped: all important tools for editorial texts – also the default when no profile is given. */
 #[AsProfile('tiptap.default', 'Standard', description: 'Alle wichtigen Werkzeuge für redaktionelle Texte.', priority: -40)]
 final class DefaultProfile extends ProfileDefinition
 {

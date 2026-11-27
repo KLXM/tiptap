@@ -1,4 +1,4 @@
-/* Werkzeuge und Erweiterungen anderer AddOns */
+/* Tools and extensions of other addons */
 
 import {builtinItems} from './items.js';
 import {addIcon} from './icons.js';
@@ -9,7 +9,7 @@ const items = {...builtinItems};
 
 export const registry = {
     /**
-     * Erweiterung anmelden:
+     * Register an extension:
      *
      *     RexTiptap.register({
      *         id: 'myaddon',
@@ -47,7 +47,7 @@ export const registry = {
         return items;
     },
 
-    /** Werkzeuge der Toolbar eines Profils, unbekannte (z. B. AddOn entfernt) fallen weg */
+    /** Toolbar tools of a profile; unknown ones (e.g. addon removed) are dropped */
     resolveItems(config) {
         const list = [];
         for (const group of config.toolbar ?? []) {

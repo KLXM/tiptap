@@ -1,9 +1,9 @@
 /*
- * Medien-Blöcke: lokales Video (Medienpool), Video von YouTube/Vimeo (oEmbed, gespeichert wird nur die Adresse) und
- * HTML-Embed (geschützter Code-Block). Alle drei sind „Atome“: Tippen und Formatieren kommen nicht hinein, sie lassen
- * sich nur als Ganzes wählen, verschieben und löschen.
+ * Media blocks: local video (media pool), video from YouTube/Vimeo (oEmbed, only the address is stored) and
+ * HTML embed (protected code block). All three are "atoms": typing and formatting don't get inside, they can
+ * only be selected, moved and deleted as a whole.
  *
- * Speicherformen (bereinigt und aufgelöst wird auf dem Server, siehe Output.php):
+ * Storage forms (sanitized and resolved on the server, see Output.php):
  *   <video src="…" data-rex-media="datei.mp4" poster="…" data-rex-poster="bild.jpg" controls … class="…"></video>
  *   <figure data-rex-oembed="https://youtu.be/…" data-rex-title="…" class="…"><a href="…">…</a></figure>
  *   <div data-rex-embed="&lt;iframe …&gt;" data-consent-service="maps" data-rex-label="Anfahrt"></div>
@@ -14,12 +14,12 @@ import {t} from './i18n.js';
 import {icon} from './icons.js';
 import {mediaSrc, picker} from './extensions.js';
 
-/** Seitenverhältnisse: feste Klassen, CSS liefert das AddOn mit (tiptap-media.css) */
+/** Aspect ratios: fixed classes, the addon ships the CSS (tiptap-media.css) */
 export const RATIOS = [
     ['16x9', '16:9'], ['4x3', '4:3'], ['1x1', '1:1'], ['9x16', '9:16'], ['21x9', '21:9'],
 ];
 const RATIO_CLASSES = RATIOS.map(([k]) => 'rex-ratio-' + k);
-/** Größen (Breite im Textfluss) – damit Ausrichtung sichtbar wird */
+/** Sizes (width in the text flow) – so that alignment becomes visible */
 export const SIZES = [['75', '75 %'], ['50', '50 %'], ['33', '33 %']];
 const SIZE_CLASSES = SIZES.map(([k]) => 'rex-w-' + k);
 
@@ -47,9 +47,9 @@ function el(tag, props = {}, ...children) {
     return node;
 }
 
-/* ---------- Anbieter ---------- */
+/* ---------- Providers ---------- */
 
-/** YouTube/Vimeo erkennen: {provider, id, url} oder null */
+/** Detect YouTube/Vimeo: {provider, id, url} or null */
 export function parseVideoUrl(value) {
     const url = (value ?? '').trim();
     let m = /^(?:https?:)?\/\/(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i.exec(url);
@@ -63,7 +63,7 @@ export function parseVideoUrl(value) {
     return null;
 }
 
-/** Adresse des Players (ohne Cookies bzw. mit „do not track“) */
+/** Player address (without cookies or with "do not track") */
 export function playerUrl(video, autoplay = false) {
     if ('youtube' === video.provider) {
         return 'https://www.youtube-nocookie.com/embed/' + video.id + '?rel=0' + (autoplay ? '&autoplay=1' : '');
@@ -73,9 +73,9 @@ export function playerUrl(video, autoplay = false) {
 
 const PROVIDER_LABEL = {youtube: 'YouTube', vimeo: 'Vimeo'};
 
-/* ---------- Klassen (Medienformate + Seitenverhältnis) ---------- */
+/* ---------- Classes (media formats + aspect ratio) ---------- */
 
-/** Medienformate des Profils für Bilder bzw. Videos */
+/** Media formats of the profile for images or videos */
 export function mediaStyles(config, kind) {
     return (config.image?.styles ?? []).filter(s => !s.media || 'both' === s.media || kind === s.media);
 }
@@ -89,7 +89,7 @@ function classAttribute(config, kind) {
     };
 }
 
-/** Klasse aus Format und Verhältnis zusammensetzen bzw. zerlegen */
+/** Compose or split a class from format and ratio */
 let alignClasses = [];
 
 function splitClass(value) {
@@ -97,16 +97,16 @@ function splitClass(value) {
     const ratio = list.find(c => RATIO_CLASSES.includes(c))?.slice('rex-ratio-'.length) ?? '';
     const size = list.find(c => SIZE_CLASSES.includes(c)) ?? '';
     const align = list.filter(c => alignClasses.includes(c));
-    // Größe läuft mit der Ausrichtung mit (beide betreffen die Lage im Textfluss)
+    // size goes along with alignment (both concern the position in the text flow)
     return {ratio, align: [size, ...align].filter(Boolean).join(' '), style: list.filter(c => !RATIO_CLASSES.includes(c) && !SIZE_CLASSES.includes(c) && !align.includes(c)).join(' ')};
 }
 
-/** Format + Seitenverhältnis (+ Größe/Ausrichtung) zu einer Klasse */
+/** Format + aspect ratio (+ size/alignment) to a class */
 function joinClass(style, ratio, align = '') {
     return [...tokens(style), ...(ratio ? ['rex-ratio-' + ratio] : []), ...tokens(align)].join(' ') || null;
 }
 
-/** Größe in den Klassen ersetzen ('' = volle Breite) */
+/** Replace the size in the classes ('' = full width) */
 function withSize(value, size) {
     return [...tokens(value).filter(c => !SIZE_CLASSES.includes(c)), ...(size ? ['rex-w-' + size] : [])].join(' ') || null;
 }
@@ -125,13 +125,13 @@ function sizeSelect(value) {
 
 const MEDIA_NODES = ['rexVideo', 'rexOembed'];
 
-/** Ist ein Medien-Block gewählt (Ausrichtung wirkt dann auf ihn)? */
+/** Is a media block selected (alignment then applies to it)? */
 export function selectedMedia(editor) {
     const node = editor.state.selection.node;
     return node && MEDIA_NODES.includes(node.type.name) ? node : null;
 }
 
-/** Ausrichtung eines gewählten Medien-Blocks setzen (links = ohne Klasse) */
+/** Set the alignment of a selected media block (left = no class) */
 export function alignMedia(editor, config, side) {
     const node = selectedMedia(editor);
     alignClasses = Object.values(config.align ?? {}).flatMap(tokens);
@@ -147,11 +147,11 @@ export function mediaAlignActive(editor, config, side) {
     return 'left' === side ? !['center', 'right', 'justify'].some(has) : has(side);
 }
 
-/* ---------- Gemeinsame Darstellung im Editor ---------- */
+/* ---------- Shared rendering in the editor ---------- */
 
 /**
- * Block im Editor: das Medium selbst (mit Format-, Seitenverhältnis- und Ausrichtungsklassen wie auf der Website),
- * die Bedienung als kleine Leiste oben rechts – nur beim Überfahren, bei Fokus oder wenn der Block gewählt ist.
+ * Block in the editor: the medium itself (with format, aspect ratio and alignment classes as on the website),
+ * the controls as a small bar at the top right – only on hover, on focus or when the block is selected.
  */
 function frame(kind, ...children) {
     const label = el('span', {className: 'rex-tiptap-media-label'});
@@ -160,7 +160,7 @@ function frame(kind, ...children) {
     return {dom, bar, label};
 }
 
-/** Klassen am Block und Ausrichtung (data-align: left/center/right aus den Klassen des Profils) */
+/** Classes on the block and alignment (data-align: left/center/right from the profile's classes) */
 function applyClasses(dom, kind, value, config) {
     dom.className = 'rex-tiptap-media rex-tiptap-media--' + kind + (value ? ' ' + value : '');
     const list = tokens(value);
@@ -180,7 +180,7 @@ function smallButton(label, iconName, onclick) {
     }}, icon(iconName), el('span', {text: label}));
 }
 
-/** Knoten wählen und Dialog öffnen (Doppelklick oder Bearbeiten-Knopf) */
+/** Select the node and open the dialog (double-click or edit button) */
 function editHandler(editor, getPos, open) {
     return () => {
         const pos = typeof getPos === 'function' ? getPos() : null;
@@ -191,7 +191,7 @@ function editHandler(editor, getPos, open) {
     };
 }
 
-/* ---------- Lokales Video ---------- */
+/* ---------- Local video ---------- */
 
 export function rexVideo(config, ui) {
     return Node.create({
@@ -287,7 +287,7 @@ export function rexOembed(config, ui) {
         parseHTML() {
             return [
                 {tag: 'figure[data-rex-oembed]'},
-                // Inhalte aus CKEditor 5 (Media Embed)
+                // content from CKEditor 5 (Media Embed)
                 {tag: 'figure.media', getAttrs: el => {
                     const url = el.querySelector('oembed[url]')?.getAttribute('url');
                     return url && parseVideoUrl(url) ? {url} : false;
@@ -296,7 +296,7 @@ export function rexOembed(config, ui) {
         },
 
         renderHTML({HTMLAttributes, node}) {
-            // Link als Rückfall, falls die Ausgabe ohne Tiptap::render() erfolgt
+            // link as fallback in case the output happens without Tiptap::render()
             return ['figure', mergeAttributes(HTMLAttributes), ['a', {href: node.attrs.url}, node.attrs.title || node.attrs.url]];
         },
 
@@ -360,7 +360,7 @@ export function rexHtmlEmbed(config, ui) {
                 html: {default: '', parseHTML: el => el.getAttribute('data-rex-embed') ?? '', renderHTML: a => ({'data-rex-embed': a.html ?? ''})},
                 label: {default: null, parseHTML: el => el.getAttribute('data-rex-label'), renderHTML: a => a.label ? {'data-rex-label': a.label} : {}},
                 service: {default: null, parseHTML: el => el.getAttribute('data-consent-service'), renderHTML: a => a.service ? {'data-consent-service': a.service} : {}},
-                // Signatur des Servers: nur signierte Embeds werden ausgegeben (Recht „HTML-Embeds“)
+                // server signature: only signed embeds are output (permission "HTML embeds")
                 sig: {default: null, parseHTML: el => el.getAttribute('data-rex-sig'), renderHTML: a => a.sig ? {'data-rex-sig': a.sig} : {}},
             };
         },
@@ -409,7 +409,7 @@ export function rexHtmlEmbed(config, ui) {
     });
 }
 
-/* ---------- Dialoge (Methoden des Editors, siehe editor.js) ---------- */
+/* ---------- Dialogs (editor methods, see editor.js) ---------- */
 
 function ratioSelect(value, withOriginal) {
     const select = el('select', {className: 'rex-input'},
@@ -437,7 +437,7 @@ function check(label, checked) {
     return {input, node: el('label', {className: 'rex-tiptap-check'}, input, el('span', {text: label}))};
 }
 
-/** Knoten einfügen oder ersetzen (ist einer gewählt, wird er aktualisiert) */
+/** Insert or replace a node (if one is selected, it is updated) */
 function upsert(editor, name, attrs, selection) {
     const chain = editor.chain().focus();
     if (selection?.node?.type.name === name) {
@@ -468,7 +468,7 @@ export const mediaDialogs = {
         const autoplay = check(t('video_autoplay'), attrs.autoplay);
         const loop = check(t('video_loop'), attrs.loop);
         const muted = check(t('video_muted'), attrs.muted);
-        // Autoplay geht nur stumm – sonst blockiert der Browser
+        // autoplay only works muted – otherwise the browser blocks it
         const syncMuted = () => {
             if (autoplay.input.checked) {
                 muted.input.checked = true;
@@ -477,7 +477,7 @@ export const mediaDialogs = {
         };
         autoplay.input.addEventListener('change', syncMuted);
         syncMuted();
-        // Video-Editor (optional): Poster ohne eigene Wahl kommt bei der Ausgabe von dort (wird nicht gespeichert)
+        // video editor (optional): without a custom choice the poster comes from there on output (not stored)
         const ve = config.videoEditor ?? null;
         let autoPoster = null;
         const status = el('small', {className: 'rex-tiptap-hint', role: 'status'});
@@ -531,7 +531,7 @@ export const mediaDialogs = {
             status.textContent = t('videoPosterCapturing');
             try {
                 const data = await veCall('poster', {time: preview.currentTime.toFixed(3)});
-                // eigenes Poster wieder freigeben: das Standbild gilt automatisch (auch nach späteren Änderungen)
+                // release the custom poster again: the still frame applies automatically (also after later changes)
                 poster = null;
                 posterInput.value = '';
                 autoPoster = data.poster?.src ?? autoPoster;
@@ -641,7 +641,7 @@ export const mediaDialogs = {
                         title.value = meta.title;
                     }
                 } catch {
-                    // ohne Titel weiter
+                    // continue without title
                 }
             }
         };
@@ -719,7 +719,7 @@ export const mediaDialogs = {
             if (key && !/^[a-z0-9_-]{1,64}$/.test(key)) {
                 return t('embedServiceInvalid');
             }
-            // vom Server signieren lassen – ohne Signatur gibt Tiptap::render() den Code nicht aus
+            // have the server sign it – without a signature Tiptap::render() doesn't output the code
             let sig = null;
             try {
                 const body = new FormData();
@@ -750,7 +750,7 @@ export const mediaDialogs = {
         }
     },
 
-    /** Eingefügte Adresse von YouTube/Vimeo allein in einer Zeile → Video */
+    /** Pasted YouTube/Vimeo address alone on a line → video */
     pasteVideoUrl(text) {
         if (!this.has('oembed') || !text || /\s/.test(text.trim())) {
             return false;
@@ -768,7 +768,7 @@ export const mediaDialogs = {
     },
 };
 
-/** Rechtsklick-Einträge für die Medien-Blöcke */
+/** Right-click entries for the media blocks */
 export function mediaContext(name, ui) {
     const {editor, config} = ui;
     const node = editor.state.selection.node;

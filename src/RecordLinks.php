@@ -26,8 +26,8 @@ use function str_replace;
 use function trim;
 
 /**
- * Links auf YForm-Datensätze: `yform://tabelle/id` im Inhalt, Adresse erst bei der Ausgabe – über den Extension
- * Point {@see RecordUrl} oder die Vorlage der Tabelle (Einstellungen), z. B. `redaxo://12?news_id={id}`.
+ * Links to YForm records: `yform://table/id` in the content, URL only on output – via the extension point
+ * {@see RecordUrl} or the template of the table (settings), e.g. `redaxo://12?news_id={id}`.
  */
 final class RecordLinks
 {
@@ -53,7 +53,7 @@ final class RecordLinks
     }
 
     /**
-     * Datensätze einer Tabelle für die Auswahl im Link-Dialog.
+     * Records of a table for selection in the link dialog.
      *
      * @return list<array{id: int, label: string}>
      */
@@ -92,7 +92,7 @@ final class RecordLinks
         return $list;
     }
 
-    /** Bezeichnung eines Datensatzes (für den Link-Dialog) */
+    /** Label of a record (for the link dialog) */
     public static function label(string $tableName, int $id): ?string
     {
         if (!self::available()) {
@@ -108,7 +108,7 @@ final class RecordLinks
         }
     }
 
-    /** Adresse des Datensatzes für die Ausgabe, '#' wenn keine bekannt ist */
+    /** URL of the record for output, '#' if none is known */
     public static function url(string $table, int $id): string
     {
         $templates = TiptapAddon::instance()->getConfig('record_urls', []);
@@ -118,7 +118,7 @@ final class RecordLinks
         return Extension::dispatch(new RecordUrl($table, $id, $url)) ?? '#';
     }
 
-    /** `redaxo://12?news_id={id}` → Adresse des Artikels mit Parameter, sonst `{id}` ersetzen */
+    /** `redaxo://12?news_id={id}` → URL of the article with parameter, otherwise replace `{id}` */
     private static function fromTemplate(string $template, int $id): string
     {
         $template = str_replace('{id}', (string) $id, $template);

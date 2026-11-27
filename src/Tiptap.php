@@ -32,12 +32,12 @@ use const JSON_UNESCAPED_SLASHES;
 use const JSON_UNESCAPED_UNICODE;
 
 /**
- * Öffentliche Schnittstelle des AddOns.
+ * Public API of the addon.
  *
- *     // Ausgabe im Modul/Template (Markdown → HTML, bereinigt, interne Links aufgelöst)
+ *     // Output in a module/template (Markdown → HTML, sanitized, internal links resolved)
  *     echo Tiptap::render($this->text, 'tiptap.default');
  *
- *     // Frontend-Formular (z. B. für Gäste)
+ *     // Frontend form (e.g. for guests)
  *     echo Tiptap::assets();
  *     echo Tiptap::editor('comment', $value, 'tiptap.guest');
  *     $clean = Tiptap::sanitize(Request::post('comment', 'string'), 'tiptap.guest');
@@ -46,10 +46,10 @@ final class Tiptap
 {
     private const int JSON_ATTR = JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
 
-    /** Frontend-Assets schon ausgegeben */
+    /** Frontend assets already output */
     private static bool $assetsDone = false;
 
-    /** Erweiterung eines anderen AddOns anmelden – in dessen boot() */
+    /** Registers an extension of another addon – in its boot() */
     public static function register(Plugin $plugin): void
     {
         Registry::addPlugin($plugin);
@@ -60,15 +60,15 @@ final class Tiptap
         return $profile instanceof Profile ? $profile : Profiles::getOrDefault($profile);
     }
 
-    /** Gespeicherten Inhalt ausgeben: HTML bereinigt, Markdown umgewandelt, `redaxo://ID` aufgelöst */
+    /** Outputs stored content: HTML sanitized, Markdown converted, `redaxo://ID` resolved */
     public static function render(?string $value, string|Profile|null $profile = null): string
     {
         return Output::render($value, self::profile($profile));
     }
 
     /**
-     * Eingabe bereinigen, bevor sie gespeichert wird (Frontend!). HTML-Profile: nur erlaubte Elemente/Klassen;
-     * Markdown-Profile: unverändert (wird bei der Ausgabe bereinigt), auf maxLength gekürzt.
+     * Sanitizes input before it is saved (frontend!). HTML profiles: only allowed elements/classes;
+     * Markdown profiles: unchanged (sanitized on output), truncated to maxLength.
      */
     public static function sanitize(?string $value, string|Profile|null $profile = null): string
     {
@@ -84,9 +84,9 @@ final class Tiptap
     }
 
     /**
-     * Editor-Element mit Textarea – für eigene Formulare im Frontend oder Backend.
+     * Editor element with textarea – for custom forms in the frontend or backend.
      *
-     * @param array<literal-string, string|int|bool|null> $attributes zusätzliche Attribute der Textarea
+     * @param array<literal-string, string|int|bool|null> $attributes Additional attributes of the textarea
      */
     public static function editor(string $name, ?string $value, string|Profile|null $profile = null, array $attributes = []): string
     {
@@ -106,7 +106,7 @@ final class Tiptap
         return preg_match('~^\./(?=assets/)~', $url) ? Output::basePath() . substr($url, 2) : $url;
     }
 
-    /** Einstellungen eines Profils als JSON für `data-config` */
+    /** Settings of a profile as JSON for `data-config` */
     public static function configJson(Profile $profile): string
     {
         return json_encode(self::clientConfig($profile), self::JSON_ATTR);
@@ -119,7 +119,7 @@ final class Tiptap
         // on the website a logged-in backend user (editing in context, e.g. fluid) has the same tools as in the backend
         $user = Core::isBackend() ? Core::getUser() : BackendLogin::createUser();
         $config['backend'] = null !== $user;
-        // Adressen ab der Website-Wurzel: stimmen im Backend wie im Frontend
+        // URLs from the website root: correct in the backend as well as in the frontend
         $base = Output::basePath();
         $config['mediaUrl'] = $base . 'media/';
         $config['mediaManagerUrl'] = $base . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__';
@@ -136,16 +136,16 @@ final class Tiptap
                 }
             }
             $config['recordApi'] = Url::backendController(RecordSearchApi::getUrlParams());
-            // Dateien per Ziehen/Einfügen in den Medienpool (Recht auf die Zielkategorie prüft der Server noch einmal)
+            // Files to the media pool by drag & drop/paste (the server checks the permission for the target category again)
             if ($config['upload']['enabled'] && $user->getComplexPerm('media')->hasMediaPerm()) {
                 $config['uploadApi'] = Url::backendController(UploadApi::getUrlParams());
             }
-            // Alternativtext aus dem Medienpool (klxm_meta) in der Sprache des Inhalts
+            // Alt text from the media pool (klxm_meta) in the language of the content
             $config['mediaInfoApi'] = Url::backendController(MediaInfoApi::getUrlParams());
             $config['language'] = Language::getCurrentId();
-            // Titel/Vorschaubild von YouTube/Vimeo, Freigabe von HTML-Embeds (Recht tiptap[html_embed])
+            // Title/thumbnail of YouTube/Vimeo, approval of HTML embeds (permission tiptap[html_embed])
             $config['oembedApi'] = Url::backendController(OembedApi::getUrlParams());
-            // Video-Editor (optional): Standbild als Poster, Bearbeiten im Medienpool
+            // Video editor (optional): still as poster, editing in the media pool
             if (class_exists(VideoEditor::class)) {
                 $config['videoEditor'] = ['api' => VideoEditor::apiUrl(), 'edit' => VideoEditor::editUrlTemplate()];
             }
@@ -159,9 +159,9 @@ final class Tiptap
     }
 
     /**
-     * Skripte und Stile für das Frontend (einmal je Seite). Im Backend lädt das AddOn sie selbst.
+     * Scripts and styles for the frontend (once per page). In the backend the addon loads them itself.
      *
-     * @param bool $withProfiles Einstellungen aller Profile mitschicken – nötig für `<textarea data-tiptap="name">`
+     * @param bool $withProfiles Include the settings of all profiles – needed for `<textarea data-tiptap="name">`
      */
     public static function assets(bool $withProfiles = false): string
     {
@@ -193,9 +193,9 @@ final class Tiptap
     }
 
     /**
-     * Alle Profile als JSON-Block (für `textarea[data-tiptap]`, z. B. in YForm-Formularen).
+     * All profiles as a JSON block (for `textarea[data-tiptap]`, e.g. in YForm forms).
      *
-     * @param list<string>|null $names nur diese Profile
+     * @param list<string>|null $names Only these profiles
      */
     public static function profilesScript(?array $names = null): string
     {
@@ -206,7 +206,7 @@ final class Tiptap
             }
         }
 
-        // type=application/json wird nicht ausgeführt, die CSP greift hier nicht
+        // type=application/json is not executed, the CSP does not apply here
         return '<script type="application/json" id="rex-tiptap-profiles">' . json_encode($profiles, self::JSON_ATTR) . '</script>';
     }
 }

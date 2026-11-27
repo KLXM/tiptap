@@ -1,6 +1,6 @@
 /*
- Profil-Builder (Backend): Toolbar per Drag & Drop oder Klick zusammenstellen, Einstellungen ohne Code, Vorschau.
- Schreibt die Einstellungen als JSON in die Textarea [data-builder-output].
+ Profile builder (backend): assemble the toolbar via drag & drop or click, settings without code, preview.
+ Writes the settings as JSON into the textarea [data-builder-output].
  */
 
 const T = {
@@ -139,7 +139,7 @@ class Builder {
     }
 
     icon(name) {
-        // Symbole aus dem Editor-Bundle, sonst Font Awesome / Puzzle-Platzhalter
+        // icons from the editor bundle, otherwise Font Awesome / puzzle placeholder
         if (window.RexTiptap?.icon) {
             return window.RexTiptap.icon(name);
         }
@@ -159,7 +159,7 @@ class Builder {
         }
     }
 
-    /* ---------- Aufbau ---------- */
+    /* ---------- Structure ---------- */
 
     render() {
         this.toolbarEl = el('div', {className: 'tt-b-toolbar'});
@@ -297,7 +297,7 @@ class Builder {
                 return;
             }
             e.preventDefault();
-            // passend zu effectAllowed, sonst verwirft der Browser den Drop
+            // matching effectAllowed, otherwise the browser discards the drop
             e.dataTransfer.dropEffect = this.drag.from ? 'move' : 'copy';
             groupEl.classList.add('is-over');
             const pos = this.dropPosition(groupEl, e.clientX, e.clientY);
@@ -381,7 +381,7 @@ class Builder {
             this.changed();
             this.focusChip(group, target);
         } else if (toolbar[group + dir]) {
-            // über den Rand: in die Nachbargruppe
+            // beyond the edge: into the neighbouring group
             const [id] = list.splice(pos, 1);
             const next = group + dir;
             if (dir < 0) {
@@ -417,7 +417,7 @@ class Builder {
             el('h5', {text: category.label}),
             el('div', {className: 'tt-b-category-items'}, ...category.items.map(item => {
                 const unavailable = markdown && !item.markdown;
-                // kein <button>: Browser ziehen Buttons nicht zuverlässig (Firefox gar nicht)
+                // no <button>: browsers don't drag buttons reliably (Firefox not at all)
                 const button = el('span', {
                     role: 'button',
                     tabindex: unavailable ? '-1' : '0',
@@ -443,7 +443,7 @@ class Builder {
         )));
     }
 
-    /* ---------- Einstellungen ---------- */
+    /* ---------- Settings ---------- */
 
     settings() {
         const c = this.config;
@@ -524,7 +524,7 @@ class Builder {
         ];
     }
 
-    /** Mehrfachauswahl als Kästchen, gespeichert als Liste unter path */
+    /** Multiple selection as checkboxes, stored as a list under path */
     checkList(path, options, emptyText = '', after = null) {
         const parts = path.split('.');
         const owner = () => parts.slice(0, -1).reduce((o, k) => o[k] ??= {}, this.config);
@@ -535,7 +535,7 @@ class Builder {
         const box = el('div', {className: 'tt-b-inline' + (options.length > 12 ? ' tt-b-checklist' : '')});
         const draw = () => {
             const chosen = new Set(values());
-            // lange Listen: gewählte zuerst
+            // long lists: selected first
             const sorted = options.length > 12 ? [...options].sort((a, b) => Number(chosen.has(b[0])) - Number(chosen.has(a[0]))) : options;
             box.replaceChildren(...sorted.map(([value, label]) => el('label', {className: 'tt-b-check', 'data-filter': (value + ' ' + label).toLowerCase()},
                 el('input', {type: 'checkbox', checked: chosen.has(value), onchange: e => {
@@ -573,7 +573,7 @@ class Builder {
         this.defaultTypeField?.replaceChildren(...(types.length ? [el('div', {className: 'tt-b-field'}, el('label', {for: 'tt-b-default-type', text: t('mediaTypeDefault')}), select)] : []));
     }
 
-    /** Vorlagen für Listenformate – Klasse übernehmen, CSS zum Kopieren */
+    /** Templates for list formats – apply the class, CSS for copying */
     listPresets() {
         const presets = [
             {label: 'Gegliedert (1.1, 1.2)', class: 'list-outline', list: 'ol', css: 'ol.list-outline, ol.list-outline ol { counter-reset: item; list-style: none; }\nol.list-outline li { counter-increment: item; }\nol.list-outline li::before { content: counters(item, ".") ". "; font-variant-numeric: tabular-nums; }'},
@@ -647,14 +647,14 @@ class Builder {
         return wrap;
     }
 
-    /* ---------- Vorschau ---------- */
+    /* ---------- Preview ---------- */
 
     renderPreview() {
         const markdown = 'markdown' === this.mode;
         const old = this.previewEl.querySelector('rex-tiptap');
         const value = old?.value || (markdown ? t('sampleMd') : t('sample'));
         const previousMode = this.previewEl.dataset.mode;
-        // Beim Wechsel des Modus mit dem passenden Beispiel beginnen
+        // When switching the mode, start with the matching example
         const content = previousMode && previousMode !== this.mode ? (markdown ? t('sampleMd') : t('sample')) : value;
         this.previewEl.dataset.mode = this.mode;
 
@@ -665,11 +665,11 @@ class Builder {
             backend: true,
             mediaUrl: this.root.dataset.mediaUrl || '/media/',
             mediaManagerUrl: this.root.dataset.mediaManagerUrl || '/index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__',
-            // wie im echten Editor: verlinkbare Tabellen mit Bezeichnung und Such-Adresse
+            // as in the real editor: linkable tables with label and search address
             recordApi: this.root.dataset.recordApi,
             ...JSON.parse(this.root.dataset.runtime || '{}'),
             recordTables: (this.config.link?.records ?? []).filter(name => this.recordTables[name]).map(name => ({name, label: this.recordTables[name]})),
-            // Markdown kennt keine Klassen
+            // Markdown has no classes
             ...(markdown ? {blockStyles: [], inlineStyles: [], toolbar: (this.config.toolbar ?? []).map(g => g.filter(id => this.items[id]?.markdown !== false))} : {}),
         };
         const textarea = el('textarea', {className: 'rex-input', 'aria-label': t('preview')});
@@ -685,7 +685,7 @@ class Builder {
 }
 
 function start() {
-    // Kurzansicht der Toolbar in der Profilliste
+    // compact view of the toolbar in the profile list
     document.querySelectorAll('[data-tiptap-mini]').forEach(mini => {
         const icon = window.RexTiptap?.icon;
         if (!icon || mini.childElementCount) {
@@ -713,7 +713,7 @@ function start() {
     });
 }
 
-// Symbole kommen aus dem Editor-Bundle: erst rendern, wenn es da ist
+// icons come from the editor bundle: render only once it is there
 function boot() {
     const api = window.RexTiptap;
     if (api?.ready) {
@@ -730,7 +730,7 @@ if ('loading' === document.readyState) {
     boot();
 }
 
-// Ausprobieren: Profil wechseln lädt die Seite neu
+// Try out: switching the profile reloads the page
 document.addEventListener('change', e => {
     const select = e.target.closest?.('[data-tiptap-reload]');
     if (select) {

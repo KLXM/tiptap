@@ -1,12 +1,12 @@
 <?php
 
 /*
- * Die Tests brauchen eine gestartete REDAXO-Installation (Profile, Konfiguration, Übersetzungen) – Pfad zu deren
- * Bootstrap in REDAXO_BOOTSTRAP, im Entwicklungs-Repository des Cores zum Beispiel:
+ * The tests need a booted REDAXO installation (profiles, configuration, translations) – path to its bootstrap in
+ * REDAXO_BOOTSTRAP, in the core's development repository for example:
  *
- *     REDAXO_BOOTSTRAP=/pfad/zu/redaxo/.tools/bootstrap.php vendor/bin/phpunit -c /pfad/zu/tiptap/phpunit.dist.xml
+ *     REDAXO_BOOTSTRAP=/path/to/redaxo/.tools/bootstrap.php vendor/bin/phpunit -c /path/to/tiptap/phpunit.dist.xml
  *
- * Ohne REDAXO_BOOTSTRAP werden sie übersprungen.
+ * Without REDAXO_BOOTSTRAP they are skipped.
  */
 
 $bootstrap = getenv('REDAXO_BOOTSTRAP');

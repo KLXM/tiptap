@@ -13,7 +13,7 @@ use Redaxo\Core\Http\Response;
 use Redaxo\Core\MediaPool\Media;
 
 /**
- * Alternativtext eines Mediums für den Bild-Dialog (nur lesend, angemeldete Redakteure):
+ * Alt text of a medium for the image dialog (read-only, logged-in editors):
  * `?rex-api-call=tiptap_media&file=…&language=…` → {alt, decorative, title}.
  */
 #[AsApiFunction('tiptap_media')]

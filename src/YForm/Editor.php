@@ -19,11 +19,11 @@ use const ENT_HTML5;
 use const ENT_QUOTES;
 
 /**
- * YForm-6-Feld mit TipTap-Editor (Tabellen und Formulare, Backend und Frontend).
+ * YForm 6 field with TipTap editor (tables and forms, backend and frontend).
  *
  *     yield Editor::new('text')->label('Text')->profile('tiptap.simple');
  *
- * Speichert HTML oder Markdown je nach Profil, bereinigt die Eingabe auf dem Server.
+ * Stores HTML or Markdown depending on the profile, sanitizes the input on the server.
  */
 class Editor extends Textarea
 {
@@ -36,7 +36,7 @@ class Editor extends Textarea
         $this->attributes(['data-tiptap' => $this->profile]);
     }
 
-    /** Name des Editor-Profils */
+    /** Name of the editor profile */
     public function profile(string $profile): static
     {
         $this->profile = $profile;

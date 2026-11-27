@@ -29,11 +29,11 @@ use function pathinfo;
 use const PATHINFO_FILENAME;
 
 /**
- * Datei per Ziehen/Einfügen in den Editor: landet im Medienpool (POST, CSRF, angemeldete Redakteure).
+ * File dropped or pasted into the editor: ends up in the media pool (POST, CSRF, logged-in editors).
  *
- * Geprüft auf dem Server: Upload im Profil erlaubt, Werkzeug Bild bzw. Video im Profil, Dateityp aus dem Profil (und
- * der Erlaubnisliste des Medienpools, die MediaHandler selbst prüft), Recht auf die Zielkategorie.
- * Antwort: {file, kind: image|video, title, alt}.
+ * Checked on the server: upload allowed in the profile, image or video tool in the profile, file type from the profile
+ * (and the media pool's allowlist, which MediaHandler checks itself), permission for the target category.
+ * Response: {file, kind: image|video, title, alt}.
  */
 #[AsApiFunction('tiptap_upload')]
 final class UploadApi extends ApiFunction

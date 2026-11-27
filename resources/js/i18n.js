@@ -1,4 +1,4 @@
-/* Texte des Editors; Sprache aus <html lang>, eigene Texte per RexTiptap.i18n.add('de', {...}) */
+/* Editor texts; language from <html lang>, custom texts via RexTiptap.i18n.add('de', {...}) */
 
 const texts = {
     de: {
@@ -102,7 +102,7 @@ function lang() {
     return texts[l] ? l : 'en';
 }
 
-/** Text zum Schlüssel, `%s` wird der Reihe nach ersetzt */
+/** Text for the key, `%s` is replaced in order */
 export function t(key, ...args) {
     let text = texts[lang()][key] ?? texts.en[key] ?? texts.de[key] ?? key;
     for (const arg of args) {

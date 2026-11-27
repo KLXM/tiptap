@@ -2,7 +2,7 @@
 
 namespace Klxm\Tiptap;
 
-/** Speicherformat eines Profils */
+/** Storage format of a profile */
 enum Mode: string
 {
     case Html = 'html';

@@ -1,4 +1,4 @@
-/* Eingebaute Werkzeuge der Toolbar. Ein Werkzeug: {label, icon, run?, active?, enabled?, menu?, current?} */
+/* Built-in toolbar tools. A tool: {label, icon, run?, active?, enabled?, menu?, current?} */
 
 import {t} from './i18n.js';
 import {blockHasClass, CLASS_NODES, mediaSrc, nearestList, nodeOfElement, picker, updateNearestList} from './extensions.js';
@@ -38,13 +38,13 @@ function alignItem(side) {
         label: t(alignKey(side)),
         icon: alignKey(side),
         run: ({editor, config}) => {
-            // gewähltes Video / YouTube: Ausrichtung am Block
+            // selected video / YouTube: alignment on the block
             if (selectedMedia(editor)) {
                 alignMedia(editor, config, side);
                 return;
             }
             const klass = config.align[side];
-            // links ist Standard: Klasse entfernen, wenn schon linksbündig
+            // left is the default: remove the class if already left-aligned
             const set = blockHasClass(editor, klass) || 'left' === side ? null : klass;
             editor.chain().focus().setBlockClass(Object.values(config.align), set).run();
         },
@@ -53,7 +53,7 @@ function alignItem(side) {
     };
 }
 
-/** Linkformate (z. B. „Als Button“) für den Link am Cursor */
+/** Link formats (e.g. "as button") for the link at the cursor */
 function linkStyleEntries(editor, config) {
     const styles = config.linkStyles ?? [];
     if (!styles.length) {
@@ -70,7 +70,7 @@ function linkStyleEntries(editor, config) {
 
 const LIST_TYPES = {'1': '1, 2, 3', a: 'a, b, c', A: 'A, B, C', i: 'i, ii, iii', I: 'I, II, III'};
 
-/** Zählweise, Listenformat und Start der Liste, in der der Cursor steht (nur diese Ebene) */
+/** Numbering type, list format and start of the list containing the cursor (this level only) */
 function listFormatEntries({editor, config, ui}) {
     const found = nearestList(editor.state);
     if (!found) {
@@ -111,7 +111,7 @@ function listFormatEntries({editor, config, ui}) {
     return entries;
 }
 
-/** Rechtsklick in einer Liste: einrücken, ausrücken, Art wechseln, aufheben */
+/** Right-click in a list: indent, outdent, change type, remove */
 function listContext(ctx) {
     const {editor, has} = ctx;
     const bullet = editor.isActive('bulletList');
@@ -131,7 +131,7 @@ function listContext(ctx) {
     ];
 }
 
-/** Bearbeiten einer Tabelle: Menü der Toolbar und Kontextmenü */
+/** Editing a table: toolbar menu and context menu */
 function tableEntries(editor) {
     const c = () => editor.chain().focus();
     const can = () => editor.can().chain().focus();
@@ -169,7 +169,7 @@ export const builtinItems = {
             }
             return t('paragraph');
         },
-        // Rechtsklick in einer Überschrift: Ebene wechseln
+        // right-click in a heading: change level
         context: ctx => ctx.editor.isActive('heading') ? builtinItems.heading.menu(ctx) : null,
         menu: ({editor, config}) => [
             {label: t('paragraph'), icon: 'paragraph', radio: true, active: () => editor.isActive('paragraph'), run: () => chain(editor).setParagraph().run()},
@@ -202,7 +202,7 @@ export const builtinItems = {
                         active: () => blockHasClass(editor, style.class, types),
                         run: () => {
                             const c = editor.chain().focus();
-                            // Absatz/Überschrift: Block erst in das Element umwandeln
+                            // paragraph/heading: convert the block into the element first
                             if ('paragraph' === target.type) {
                                 c.setParagraph();
                             } else if ('heading' === target.type) {
@@ -293,7 +293,7 @@ export const builtinItems = {
         run: ({ui}) => ui.linkDialog(),
         active: ({editor}) => editor.isActive('link'),
         shortcut: 'Mod-k',
-        // Rechtsklick auf einen Link
+        // right-click on a link
         context: ({editor, config, ui}) => editor.isActive('link') ? [
             ...linkStyleEntries(editor, config),
             {label: t('linkEdit'), icon: 'edit', run: () => ui.linkDialog()},
@@ -313,7 +313,7 @@ export const builtinItems = {
         run: ({ui}) => ui.imageDialog(),
         active: ({editor}) => editor.isActive('image'),
         enabled: ({config}) => !!picker(config) || !!config.image.external,
-        // Rechtsklick auf ein Bild: bearbeiten, Bildformat, Größe, entfernen
+        // right-click on an image: edit, image format, size, remove
         context: ({editor, config, ui}) => {
             if (!editor.isActive('image')) {
                 return null;
@@ -367,7 +367,7 @@ export const builtinItems = {
             {separator: true},
             ...tableEntries(editor),
         ],
-        // Rechtsklick in eine Zelle
+        // right-click in a cell
         context: ({editor}) => editor.isActive('table') ? tableEntries(editor) : null,
     },
     specialChars: {
@@ -375,7 +375,7 @@ export const builtinItems = {
         icon: 'specialChars',
         grid: true,
         menu: ({editor, config}) => config.specialChars.map(char => {
-            // unsichtbare Zeichen mit Namen statt Zeichen
+            // invisible characters with names instead of characters
             const name = {'\u00A0': 'nbsp', '\u00AD': 'shy'}[char];
             return {
                 label: name ?? char,

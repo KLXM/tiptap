@@ -32,29 +32,29 @@ use function trim;
 use const PHP_INT_MAX;
 
 /**
- * Ein Editor-Profil: Speicherformat, Toolbar und Einstellungen.
+ * An editor profile: storage format, toolbar and settings.
  *
- * Die Einstellungen werden beim Anlegen normalisiert – was hier steht, ist gültig und vollständig; so kann ein Import
- * aus einer fremden Installation nichts Unerwartetes einschleusen.
+ * The settings are normalized on creation – what is stored here is valid and complete, so an import from another
+ * installation cannot smuggle in anything unexpected.
  */
 final readonly class Profile
 {
-    /** Name, optional mit Kennung vor einem Punkt – Profile aus Code: `tiptap.news` */
+    /** Name, optionally with a prefix before a dot – profiles from code: `tiptap.news` */
     public const string NAME_PATTERN = '/^[a-z0-9][a-z0-9_-]{0,63}(\.[a-z0-9][a-z0-9_-]{0,63})?$/';
 
-    /** Seitenverhältnisse für Videos (feste Klassen, CSS in assets/tiptap-media.css) */
+    /** Aspect ratios for videos (fixed classes, CSS in assets/tiptap-media.css) */
     public const array RATIO_CLASSES = ['rex-ratio-16x9', 'rex-ratio-4x3', 'rex-ratio-1x1', 'rex-ratio-9x16', 'rex-ratio-21x9'];
 
-    /** Größen für Videos (Breite im Textfluss) */
+    /** Sizes for videos (width within the text flow) */
     public const array SIZE_CLASSES = ['rex-w-75', 'rex-w-50', 'rex-w-33'];
 
-    /** Voreinstellungen eines leeren Profils */
+    /** Defaults of an empty profile */
     public const array DEFAULTS = [
         'toolbar' => [['undo', 'redo'], ['heading'], ['bold', 'italic'], ['bulletList', 'orderedList'], ['link']],
         'headings' => [2, 3, 4],
         'blockStyles' => [],
         'inlineStyles' => [],
-        // Zählweisen nummerierter Listen (HTML-Attribut type), Listenformate (Klassen), Linkformate (Klassen)
+        // Numbering styles of ordered lists (HTML attribute type), list formats (classes), link formats (classes)
         'listTypes' => ['1', 'a', 'A', 'i', 'I'],
         'listStyles' => [],
         'linkStyles' => [],
@@ -62,9 +62,9 @@ final readonly class Profile
         'link' => ['internal' => true, 'media' => true, 'external' => true, 'mailto' => true, 'tel' => true, 'targetBlank' => true, 'records' => [], 'schemes' => []],
         'image' => ['types' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'], 'external' => false, 'mediaTypes' => [], 'mediaType' => '', 'styles' => []],
         'video' => ['types' => ['mp4', 'webm', 'ogv', 'm4v']],
-        // Dateien per Ziehen/Einfügen in den Medienpool hochladen (nur Backend-Redakteure mit Medienrecht); category 0 = ohne
+        // Upload files to the media pool by drag & drop/paste (backend editors with media permission only); category 0 = none
         'upload' => ['enabled' => true, 'category' => 0],
-        // YouTube/Vimeo: Anbieter; consent = 2-Klick-Lösung (Player erst nach Klick bzw. Einwilligung)
+        // YouTube/Vimeo: providers; consent = two-click solution (player only after click or consent)
         'embed' => ['providers' => ['youtube', 'vimeo'], 'consent' => true],
         'specialChars' => ['–', '—', '…', '„', '“', '‚', '‘', '«', '»', '€', '©', '®', '™', '§', '°', '±', '×', '÷', '½', '→', '←', '✓', "\u{00A0}", "\u{00AD}"],
         'minHeight' => 180,
@@ -84,9 +84,9 @@ final readonly class Profile
         public string $description = '',
         /** @var array<string, mixed> normalisiert, siehe {@see self::DEFAULTS} */
         public array $config = self::DEFAULTS,
-        /** @var class-string<ProfileDefinition>|null Klasse, wenn das Profil aus Code kommt ({@see AsProfile}) */
+        /** @var class-string<ProfileDefinition>|null Class if the profile comes from code ({@see AsProfile}) */
         public ?string $class = null,
-        /** Mitgeliefert mit dem AddOn (im Backend anpassbar, die Anpassung liegt dann in der Datenbank) */
+        /** Shipped with the addon (customizable in the backend, the customization is then stored in the database) */
         public bool $builtin = false,
     ) {
         if (!preg_match(self::NAME_PATTERN, $name)) {
@@ -95,7 +95,7 @@ final readonly class Profile
     }
 
     /**
-     * Aus einem Array, wie es der Builder schickt oder der Export schreibt.
+     * From an array as sent by the builder or written by the export.
      *
      * @param array<string, mixed> $data
      */
@@ -115,7 +115,7 @@ final readonly class Profile
     }
 
     /**
-     * Export-Format (ohne Datenbank-IDs).
+     * Export format (without database IDs).
      *
      * @return array{name: string, label: string, description: string, mode: string, config: array<string, mixed>}
      */
@@ -135,7 +135,7 @@ final readonly class Profile
         return new self($name, $label ?? $this->label, $this->mode, $this->description, $this->config);
     }
 
-    /** Kennung aus dem Namen (`tiptap` bei `tiptap.news`), null ohne Kennung */
+    /** Prefix from the name (`tiptap` for `tiptap.news`), null without prefix */
     public function prefix(): ?string
     {
         $pos = strpos($this->name, '.');
@@ -143,14 +143,14 @@ final readonly class Profile
         return false === $pos ? null : substr($this->name, 0, $pos);
     }
 
-    /** Kommt das Profil aus einer PHP-Klasse des Projekts oder eines AddOns (schreibgeschützt im Backend)? */
+    /** Does the profile come from a PHP class of the project or an addon (read-only in the backend)? */
     public function isCode(): bool
     {
         return null !== $this->class && !$this->builtin;
     }
 
     /**
-     * Alle Werkzeug-IDs der Toolbar.
+     * All tool IDs of the toolbar.
      *
      * @return list<string>
      */
@@ -172,7 +172,7 @@ final readonly class Profile
     }
 
     /**
-     * Konfiguration für das Skript (data-config des Elements).
+     * Configuration for the script (data-config of the element).
      *
      * @return array<string, mixed>
      */
@@ -182,7 +182,7 @@ final readonly class Profile
     }
 
     /**
-     * Bringt Einstellungen in eine gültige, vollständige Form.
+     * Brings settings into a valid, complete form.
      *
      * @param array<string, mixed> $config
      * @return array<string, mixed>
@@ -192,7 +192,7 @@ final readonly class Profile
         $d = self::DEFAULTS;
         $out = [];
 
-        // Toolbar: Gruppen aus Werkzeug-IDs; im Markdown-Modus nur, was sich als Markdown speichern lässt
+        // Toolbar: groups of tool IDs; in Markdown mode only what can be stored as Markdown
         $toolbar = [];
         foreach (is_array($config['toolbar'] ?? null) ? $config['toolbar'] : $d['toolbar'] as $group) {
             if (!is_array($group)) {
@@ -251,7 +251,7 @@ final readonly class Profile
                 $out['link'][$key] = (bool) ($link[$key] ?? $default);
             }
         }
-        // YForm-Tabellen, deren Datensätze sich verlinken lassen
+        // YForm tables whose records can be linked
         $out['link']['records'] = self::names($link['records'] ?? []);
         // further link schemes the project or an addon resolves itself (e.g. `media://datei`), lowercase names
         $out['link']['schemes'] = array_values(array_filter(self::names($link['schemes'] ?? []),
@@ -262,10 +262,10 @@ final readonly class Profile
         $out['image'] = [
             'types' => self::extensions($image['types'] ?? null) ?: $d['image']['types'],
             'external' => (bool) ($image['external'] ?? $d['image']['external']),
-            // Mediamanager-Typen zur Auswahl im Bild-Dialog, Voreinstellung ('' = Originaldatei)
+            // Media manager types to choose from in the image dialog, default ('' = original file)
             'mediaTypes' => $mediaTypes,
             'mediaType' => $mediaType,
-            // Medienformate: Klassen an Bildern und Videos (z. B. links umflossen, volle Breite), media = image|video|both
+            // Media formats: classes on images and videos (e.g. floated left, full width), media = image|video|both
             'styles' => self::mediaStyles($image['styles'] ?? []),
         ];
         $video = is_array($config['video'] ?? null) ? $config['video'] : [];
@@ -318,7 +318,7 @@ final readonly class Profile
             }
             $entry = ['label' => '' === $label ? $class : $label, 'class' => $class];
             if ($block) {
-                // Blockformate gelten für Absätze oder bestimmte Elemente
+                // Block formats apply to paragraphs or specific elements
                 $element = is_string($style['element'] ?? null) ? $style['element'] : 'p';
                 $entry['element'] = in_array($element, ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'table'], true) ? $element : 'p';
             }
@@ -344,7 +344,7 @@ final readonly class Profile
         return $out;
     }
 
-    /** Klassennamen (durch Leerzeichen getrennt) auf sichere Zeichen beschränken */
+    /** Restricts class names (separated by spaces) to safe characters */
     public static function classList(string $classes): string
     {
         $list = array_filter(
@@ -356,7 +356,7 @@ final readonly class Profile
     }
 
     /**
-     * Liste von Namen (Tabellen, Mediamanager-Typen): nur sichere Zeichen.
+     * List of names (tables, media manager types): safe characters only.
      *
      * @return list<string>
      */

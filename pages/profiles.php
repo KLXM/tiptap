@@ -29,7 +29,7 @@ $phpCode = null;
 
 $json = static fn (mixed $value): string => json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-// ---------- Export (Download) ----------
+// ---------- Export (download) ----------
 if ('export' === $func || 'export_all' === $func) {
     $profiles = 'export' === $func ? array_filter([Profiles::get($name)]) : array_values(Profiles::all());
     if ($profiles) {
@@ -41,7 +41,7 @@ if ('export' === $func || 'export_all' === $func) {
     }
 }
 
-// ---------- PHP-Klasse (Download) ----------
+// ---------- PHP class (download) ----------
 if ('export_php' === $func && ($profile = Profiles::get($name))) {
     $code = Profiles::toPhp($profile);
     preg_match('/final class (\w+)/', $code, $m);
@@ -51,7 +51,7 @@ if ('export_php' === $func && ($profile = Profiles::get($name))) {
     exit;
 }
 
-// ---------- Aktionen (POST) ----------
+// ---------- Actions (POST) ----------
 if ('post' === Request::requestMethod() && $func) {
     if (!$csrf->isValid()) {
         $message = Message::error(I18n::msg('csrf_token_invalid'));
@@ -69,7 +69,7 @@ if ('post' === Request::requestMethod() && $func) {
                         'config' => is_array($config) ? $config : [],
                     ]);
                     $previous = Request::post('previous', 'string', '');
-                    // nur PHP-Code erzeugen (z. B. für ein Profil aus Code), nichts speichern
+                    // only generate PHP code (e.g. for a profile from code), save nothing
                     if (Request::post('as_php', 'bool', false)) {
                         $phpCode = Profiles::toPhp($profile);
                         $func = 'edit';
@@ -135,14 +135,14 @@ if ('post' === Request::requestMethod() && $func) {
 
 echo $message;
 
-// ---------- Bearbeiten / Neu ----------
+// ---------- Edit / new ----------
 if ('edit' === $func || 'add' === $func) {
     $profile = 'add' === $func ? null : Profiles::get($name);
     if ('edit' === $func && null === $profile && 'post' !== Request::requestMethod()) {
         echo Message::error(I18n::msg('tiptap_profile_not_found'));
         return;
     }
-    // nach einem Fehler beim Speichern die Eingaben behalten
+    // keep the input after an error while saving
     if ('post' === Request::requestMethod() && 'edit' === $func && Request::post('profile_name', 'string', '')) {
         $posted = json_decode(Request::post('config', 'string', '{}'), true) ?: [];
         $profile = new Profile(
@@ -151,7 +151,7 @@ if ('edit' === $func || 'add' === $func) {
             Mode::tryFrom(Request::post('mode', 'string', '')) ?? Mode::Html,
             Request::post('description', 'string', ''),
             Profile::normalize($posted),
-            // Profil aus Code bzw. mitgeliefertes Profil bleibt als solches erkennbar
+            // a profile from code or a shipped profile stays recognizable as such
             ($original = Profiles::get(Request::post('previous', 'string', '') ?: Request::post('profile_name', 'string', '')))?->class,
             $original->builtin ?? false,
         );
@@ -183,7 +183,7 @@ if ('edit' === $func || 'add' === $func) {
         . '<input class="rex-input" id="tt-desc" name="description" maxlength="1000" value="' . escape($profile->description) . '"></div>'
         . '<fieldset class="rex-field" data-layout="vertical"><legend class="rex-field-label">' . I18n::msg('tiptap_mode') . '</legend><div class="tt-mode-switch">' . $modes . '</div></fieldset>';
 
-    // Medienkategorien für das Ziel von Uploads: [id, Name mit Einrückung]
+    // media categories as upload target: [id, name with indentation]
     $mediaCategories = static function (): array {
         $list = [];
         $walk = static function (array $categories, int $depth) use (&$walk, &$list): void {
@@ -203,7 +203,7 @@ if ('edit' === $func || 'add' === $func) {
         . ' data-media-types="' . escape($json(array_keys(MediaTypeRegistry::all()))) . '"'
         . ' data-record-tables="' . escape($json(RecordLinks::tables())) . '"'
         . ' data-record-api="' . escape(Url::backendController(RecordSearchApi::getUrlParams())) . '"'
-        // Laufzeit-Angaben wie im echten Editor (YouTube/Vimeo-Abfrage, Freigabe von HTML-Embeds nach Recht)
+        // runtime settings as in the real editor (YouTube/Vimeo lookup, approval of HTML embeds by permission)
         . ' data-runtime="' . escape($json(array_intersect_key(Tiptap::clientConfig(new Profile('preview', 'Preview')), array_flip(['oembedApi', 'htmlEmbed', 'embedSignApi', 'videoEditor', 'mediaInfoApi', 'language', 'uploadApi'])))) . '"'
         . ' data-media-manager-url="' . escape(Output::basePath() . 'index.php?rex_media_type=__TYPE__&rex_media_file=__FILE__') . '"></div>'
         . '<textarea id="tt-config" name="config" hidden>' . escape($json($profile->config)) . '</textarea>';
@@ -215,7 +215,7 @@ if ('edit' === $func || 'add' === $func) {
         . '<a class="rex-button" data-variant="link" href="' . Url::currentBackendPage() . '">' . I18n::msg('tiptap_cancel') . '</a>'
         . '</div>';
 
-    // Profil aus Code: Hinweis; erzeugter PHP-Code zum Einfügen
+    // profile from code: notice; generated PHP code to paste
     $intro = match (true) {
         $profile->isCode() => Message::info(I18n::rawMsg('tiptap_code_profile_note', escape((string) $profile->class))),
         $isBuiltin => Message::info(I18n::rawMsg(Profiles::isCustomized($profile->name) ? 'tiptap_builtin_customized_note' : 'tiptap_builtin_note')),
@@ -263,7 +263,7 @@ if ('import_form' === $func) {
     return;
 }
 
-// ---------- Liste ----------
+// ---------- List ----------
 $rows = '';
 foreach (Profiles::all() as $profile) {
     $edit = Url::currentBackendPage(['func' => 'edit', 'name' => $profile->name]);

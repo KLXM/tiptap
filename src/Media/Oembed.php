@@ -24,17 +24,17 @@ use const JSON_UNESCAPED_SLASHES;
 use const JSON_UNESCAPED_UNICODE;
 
 /**
- * YouTube und Vimeo: Adresse erkennen, Player-Adresse bilden, Titel und Vorschaubild über oEmbed holen.
+ * YouTube and Vimeo: detects the URL, builds the player URL, fetches title and thumbnail via oEmbed.
  *
- * Titel und Vorschaubild werden auf dem Server geholt und abgelegt – so lädt der Browser der Besucher vor dem Klick
- * nichts von YouTube oder Vimeo (2-Klick-Lösung). Abgefragt werden nur die festen oEmbed-Endpunkte der Anbieter mit
- * einer geprüften Video-ID, keine beliebigen Adressen.
+ * Title and thumbnail are fetched and stored on the server – so the visitor's browser loads nothing from YouTube or
+ * Vimeo before the click (two-click solution). Only the fixed oEmbed endpoints of the providers are queried, with a
+ * validated video ID, never arbitrary URLs.
  */
 final class Oembed
 {
     public const array PROVIDERS = ['youtube' => 'YouTube', 'vimeo' => 'Vimeo'];
 
-    /** Daten erneut holen nach (Sekunden); fehlgeschlagene Abfragen erst nach einem Tag wiederholen */
+    /** Refetch data after (seconds); retry failed requests only after one day */
     private const int TTL = 30 * 86400;
     private const int TTL_FAILED = 86400;
 
@@ -51,7 +51,7 @@ final class Oembed
         return null;
     }
 
-    /** Player ohne Cookies (YouTube) bzw. mit „do not track“ (Vimeo) */
+    /** Player without cookies (YouTube) or with "do not track" (Vimeo) */
     public static function playerUrl(array $video, bool $autoplay = false): string
     {
         if ('youtube' === $video['provider']) {
@@ -61,7 +61,7 @@ final class Oembed
         return 'https://player.vimeo.com/video/' . $video['id'] . '?dnt=1' . (null !== $video['hash'] ? '&h=' . $video['hash'] : '') . ($autoplay ? '&autoplay=1' : '');
     }
 
-    /** Adresse zum Ansehen beim Anbieter (Link im Platzhalter) */
+    /** URL for watching at the provider (link in the placeholder) */
     public static function watchUrl(array $video): string
     {
         return 'youtube' === $video['provider']
@@ -69,14 +69,14 @@ final class Oembed
             : 'https://vimeo.com/' . $video['id'] . (null !== $video['hash'] ? '/' . $video['hash'] : '');
     }
 
-    /** Hosts für die Content-Security-Policy (frame-src) */
+    /** Hosts for the Content Security Policy (frame-src) */
     public static function frameHosts(): array
     {
         return ['https://www.youtube-nocookie.com', 'https://player.vimeo.com'];
     }
 
     /**
-     * Titel, Anbieter und ob ein Vorschaubild vorliegt; mit $fetch wird bei Bedarf beim Anbieter nachgefragt.
+     * Title, provider and whether a thumbnail exists; with $fetch the provider is queried if needed.
      *
      * @return array{provider: string, id: string, title: string, thumbnail: bool}|null
      */
@@ -89,7 +89,7 @@ final class Oembed
         $key = self::key($video);
         $file = self::path($key . '.json');
         $data = is_file($file) ? json_decode((string) File::get($file), true) : null;
-        // ohne Vorschaubild (oder nach einem Fehler) früher erneut versuchen
+        // without thumbnail (or after an error) retry earlier
         $complete = !($data['failed'] ?? false) && is_file(self::path($key . '.jpg'));
         $fresh = is_array($data) && filemtime($file) > time() - ($complete ? self::TTL : self::TTL_FAILED);
 
@@ -106,7 +106,7 @@ final class Oembed
         ];
     }
 
-    /** Pfad des abgelegten Vorschaubilds oder null */
+    /** Path of the stored thumbnail or null */
     public static function thumbnail(string $url, bool $fetch = false): ?string
     {
         $video = self::parse($url);
@@ -136,7 +136,7 @@ final class Oembed
             $data = $response->toArray(false);
             $title = is_string($data['title'] ?? null) ? mb_substr($data['title'], 0, 300) : '';
 
-            // Vorschaubild: bei YouTube in hoher Auflösung, sonst das aus oEmbed (nur von den bekannten CDNs)
+            // Thumbnail: high resolution for YouTube, otherwise the one from oEmbed (only from the known CDNs)
             $thumbs = 'youtube' === $video['provider']
                 ? ['https://i.ytimg.com/vi/' . $video['id'] . '/maxresdefault.jpg', 'https://i.ytimg.com/vi/' . $video['id'] . '/hqdefault.jpg']
                 : [is_string($data['thumbnail_url'] ?? null) ? $data['thumbnail_url'] : ''];

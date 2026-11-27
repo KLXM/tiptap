@@ -18,12 +18,12 @@ use function strip_tags;
 use function trim;
 
 /**
- * Formularfeld mit TipTap-Editor – in Modulen, Collections, Formularen des Cores.
+ * Form field with TipTap editor – in modules, collections and the core's forms.
  *
  *     #[Editor('Text', profile: 'tiptap.simple')]
  *     public string $text = '';
  *
- * Gespeichert wird HTML oder Markdown (je nach Profil), beim Speichern nach dem Profil bereinigt.
+ * Stores HTML or Markdown (depending on the profile), sanitized according to the profile on save.
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class Editor extends Field
@@ -33,7 +33,7 @@ final class Editor extends Field
         string|Renderable|null $note = null,
         bool $required = false,
         ?string $key = null,
-        /** Name des Profils (TipTap-Editor → Profile); fehlt es, gilt „tiptap.default“ */
+        /** Name of the profile (TipTap-Editor → Profile); if missing, "tiptap.default" applies */
         public readonly ?string $profile = null,
     ) {
         parent::__construct($label, $note, $required, $key);
@@ -54,7 +54,7 @@ final class Editor extends Field
         }
         $profile = Tiptap::profile($this->profile);
         $value = Tiptap::sanitize(Type::string($value), $profile);
-        // leerer Editor liefert <p></p>
+        // an empty editor returns <p></p>
         if ('' === trim(strip_tags($value, '<img><hr><table>'))) {
             $value = '';
         }

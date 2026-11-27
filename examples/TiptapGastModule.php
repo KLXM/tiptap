@@ -12,9 +12,9 @@ use Redaxo\Core\Security\CsrfToken;
 use function Redaxo\Core\View\escape;
 
 /**
- * Beispiel: Editor im Frontend für Besucher (Profil „guest“). Die Eingabe wird auf dem Server mit
- * Tiptap::sanitize() bereinigt – das Skript im Browser allein schützt nicht.
- * Hier wird nichts gespeichert, nur angezeigt. In src/Module des Projekts kopieren.
+ * Example: editor in the frontend for visitors (profile "guest"). The input is sanitized on the server with
+ * Tiptap::sanitize() – the script in the browser alone does not protect.
+ * Nothing is saved here, only displayed. Copy to src/Module of the project.
  */
 #[AsModule('tiptap_gast', 'Gäste-Editor (Beispiel)')]
 final class TiptapGastModule extends Module

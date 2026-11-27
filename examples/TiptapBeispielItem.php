@@ -5,7 +5,7 @@ namespace Project\Module;
 use Klxm\Tiptap\Field\Editor;
 use Redaxo\Core\Form\Field\Text;
 
-/** Eintrag der Collection von {@see TiptapBeispielModule} */
+/** Entry of the collection of {@see TiptapBeispielModule} */
 final class TiptapBeispielItem
 {
     #[Text('Titel')]

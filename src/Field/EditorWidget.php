@@ -10,7 +10,7 @@ use Redaxo\Core\View\HtmlAttributes;
 
 use function Redaxo\Core\View\escape;
 
-/** `<rex-tiptap>` mit der Textarea, die den Wert trägt (ohne Skript bleibt sie benutzbar) */
+/** `<rex-tiptap>` with the textarea holding the value (it stays usable without script) */
 final class EditorWidget implements Widget
 {
     public function __construct(

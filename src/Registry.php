@@ -8,7 +8,7 @@ use function array_key_exists;
 use function array_values;
 
 /**
- * Alle Werkzeuge: die eingebauten und die der registrierten {@see Plugin}s.
+ * All tools: the built-in ones and those of the registered {@see Plugin}s.
  *
  * @internal
  */
@@ -62,7 +62,7 @@ final class Registry
     }
 
     /**
-     * Builder-Katalog: Kategorien mit ihren Werkzeugen.
+     * Builder catalog: categories with their tools.
      *
      * @return list<array{id: string, label: string, items: list<array<string, mixed>>}>
      */

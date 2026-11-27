@@ -14,12 +14,11 @@ use Redaxo\Core\Http\Response;
 use function mb_substr;
 
 /**
- * Titel und Vorschaubild von YouTube/Vimeo, vom Server geholt und abgelegt:
- * `?rex-api-call=tiptap_oembed&url=…` (JSON) bzw. `&thumb=1` (Bild).
+ * Title and thumbnail of YouTube/Vimeo, fetched and stored by the server:
+ * `?rex-api-call=tiptap_oembed&url=…` (JSON) or `&thumb=1` (image).
  *
- * Öffentlich, damit Platzhalter im Frontend das Vorschaubild zeigen. Beim Anbieter nachgefragt wird nur für angemeldete
- * Redakteure im Backend (Editor) und bei der Ausgabe ({@see Output}) – Besucher bekommen nur, was schon
- * abgelegt ist.
+ * Public so that placeholders in the frontend show the thumbnail. The provider is only queried for logged-in editors
+ * in the backend (editor) and on output ({@see Output}) – visitors only get what is already stored.
  */
 #[AsApiFunction('tiptap_oembed')]
 final class OembedApi extends ApiFunction

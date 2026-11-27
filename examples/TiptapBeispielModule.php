@@ -12,8 +12,8 @@ use Redaxo\Core\Form\Field\Text;
 use function Redaxo\Core\View\escape;
 
 /**
- * Beispiel: Fließtext mit dem Profil „default“ und eine Collection, deren Einträge den Editor mit dem Profil „simple“
- * haben. In src/Module des Projekts kopieren.
+ * Example: body text with the profile "default" and a collection whose entries have the editor with the profile
+ * "simple". Copy to src/Module of the project.
  */
 #[AsModule('tiptap_beispiel', 'Text mit Editor (Beispiel)')]
 final class TiptapBeispielModule extends Module

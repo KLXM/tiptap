@@ -14,9 +14,9 @@ use Redaxo\Core\Http\Response;
 use function mb_substr;
 
 /**
- * Datensätze für den Link-Dialog (nur lesend, nach den Rechten des Benutzers):
- * ?rex-api-call=tiptap_records&table=…&q=… bzw. &id=… für die Bezeichnung eines Datensatzes, &article=… für den
- * Namen eines Artikels (Link-Bubble).
+ * Records for the link dialog (read-only, according to the user's permissions):
+ * ?rex-api-call=tiptap_records&table=…&q=… or &id=… for the label of a record, &article=… for the name of an
+ * article (link bubble).
  */
 #[AsApiFunction('tiptap_records')]
 final class RecordSearchApi extends ApiFunction

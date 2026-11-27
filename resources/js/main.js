@@ -1,8 +1,8 @@
 /*
- REDAXO TipTap – Einstieg des Bundles (assets/tiptap.js, ES-Modul).
+ REDAXO TipTap – bundle entry point (assets/tiptap.js, ES module).
 
- Wird von tiptap-loader.js nachgeladen, sobald ein Editor auf der Seite steht. Stellt `window.RexTiptap` bereit und
- definiert das Element <rex-tiptap>.
+ Loaded by tiptap-loader.js as soon as an editor is on the page. Provides `window.RexTiptap` and
+ defines the <rex-tiptap> element.
  */
 
 import * as core from '@tiptap/core';
@@ -34,7 +34,7 @@ class RexTiptapElement extends HTMLElement {
             return;
         }
         if (!this.querySelector('textarea')) {
-            // Inhalt wird noch geparst bzw. gleich eingefügt (upgradeTextareas)
+            // content is still being parsed or about to be inserted (upgradeTextareas)
             if ('loading' === document.readyState) {
                 document.addEventListener('DOMContentLoaded', () => this.connectedCallback(), {once: true});
             } else {
@@ -50,7 +50,7 @@ class RexTiptapElement extends HTMLElement {
     }
 
     disconnectedCallback() {
-        // Verschieben (z. B. Collection sortieren) löst disconnect + connect aus – nur wirklich entfernte aufräumen
+        // moving (e.g. sorting a collection) triggers disconnect + connect – only clean up those really removed
         queueMicrotask(() => {
             if (!this.isConnected) {
                 this.destroy();
@@ -73,7 +73,7 @@ class RexTiptapElement extends HTMLElement {
         try {
             instances.set(this, new RexTiptapEditor(this, textarea, config));
         } catch (e) {
-            // Ohne Editor bleibt die Textarea benutzbar
+            // without an editor the textarea stays usable
             console.error('rex-tiptap', e);
             textarea.hidden = false;
         }
@@ -84,7 +84,7 @@ class RexTiptapElement extends HTMLElement {
         instances.delete(this);
     }
 
-    /** Die Instanz (Editor, Toolbar …) */
+    /** The instance (editor, toolbar …) */
     get instance() {
         return instances.get(this) ?? null;
     }
@@ -106,7 +106,7 @@ class RexTiptapElement extends HTMLElement {
     }
 }
 
-/** Textareas mit data-tiptap="profil" in <rex-tiptap> einpacken (YForm, eigene Formulare) */
+/** Wrap textareas with data-tiptap="profile" in <rex-tiptap> (YForm, custom forms) */
 function upgradeTextareas(root = document) {
     const list = root.matches?.('textarea[data-tiptap]') ? [root] : [...(root.querySelectorAll?.('textarea[data-tiptap]') ?? [])];
     for (const textarea of list) {
@@ -119,7 +119,7 @@ function upgradeTextareas(root = document) {
             element.dataset.labelFor = textarea.id;
         }
         if (textarea.required) {
-            // versteckte Pflichtfelder blockieren das Absenden ohne sichtbare Meldung – der Editor prüft selbst
+            // hidden required fields block submitting without a visible message – the editor validates itself
             textarea.required = false;
             textarea.setAttribute('data-tiptap-required', '');
         }
@@ -139,7 +139,7 @@ Object.assign(api, {
     icons: {add: addIcon, get: icon},
     i18n,
     helpers,
-    /** TipTap selbst – Erweiterungen anderer AddOns nutzen diese Klassen statt eines eigenen Bundles */
+    /** TipTap itself – extensions of other addons use these classes instead of their own bundle */
     tiptap: core,
     Editor: RexTiptapEditor,
     /**
@@ -164,7 +164,7 @@ Object.assign(api, {
         return instance;
     },
     Inline: RexTiptapInline,
-    /** Instanz zu <rex-tiptap>, Textarea oder Element darin */
+    /** Instance for <rex-tiptap>, a textarea or an element inside */
     get(element) {
         return element?.closest?.('rex-tiptap')?.instance ?? inlineInstances.get(element) ?? null;
     },

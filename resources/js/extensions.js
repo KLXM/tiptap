@@ -1,13 +1,13 @@
-/* Eigene Erweiterungen: Klassen statt style-Attributen (CSP), Formatvorlagen, Prüfung von Link-Adressen */
+/* Custom extensions: classes instead of style attributes (CSP), styles, validation of link addresses */
 
 import {Extension, Mark, mergeAttributes} from '@tiptap/core';
 
-/** Knotentypen, die Block-Klassen (Blockformat, Ausrichtung) tragen dürfen */
+/** Node types that may carry block classes (block format, alignment) */
 export const CLASS_NODES = ['paragraph', 'heading', 'blockquote', 'bulletList', 'orderedList', 'table'];
 
 const ELEMENT_NODE = {p: 'paragraph', blockquote: 'blockquote', ul: 'bulletList', ol: 'orderedList', table: 'table'};
 
-/** Knotentyp + Ebene zu einem Element des Blockformats (p, h2, blockquote …) */
+/** Node type + level for an element of the block format (p, h2, blockquote …) */
 export function nodeOfElement(element) {
     const h = /^h([1-6])$/.exec(element);
     return h ? {type: 'heading', level: Number(h[1])} : {type: ELEMENT_NODE[element] ?? 'paragraph'};
@@ -18,8 +18,8 @@ function tokens(value) {
 }
 
 /**
- * Attribut `class` auf Blöcken – nur mit den Klassen, die das Profil kennt; fremde Klassen (z. B. beim Einfügen aus
- * Word) fallen weg.
+ * Attribute `class` on blocks – only with the classes the profile knows; foreign classes (e.g. when pasting from
+ * Word) are dropped.
  */
 export const BlockClass = Extension.create({
     name: 'rexBlockClass',
@@ -45,8 +45,8 @@ export const BlockClass = Extension.create({
     addCommands() {
         return {
             /**
-             * Setzt in den Blöcken der Auswahl eine Klasse aus einer Gruppe (z. B. Ausrichtung) und entfernt die
-             * anderen Klassen derselben Gruppe. `klass` null entfernt nur.
+             * Sets a class from a group (e.g. alignment) on the blocks of the selection and removes the
+             * other classes of the same group. `klass` null only removes.
              */
             setBlockClass: (group, klass, types = CLASS_NODES) => ({tr, state, dispatch}) => {
                 const groupTokens = new Set(group.flatMap(tokens));
@@ -63,7 +63,7 @@ export const BlockClass = Extension.create({
                         tr.setNodeMarkup(pos, undefined, {...node.attrs, class: value});
                         changed = true;
                     }
-                    // Absätze in Listen/Zitaten nicht zusätzlich
+                    // not additionally on paragraphs in lists/quotes
                     return !['paragraph', 'heading'].includes(node.type.name);
                 });
                 if (changed && dispatch) {
@@ -75,7 +75,7 @@ export const BlockClass = Extension.create({
     },
 });
 
-/** Hat ein Block der Auswahl die Klasse? */
+/** Does a block of the selection have the class? */
 export function blockHasClass(editor, klass, types = CLASS_NODES) {
     const wanted = tokens(klass);
     const {$from} = editor.state.selection;
@@ -89,7 +89,7 @@ export function blockHasClass(editor, klass, types = CLASS_NODES) {
     return false;
 }
 
-/** Textformat: `<span class="…">` mit einer Klasse aus dem Profil */
+/** Text format: `<span class="…">` with a class from the profile */
 export const InlineStyle = Mark.create({
     name: 'rexInlineStyle',
     excludes: '',
@@ -129,7 +129,7 @@ export const InlineStyle = Mark.create({
     },
 });
 
-/** Nächste Liste um den Cursor (für Zählweise, Format, Start je Ebene) */
+/** Nearest list around the cursor (for numbering type, format, start per level) */
 export function nearestList(state, names = ['orderedList', 'bulletList']) {
     const {$from} = state.selection;
     for (let depth = $from.depth; depth > 0; depth--) {
@@ -141,7 +141,7 @@ export function nearestList(state, names = ['orderedList', 'bulletList']) {
     return null;
 }
 
-/** Attribute der nächsten Liste ändern – nur diese Ebene, nicht die äußeren Listen */
+/** Change attributes of the nearest list – only this level, not the outer lists */
 export function updateNearestList(editor, attrs, names = ['orderedList', 'bulletList']) {
     const found = nearestList(editor.state, names);
     if (!found) {
@@ -153,7 +153,7 @@ export function updateNearestList(editor, attrs, names = ['orderedList', 'bullet
     return true;
 }
 
-/** Link mit Linkformat (Klasse aus dem Profil, z. B. „Als Button“) */
+/** Link with link format (class from the profile, e.g. "as button") */
 export function rexLink(Link, allowedClasses) {
     const allowed = new Set(allowedClasses);
     return Link.extend({
@@ -170,7 +170,7 @@ export function rexLink(Link, allowedClasses) {
     });
 }
 
-/** Adresse eines Medienpool-Bildes (optional über einen Mediamanager-Typ), ab der Website-Wurzel */
+/** Address of a media pool image (optionally via a media manager type), from the website root */
 export function mediaSrc(config, file, type = '') {
     return type
         ? config.mediaManagerUrl.replace('__TYPE__', encodeURIComponent(type)).replace('__FILE__', encodeURIComponent(file))
@@ -178,8 +178,8 @@ export function mediaSrc(config, file, type = '') {
 }
 
 /**
- * Bild mit Verweis auf den Medienpool (`data-rex-media`, `data-rex-media-type`) und Bildformat (Klasse) – die
- * Ausgabe setzt daraus die richtige Adresse. Alte relative Adressen (`../media/…`) werden beim Laden korrigiert.
+ * Image with reference to the media pool (`data-rex-media`, `data-rex-media-type`) and image format (class) – the
+ * output builds the correct address from it. Old relative addresses (`../media/…`) are corrected on load.
  */
 export function rexImage(Image, config) {
     const allowed = new Set((config.image?.styles ?? []).flatMap(s => tokens(s.class)));
@@ -222,7 +222,7 @@ export function rexImage(Image, config) {
     }).configure({inline: false, allowBase64: false});
 }
 
-/** Prüft eine Link-Adresse gegen die Einstellungen des Profils */
+/** Validates a link address against the profile settings */
 export function allowedUrl(url, link) {
     const value = String(url ?? '').trim();
     if (!value || /^\s*(javascript|data|vbscript):/i.test(value)) {
@@ -251,11 +251,11 @@ export function allowedUrl(url, link) {
     if (scheme) {
         return (link.schemes ?? []).includes(scheme);
     }
-    // relative Adresse: Dateien aus dem Medienpool oder interne Pfade
+    // relative address: files from the media pool or internal paths
     return !!(link.media || link.internal);
 }
 
-/** Ergänzt fehlendes https:// bei „www.example.org“ */
+/** Adds missing https:// for "www.example.org" */
 export function normalizeUrl(url) {
     const value = String(url ?? '').trim();
     if (/^www\./i.test(value)) {

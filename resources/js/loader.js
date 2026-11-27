@@ -1,8 +1,8 @@
 /*
- REDAXO TipTap – kleiner Lader (assets/tiptap-loader.js, klassisches Skript).
+ REDAXO TipTap – small loader (assets/tiptap-loader.js, classic script).
 
- Lädt das Editor-Bundle erst, wenn ein Editor auf der Seite auftaucht (auch später, z. B. in Collections). Bis dahin
- sammelt `RexTiptap.register()` die Erweiterungen anderer AddOns, `RexTiptap.ready(fn)` wartet auf das Bundle.
+ Loads the editor bundle only when an editor appears on the page (also later, e.g. in collections). Until then
+ `RexTiptap.register()` collects the extensions of other addons, `RexTiptap.ready(fn)` waits for the bundle.
  */
 (() => {
     const api = (window.RexTiptap = window.RexTiptap || {});

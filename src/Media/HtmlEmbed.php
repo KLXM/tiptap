@@ -28,22 +28,22 @@ use const ENT_HTML5;
 use const ENT_QUOTES;
 
 /**
- * HTML-Embeds: geschützter Code-Block im Editor, gespeichert maskiert im Attribut
+ * HTML embeds: protected code block in the editor, stored escaped in the attribute
  * `<div data-rex-embed="…" data-rex-sig="…" data-consent-service="…"></div>`.
  *
- * Ausgegeben wird nur Code mit gültiger Signatur. Signieren darf nur, wer das Recht `tiptap[html_embed]` hat (Admins
- * immer) – so kann niemand ohne das Recht über die Quelltext-Ansicht, einen Import oder ein Formular Skripte
- * einschleusen; wird signierter Code nachträglich verändert, ist die Signatur ungültig.
+ * Only code with a valid signature is output. Only users with the permission `tiptap[html_embed]` may sign (admins
+ * always) – so nobody without the permission can inject scripts via the source view, an import or a form; if signed
+ * code is changed afterwards, the signature is invalid.
  *
- * Bei der Ausgabe bekommen `<script>` und `<style>` den Nonce der Antwort ({@see Response::getNonce()}), passend zu
- * einer Content-Security-Policy mit Nonce. Mit Dienst (`data-consent-service`) wird der Code erst nach Einwilligung
- * bzw. Klick eingesetzt (tiptap-media.js, Schnittstelle zu consent_kit).
+ * On output, `<script>` and `<style>` get the nonce of the response ({@see Response::getNonce()}), matching a
+ * Content Security Policy with nonce. With a service (`data-consent-service`) the code is only inserted after consent
+ * or a click (tiptap-media.js, interface to consent_kit).
  */
 final class HtmlEmbed
 {
     public const string PERMISSION = 'tiptap[html_embed]';
 
-    /** Größe des Codes (Zeichen) */
+    /** Size of the code (characters) */
     public const int MAX_LENGTH = 100_000;
 
     public static function allowed(?User $user): bool
@@ -51,7 +51,7 @@ final class HtmlEmbed
         return null !== $user && $user->hasPerm(self::PERMISSION);
     }
 
-    /** Zeilenenden vereinheitlichen, wie sie auch der Browser im Attribut liefert */
+    /** Normalizes line endings the way the browser delivers them in the attribute */
     public static function normalize(string $html): string
     {
         return trim(str_replace(["\r\n", "\r"], "\n", $html));
@@ -74,7 +74,7 @@ final class HtmlEmbed
         return '' !== $sig && strlen($html) <= self::MAX_LENGTH && hash_equals(self::sign($html, $service), $sig);
     }
 
-    /** Signierte Embeds im (bereinigten) HTML durch ihren Code ersetzen, alle anderen entfernen */
+    /** Replaces signed embeds in the (sanitized) HTML with their code, removes all others */
     public static function resolve(string $html): string
     {
         if (!str_contains($html, 'data-rex-embed=')) {
@@ -93,7 +93,7 @@ final class HtmlEmbed
         }, $html);
     }
 
-    /** Code ausgeben: Nonce an Skripte/Stile, mit Dienst als Vorlage hinter einem Platzhalter */
+    /** Outputs code: nonce on scripts/styles, with a service as template behind a placeholder */
     public static function render(string $code, string $service = '', string $label = ''): string
     {
         $code = self::withNonce($code);
@@ -110,7 +110,7 @@ final class HtmlEmbed
             . '</div></div>';
     }
 
-    /** Nonce der aktuellen Antwort an `<script>` und `<style>` (vorhandene werden ersetzt) */
+    /** Nonce of the current response on `<script>` and `<style>` (existing ones are replaced) */
     public static function withNonce(string $code): string
     {
         $nonce = htmlspecialchars(Response::getNonce(), ENT_QUOTES);
@@ -119,7 +119,7 @@ final class HtmlEmbed
         return (string) preg_replace('~<(script|style)\b~i', '<$1 nonce="' . $nonce . '"', $code);
     }
 
-    /** Schlüssel für die Signaturen – je Installation, entsteht beim ersten Gebrauch */
+    /** Key for the signatures – per installation, created on first use */
     private static function secret(): string
     {
         $addon = TiptapAddon::instance();
@@ -132,7 +132,7 @@ final class HtmlEmbed
         return $secret;
     }
 
-    /** Für Tiptap::sanitize(): Embeds aus Eingaben ohne Recht entfernen (z. B. Frontend-Formulare) */
+    /** For Tiptap::sanitize(): removes embeds from input without permission (e.g. frontend forms) */
     public static function strip(string $html): string
     {
         if (!str_contains($html, 'data-rex-embed') || self::allowed(Core::getUser())) {

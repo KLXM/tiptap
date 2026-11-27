@@ -5,9 +5,9 @@ namespace Klxm\Tiptap\ExtensionPoint;
 use Redaxo\Core\ExtensionPoint\ExtensionPoint;
 
 /**
- * Adresse eines verlinkten YForm-Datensatzes (`yform://tabelle/id`). Subject ist die Adresse aus der Vorlage unter
- * TipTap-Editor → Einstellungen oder null. Ein AddOn mit eigenen Adressen für Datensätze (z. B. fluid, URL-AddOn)
- * liefert hier die richtige.
+ * URL of a linked YForm record (`yform://table/id`). The subject is the URL from the template under
+ * TipTap-Editor → Einstellungen, or null. An addon with its own URLs for records (e.g. fluid, URL addon) returns the
+ * correct one here.
  *
  *     Extension::register(RecordUrl::class, static fn (RecordUrl $ep): ?string => MyRouter::url($ep->table, $ep->id) ?? $ep->subject);
  *

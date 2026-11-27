@@ -1,4 +1,4 @@
-/* Editor-Instanz: TipTap + Toolbar + Dialoge, gebunden an eine Textarea */
+/* Editor instance: TipTap + toolbar + dialogs, bound to a textarea */
 
 import {Editor, mergeAttributes} from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -71,7 +71,7 @@ export class RexTiptapEditor {
         return this.items.some(item => item.id === id);
     }
 
-    /* ---------- Aufbau ---------- */
+    /* ---------- Structure ---------- */
 
     build() {
         this.buildToolbar();
@@ -117,7 +117,7 @@ export class RexTiptapEditor {
         this.body.append(textarea);
 
         this.counter = el('span', {className: 'rex-tiptap-counter', 'aria-live': 'polite'});
-        // Speicherformat nur im Backend anzeigen – Besucher interessiert es nicht
+        // Show the storage format in the backend only – visitors don't care about it
         this.footer = el('div', {className: 'rex-tiptap-footer'},
             config.backend ? el('span', {className: 'rex-tiptap-mode', text: this.markdown ? 'Markdown' : 'HTML'}) : el('span'),
             config.counter || config.maxLength ? this.counter : null,
@@ -172,7 +172,7 @@ export class RexTiptapEditor {
                 }
             });
         }
-        // Fokus im Editor halten (Auswahl bleibt sichtbar)
+        // keep focus in the editor (selection stays visible)
         btn.addEventListener('mousedown', e => e.preventDefault());
         this.buttons.push({item, btn});
         return wrap;
@@ -203,7 +203,7 @@ export class RexTiptapEditor {
                 orderedList: has('orderedList') ? {} : false,
                 listItem: any('bulletList', 'orderedList') ? {} : false,
                 listKeymap: any('bulletList', 'orderedList') ? {} : false,
-                // Link separat (mit Linkformaten), siehe unten
+                // Link separately (with link formats), see below
                 link: false,
                 trailingNode: false,
             }),
@@ -234,12 +234,12 @@ export class RexTiptapEditor {
         if (has('image')) {
             extensions.push(rexImage(Image, config));
         }
-        // Medien-Blöcke; vorhandene Inhalte bleiben erhalten, auch wenn das Werkzeug nicht (mehr) in der Toolbar ist
+        // Media blocks; existing content is kept even if the tool is not (or no longer) in the toolbar
         if (!this.markdown) {
             extensions.push(rexVideo(config, this), rexOembed(config, this), rexHtmlEmbed(config, this));
         }
         if (has('table')) {
-            // Tabelle ohne style-Attribute (min-width, colgroup) – sonst greift die Content-Security-Policy
+            // Table without style attributes (min-width, colgroup) – otherwise the Content Security Policy kicks in
             extensions.push(TableKit.configure({table: false}), Table.extend({
                 renderHTML({HTMLAttributes}) {
                     return ['table', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), ['tbody', 0]];
@@ -257,12 +257,12 @@ export class RexTiptapEditor {
         if (has('inlineStyle') && !this.markdown) {
             extensions.push(InlineStyle.configure({allowed: config.inlineStyles.flatMap(s => s.class.split(' '))}));
         }
-        // Markdown: Speicherformat der Markdown-Profile; in HTML-Profilen nur zum Umwandeln beim Einfügen
+        // Markdown: storage format of Markdown profiles; in HTML profiles only for converting on paste
         extensions.push(Markdown);
         if (any('link', 'unlink')) {
             extensions.push(rexAutoLink(config));
         }
-        // Dateien per Ziehen/Einfügen → Medienpool (immer abfangen, damit der Browser die Datei nicht öffnet)
+        // Files via drag/paste → media pool (always intercept so the browser doesn't open the file)
         extensions.push(rexUpload(this));
         extensions.push(...registry.pluginExtensions(this.ctx()));
         return extensions;
@@ -288,7 +288,7 @@ export class RexTiptapEditor {
                     'aria-multiline': 'true',
                     spellcheck: 'true',
                 },
-                // Fremdes HTML (andere Website, Word, Mail) bereinigen; Kopieren innerhalb von tiptap bleibt unverändert
+                // Clean up foreign HTML (other website, Word, mail); copying within tiptap stays unchanged
                 handleDOMEvents: {
                     copy: view => rememberCopy(view.state.doc.textBetween(view.state.selection.from, view.state.selection.to, '\n\n')),
                     cut: view => rememberCopy(view.state.doc.textBetween(view.state.selection.from, view.state.selection.to, '\n\n')),
@@ -301,13 +301,13 @@ export class RexTiptapEditor {
                     if (this.pasteInternal) {
                         return html;
                     }
-                    // Bilder/Videos fremder Seiten werden nie übernommen – sagen, warum sie fehlen
+                    // Images/videos from foreign pages are never taken over – tell why they are missing
                     if (/<(img|video|picture|iframe)\b/i.test(html)) {
                         setTimeout(() => this.note(t('pasteMediaRemoved')), 0);
                     }
                     return cleanPastedHtml(html);
                 },
-                // Einfügen: reiner Text (Profil-Einstellung), Adresse von YouTube/Vimeo → Video, Markdown → Formatierung
+                // Paste: plain text (profile setting), YouTube/Vimeo address → video, Markdown → formatting
                 handlePaste: (view, event) => {
                     const text = event.clipboardData?.getData('text/plain');
                     if (null === text || undefined === text) {
@@ -334,7 +334,7 @@ export class RexTiptapEditor {
             },
             onBlur: () => {
                 this.root.classList.remove('is-focused');
-                // Fokus wandert evtl. in die Bubble – erst danach entscheiden
+                // Focus may move into the bubble – decide only afterwards
                 setTimeout(() => this.updateBubble(), 0);
             },
         });
@@ -343,7 +343,7 @@ export class RexTiptapEditor {
         this.handleForm();
         this.bindContextMenu();
         this.buildLinkBubble();
-        // Wert normalisieren erst bei der ersten Änderung – sonst gilt das Formular sofort als geändert
+        // Normalize the value only on the first change – otherwise the form counts as changed right away
         this.update();
         this.root.dispatchEvent(new CustomEvent('rex-tiptap:ready', {bubbles: true, detail: {editor: this.editor, instance: this}}));
     }
@@ -395,7 +395,7 @@ export class RexTiptapEditor {
         this.form = form;
     }
 
-    /** Aktueller Wert (HTML oder Markdown), leer bei leerem Editor */
+    /** Current value (HTML or Markdown), empty if the editor is empty */
     value() {
         if (this.sourceMode) {
             return this.textarea.value;
@@ -404,7 +404,7 @@ export class RexTiptapEditor {
             return '';
         }
         if (this.markdown) {
-            // leere Absätze am Anfang/Ende schreibt der Serializer als &nbsp;
+            // the serializer writes empty paragraphs at the start/end as &nbsp;
             return this.editor.getMarkdown().replace(/^(?:\s*&nbsp;\s*\n)+/, '').replace(/(?:\n\s*&nbsp;\s*)+$/, '').trim();
         }
         return this.editor.getHTML();
@@ -440,7 +440,7 @@ export class RexTiptapEditor {
         }
     }
 
-    /* ---------- Zustand der Toolbar ---------- */
+    /* ---------- Toolbar state ---------- */
 
     update() {
         if (!this.editor || this.updating) {
@@ -497,7 +497,7 @@ export class RexTiptapEditor {
         this.counter.classList.toggle('is-limit', max > 0 && chars >= max);
     }
 
-    /* ---------- Tastatur in der Toolbar (roving tabindex) ---------- */
+    /* ---------- Keyboard in the toolbar (roving tabindex) ---------- */
 
     toolbarKeydown(e) {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) || e.target.closest('[role="menu"]')) {
@@ -520,7 +520,7 @@ export class RexTiptapEditor {
         list[next].focus();
     }
 
-    /* ---------- Menüs ---------- */
+    /* ---------- Menus ---------- */
 
     toggleMenu(item, btn, wrap) {
         if (this.openMenu?.btn === btn) {
@@ -544,7 +544,7 @@ export class RexTiptapEditor {
                 continue;
             }
             if (entry.separator) {
-                // keine doppelten Trenner, keiner am Anfang
+                // no duplicate separators, none at the start
                 if (menu.lastElementChild && !menu.lastElementChild.matches('.rex-tiptap-menu-separator')) {
                     menu.append(el('div', {className: 'rex-tiptap-menu-separator', role: 'separator'}));
                 }
@@ -566,7 +566,7 @@ export class RexTiptapEditor {
             }
             const text = el('span', {className: 'rex-tiptap-menu-label', text: entry.label});
             if (entry.preview) {
-                // Vorschau der Formatvorlage mit ihrer Klasse
+                // Preview of the style with its class
                 text.className += ' ' + entry.preview;
             }
             mi.append(text);
@@ -588,8 +588,8 @@ export class RexTiptapEditor {
     }
 
     /**
-     * Kontextmenü an einer Stelle: Einträge aller Werkzeuge mit `context(ctx)` (z. B. Tabelle).
-     * Liefert false, wenn keines etwas beiträgt – dann bleibt das Menü des Browsers.
+     * Context menu at a position: entries of all tools with `context(ctx)` (e.g. table).
+     * Returns false if none contributes anything – then the browser's menu stays.
      */
     contextMenu(x, y) {
         const ctx = this.ctx();
@@ -597,7 +597,7 @@ export class RexTiptapEditor {
         const seen = new Set();
         for (const item of this.items) {
             const list = (item.context ? safe(() => item.context(ctx)) : null)?.filter(entry => {
-                // gleiche Einträge (z. B. Liste aus zwei Werkzeugen) nur einmal
+                // identical entries (e.g. list from two tools) only once
                 const key = entry.separator ? null : entry.label;
                 if (null === key) {
                     return true;
@@ -620,10 +620,10 @@ export class RexTiptapEditor {
         const menu = this.buildMenu(entries, t('contextMenu'));
         menu.classList.add('rex-tiptap-menu--context');
         this.root.append(menu);
-        // im sichtbaren Bereich halten
+        // keep within the visible area
         const width = menu.offsetWidth;
         const height = menu.offsetHeight;
-        // reicht der Platz nicht, klappt es nach links bzw. oben auf
+        // if there isn't enough space, it opens to the left or upwards
         const left = x + width > window.innerWidth - 8 ? x - width : x;
         const top = y + height > window.innerHeight - 8 ? y - height : y;
         menu.style.left = Math.max(8, left) + 'px';
@@ -635,13 +635,13 @@ export class RexTiptapEditor {
 
     bindContextMenu() {
         const dom = this.editor.view.dom;
-        // Umschalt + Rechtsklick öffnet weiter das Menü des Browsers (Rechtschreibung, Kopieren …)
+        // Shift + right-click still opens the browser's menu (spelling, copy …)
         this.onContext = e => {
             if (e.shiftKey || !this.editor.isEditable || this.sourceMode) {
                 return;
             }
             const {view, state} = this.editor;
-            // Rechtsklick auf ein Bild oder eine Trennlinie wählt das Element
+            // Right-click on an image or a horizontal rule selects the element
             if (['IMG', 'HR'].includes(e.target.nodeName) && view.dom.contains(e.target)) {
                 this.editor.commands.setNodeSelection(view.posAtDOM(e.target, 0));
                 if (this.contextMenu(e.clientX, e.clientY)) {
@@ -660,7 +660,7 @@ export class RexTiptapEditor {
             }
         };
         dom.addEventListener('contextmenu', this.onContext);
-        // Tastatur: Kontextmenü-Taste oder Umschalt + F10
+        // Keyboard: context menu key or Shift + F10
         this.onContextKey = e => {
             if ('ContextMenu' === e.key || (e.shiftKey && 'F10' === e.key)) {
                 const coords = this.editor.view.coordsAtPos(this.editor.state.selection.from);
@@ -673,7 +673,7 @@ export class RexTiptapEditor {
     }
 
     positionMenu(menu, btn) {
-        // nicht über den rechten Rand hinaus
+        // not beyond the right edge
         const rect = btn.getBoundingClientRect();
         const width = menu.offsetWidth;
         if (rect.left + width > document.documentElement.clientWidth - 8) {
@@ -714,7 +714,7 @@ export class RexTiptapEditor {
         btn?.setAttribute('aria-expanded', 'false');
         this.openMenu = null;
         if (focusButton) {
-            // Kontextmenü: zurück in den Text
+            // Context menu: back into the text
             btn ? btn.focus() : this.editor?.commands.focus();
         }
     }
@@ -741,7 +741,7 @@ export class RexTiptapEditor {
                 this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
             }}, icon('unlink')),
         );
-        // Klicks in der Bubble nehmen dem Text nicht den Fokus (außer „öffnen“)
+        // Clicks in the bubble don't take focus away from the text (except "open")
         this.bubble.addEventListener('mousedown', e => {
             if (e.target.closest('button')) {
                 e.preventDefault();
@@ -781,7 +781,7 @@ export class RexTiptapEditor {
         bubble.style.top = (coords.bottom - box.top + 6) + 'px';
     }
 
-    /** Ziel lesbar anzeigen: Seite, Datensatz, Datei, E-Mail, Telefon oder Adresse */
+    /** Show the target in readable form: page, record, file, email, phone or address */
     async describeLink(href) {
         const target = this.bubbleTarget;
         const open = this.bubbleOpen;
@@ -833,7 +833,7 @@ export class RexTiptapEditor {
         }
     }
 
-    /* ---------- Quelltext und Vollbild ---------- */
+    /* ---------- Source code and fullscreen ---------- */
 
     async toggleSource() {
         this.closeMenu(false);
@@ -853,7 +853,7 @@ export class RexTiptapEditor {
             this.textarea.value = this.markdown ? this.textarea.value : formatHtml(this.textarea.value);
             this.content.hidden = true;
             this.sourceMode = true;
-            // Ansicht mit Auszeichnung (CodeMirror, wird nachgeladen); ohne sie die einfache Textarea
+            // View with highlighting (CodeMirror, loaded lazily); without it the plain textarea
             try {
                 const {createCodeView} = await import('./code.js');
                 this.codeHost = el('div', {className: 'rex-tiptap-code'});
@@ -891,7 +891,7 @@ export class RexTiptapEditor {
         this.focus();
     }
 
-    /* ---------- Dialoge ---------- */
+    /* ---------- Dialogs ---------- */
 
     openDialog(title, fields, onApply, extraButtons = []) {
         this.dialog?.remove();
@@ -928,7 +928,7 @@ export class RexTiptapEditor {
                 this.editor.commands.focus();
             }
         });
-        // im Vollbild/Overlay oben liegen: an den Body hängen
+        // stay on top in fullscreen/overlay: append to the body
         document.body.append(dialog);
         this.dialog = dialog;
         dialog.showModal();
@@ -948,22 +948,22 @@ export class RexTiptapEditor {
         return el('div', {className: 'rex-tiptap-field'}, ...children);
     }
 
-    /** Text als Absätze einfügen (Leerzeile = neuer Absatz) */
+    /** Insert text as paragraphs (blank line = new paragraph) */
     insertPlain(text) {
         const hardBreak = !!this.editor.schema.nodes.hardBreak;
         this.editor.commands.insertContent(text.replace(/\r\n?/g, '\n').split(/\n{2,}/).map(p => ({
             type: 'paragraph',
-            // einfache Zeilenumbrüche bleiben (Umbruch im Absatz)
+            // single line breaks are kept (break within the paragraph)
             content: p.split('\n').flatMap((line, i) => [...(i && hardBreak ? [{type: 'hardBreak'}] : i ? [{type: 'text', text: ' '}] : []), ...(line ? [{type: 'text', text: line}] : [])]),
         })));
     }
 
-    /** Reiner Text, der eindeutig nach Markdown aussieht → Formatierung (mit „Als Text einfügen“) */
+    /** Plain text that clearly looks like Markdown → formatting (with "paste as text") */
     pasteMarkdown(text, html) {
         if (!htmlIsPlain(html) || !looksLikeMarkdown(text)) {
             return false;
         }
-        // eigener Schritt im Verlauf: „Als Text einfügen“ nimmt nur die Umwandlung zurück
+        // separate step in the history: "paste as text" only undoes the conversion
         this.editor.view.dispatch(closeHistory(this.editor.state.tr));
         const ok = this.editor.chain().focus().insertContent(fitHeadings(text, this.config.headings), {contentType: 'markdown'}).run();
         if (ok) {
@@ -981,9 +981,9 @@ export class RexTiptapEditor {
         const attrs = editor.getAttributes('link');
         const editing = editor.isActive('link');
         const empty = editor.state.selection.empty && !editing;
-        // Markierung merken: Linkmap und Medienpool nehmen dem Editor den Fokus
+        // Remember the selection: linkmap and media pool take focus away from the editor
         const {from, to} = editor.state.selection;
-        // markierte Adresse (E-Mail, Web, Domain, Telefon) → sofort Link, ohne Dialog
+        // selected address (email, web, domain, phone) → link right away, without dialog
         if (!editing && !empty) {
             const href = hrefFor(editor.state.doc.textBetween(from, to, ' '), link, true);
             if (href) {
@@ -1039,7 +1039,7 @@ export class RexTiptapEditor {
                 }
             }}, icon('media'), el('span', {text: t('linkMedia')})));
         }
-        // YForm-Datensätze
+        // YForm records
         const tables = config.recordTables ?? [];
         let recordPanel = null;
         if (config.backend && config.recordApi && tables.length) {
@@ -1105,7 +1105,7 @@ export class RexTiptapEditor {
                 }
             }}, icon('record'), el('span', {text: t('linkRecord')})));
         }
-        // gewähltes Ziel lesbar anzeigen (Datensatz)
+        // show the selected target in readable form (record)
         const target = el('small', {className: 'rex-tiptap-link-target'});
         const describe = async () => {
             const m = /^yform:\/\/([\w.-]+)\/(\d+)/.exec(url.value);
@@ -1117,7 +1117,7 @@ export class RexTiptapEditor {
                     const table = tables.find(tb => tb.name === m[1])?.label ?? m[1];
                     target.textContent = '→ ' + table + ': ' + (data.label ?? 'ID ' + m[2]);
                 } catch {
-                    // ohne Bezeichnung
+                    // without label
                 }
             }
         };
@@ -1126,7 +1126,7 @@ export class RexTiptapEditor {
             target.textContent = '';
         });
         describe();
-        // Wert wird auch per Skript gesetzt (Auswahl) – dann ebenfalls beschreiben
+        // the value is also set by script (selection) – describe it then as well
         const setUrl = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
         Object.defineProperty(url, 'value', {
             get: () => setUrl.get.call(url),
@@ -1172,15 +1172,15 @@ export class RexTiptapEditor {
         const {editor, config} = this;
         const attrs = editor.isActive('image') ? editor.getAttributes('image') : {};
         const image = config.image;
-        // Stelle merken (der Medienpool nimmt dem Editor den Fokus); ein gewähltes Bild bleibt gewählt
+        // Remember the position (the media pool takes focus away from the editor); a selected image stays selected
         const selection = editor.state.selection;
         const restore = chain => attrs.src ? chain.setNodeSelection(selection.from) : chain.setTextSelection({from: selection.from, to: selection.to});
         const pick = picker(config);
         let media = attrs.media ?? null;
 
         const src = el('input', {type: 'text', className: 'rex-input', value: attrs.src ?? '', readonly: !image.external, spellcheck: 'false'});
-        // Alternativtext: leer = aus dem Medienpool (klxm_meta, je Sprache, wird bei der Ausgabe eingesetzt),
-        // eigener Text überschreibt, „dekorativ“ = alt="". Ohne Medienpool (externe Adresse) gilt der Text hier.
+        // Alt text: empty = from the media pool (klxm_meta, per language, inserted on output),
+        // custom text overrides, "decorative" = alt="". Without media pool (external address) the text here applies.
         const alt = el('input', {type: 'text', className: 'rex-input', value: attrs.alt ?? ''});
         const decorative = el('input', {type: 'checkbox'});
         decorative.checked = '' === attrs.alt;
@@ -1217,7 +1217,7 @@ export class RexTiptapEditor {
         const title = el('input', {type: 'text', className: 'rex-input', value: attrs.title ?? ''});
         const preview = el('img', {className: 'rex-tiptap-image-preview', alt: '', hidden: !attrs.src, src: attrs.src || null});
 
-        // Mediamanager-Typ (Bildgröße) und Bildformat (Klasse) aus dem Profil
+        // Media manager type (image size) and image format (class) from the profile
         const type = image.mediaTypes?.length ? el('select', {className: 'rex-input'},
             el('option', {value: '', text: t('imageOriginal')}),
             ...image.mediaTypes.map(name => el('option', {value: name, text: name}))) : null;
@@ -1280,7 +1280,7 @@ export class RexTiptapEditor {
             }
             restore(editor.chain().focus()).setImage({
                 src: value,
-                // null = aus dem Medienpool, '' = dekorativ
+                // null = from the media pool, '' = decorative
                 alt: decorative.checked ? '' : (alt.value.trim() || (media ? null : '')),
                 title: title.value.trim() || null,
                 media,
@@ -1306,7 +1306,7 @@ export class RexTiptapEditor {
         });
     }
 
-    /* ---------- Aufräumen ---------- */
+    /* ---------- Cleanup ---------- */
 
     destroy() {
         this.closeMenu(false);
@@ -1337,7 +1337,7 @@ function safe(fn) {
     }
 }
 
-/** HTML für die Quelltext-Ansicht: Blöcke auf eigene Zeilen */
+/** HTML for the source view: blocks on separate lines */
 function formatHtml(html) {
     return html
         .replace(/(<\/(p|h[1-6]|blockquote|ul|ol|li|table|thead|tbody|tr|pre)>)(?!\n)/g, '$1\n')
@@ -1347,7 +1347,7 @@ function formatHtml(html) {
 }
 
 Object.assign(RexTiptapEditor.prototype, mediaDialogs, uploadMethods, {
-    /** Hinweis unten im Editor */
+    /** Notice at the bottom of the editor */
     note(text, actionLabel = null, onAction = null) {
         showNote(this.root, text, actionLabel, onAction);
     },

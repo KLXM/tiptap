@@ -1,17 +1,17 @@
 /*
- Quelltext-Ansicht mit Auszeichnung (CodeMirror 6): Markdown sieht aus wie formatierter Text, die Zeichen der Syntax
- bleiben sichtbar (# ** > …); HTML mit hervorgehobenen Tags. Wird erst geladen, wenn jemand die Ansicht öffnet.
+ Source view with highlighting (CodeMirror 6): Markdown looks like formatted text, the syntax characters
+ stay visible (# ** > …); HTML with highlighted tags. Loaded only when someone opens the view.
  */
 
 import {EditorState} from '@codemirror/state';
 import {EditorView, keymap, drawSelection, highlightActiveLine, placeholder as cmPlaceholder} from '@codemirror/view';
 import {defaultKeymap, history, historyKeymap, indentWithTab} from '@codemirror/commands';
 import {HighlightStyle, Language, LRLanguage, LanguageSupport, defineLanguageFacet, syntaxHighlighting, indentOnInput, bracketMatching} from '@codemirror/language';
-// Markdown (CommonMark + GFM) direkt aus @lezer/markdown – @codemirror/lang-markdown brächte HTML, JavaScript und CSS mit
+// Markdown (CommonMark + GFM) directly from @lezer/markdown – @codemirror/lang-markdown would bring HTML, JavaScript and CSS
 import {parser as markdownParser, GFM} from '@lezer/markdown';
 
 const markdownLanguage = new Language(defineLanguageFacet({commentTokens: {block: {open: '<!--', close: '-->'}}}), markdownParser.configure(GFM), [], 'markdown');
-// nur HTML – ohne die eingebetteten Sprachen JavaScript und CSS von @codemirror/lang-html
+// HTML only – without the embedded JavaScript and CSS languages of @codemirror/lang-html
 import {parser as htmlParser} from '@lezer/html';
 
 const html = () => new LanguageSupport(LRLanguage.define({name: 'html', parser: htmlParser}));
@@ -29,7 +29,7 @@ const markdownStyle = HighlightStyle.define([
     {tag: tags.url, color: 'var(--_muted)'},
     {tag: tags.quote, color: 'var(--_muted)', fontStyle: 'italic'},
     {tag: tags.monospace, fontFamily: 'var(--_mono)', fontSize: '.9em', background: 'var(--_surface)', borderRadius: '3px'},
-    // Syntaxzeichen (#, *, >, [ ], `) zurücknehmen
+    // tone down syntax characters (#, *, >, [ ], `)
     {tag: [tags.processingInstruction, tags.meta, tags.contentSeparator], color: 'var(--_muted)', fontWeight: '400'},
 ]);
 
@@ -41,13 +41,13 @@ const htmlStyle = HighlightStyle.define([
     {tag: tags.content, color: 'var(--_text)'},
 ]);
 
-/** Nonce der Seite für die Stile, die CodeMirror einfügt (Content-Security-Policy) */
+/** Page nonce for the styles CodeMirror inserts (Content Security Policy) */
 function nonce() {
     return document.querySelector('script[nonce]')?.nonce || document.querySelector('style[nonce]')?.nonce || '';
 }
 
 /**
- * Erstellt die Ansicht.
+ * Creates the view.
  *
  * @param {{parent: HTMLElement, doc: string, mode: 'markdown'|'html', label: string, placeholder?: string, onChange: (value: string) => void, onSave?: () => void}} options
  */

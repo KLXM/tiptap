@@ -1,8 +1,8 @@
 /*
- * Dateien per Ziehen oder Einfügen (auch Screenshots aus der Zwischenablage): landen im Medienpool (UploadApi) und
- * dann als Bild bzw. Video im Text. Während des Hochladens steht an der Stelle ein Platzhalter mit Fortschritt.
- * Ohne Upload-Recht (Frontend, Gäste, Profil ohne Upload) wird die Datei nur abgefangen – der Browser soll sie nicht
- * öffnen – und ein Hinweis erscheint.
+ * Files via drag or paste (also screenshots from the clipboard): end up in the media pool (UploadApi) and
+ * then as image or video in the text. While uploading, a placeholder with progress sits at that position.
+ * Without upload permission (frontend, guests, profile without upload) the file is only intercepted – the browser
+ * should not open it – and a notice appears.
  */
 
 import {Extension} from '@tiptap/core';
@@ -13,7 +13,7 @@ import {mediaSrc} from './extensions.js';
 
 const key = new PluginKey('rexUpload');
 
-/** Position eines Platzhalters (nach Änderungen im Text verschoben) oder null */
+/** Position of a placeholder (shifted after changes in the text) or null */
 function placeholderPos(state, id) {
     const found = key.getState(state)?.find(null, null, spec => spec.id === id) ?? [];
     return found.length ? found[0].from : null;
@@ -53,7 +53,7 @@ export function rexUpload(ui) {
                     },
                     handlePaste(view, event) {
                         const files = [...(event.clipboardData?.files ?? [])];
-                        // Text in der Zwischenablage hat Vorrang (Word legt oft zusätzlich ein Bild der Auswahl ab)
+                        // text in the clipboard takes precedence (Word often adds an image of the selection as well)
                         if (!files.length || (event.clipboardData.getData('text/plain') ?? '').trim()) {
                             return false;
                         }
@@ -94,7 +94,7 @@ function send(url, file, profile, onProgress) {
     });
 }
 
-/** Methoden des Editors (siehe editor.js) */
+/** Editor methods (see editor.js) */
 export const uploadMethods = {
     async uploadFiles(files, pos) {
         const {editor, config} = this;
@@ -105,7 +105,7 @@ export const uploadMethods = {
         const images = this.has('image') ? (config.image?.types ?? []) : [];
         const videos = this.has('video') ? (config.video?.types ?? []) : [];
         for (let file of files) {
-            // Screenshots aus der Zwischenablage heißen „image.png“ – sprechender Name mit Zeitpunkt
+            // screenshots from the clipboard are named "image.png" – meaningful name with timestamp
             if (/^image\.(png|jpe?g|gif|webp)$/i.test(file.name ?? '')) {
                 const d = new Date();
                 const pad = n => String(n).padStart(2, '0');
@@ -134,7 +134,7 @@ export const uploadMethods = {
                     ? {type: 'rexVideo', attrs: {media: data.file, src: mediaSrc(config, data.file), controls: true}}
                     : {type: 'image', attrs: {src: mediaSrc(config, data.file, type), media: data.file, mediaType: type || null}};
                 editor.chain().focus().insertContentAt(at, node).run();
-                // ohne Alternativtext im Medienpool: Hinweis mit Knopf zum Bild-Dialog
+                // no alt text in the media pool: notice with a button to the image dialog
                 if ('image' === data.kind && null === data.alt) {
                     this.note(t('uploadAltMissing'), t('uploadAltAction'), () => {
                         let found = null;
