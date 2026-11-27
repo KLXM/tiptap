@@ -182,6 +182,30 @@ document.addEventListener('rex-tiptap:configure', e => {
 });
 ```
 
+## Inline-Modus: direkt auf der Seite
+
+Für Bearbeiten im Kontext (z. B. fluid): Der Editor läuft auf einem Element der Seite statt in seinem eigenen Kasten.
+Das Element behält seine Klassen – es gilt die Typografie der Website –, die Werkzeugleiste schwebt darüber, solange
+der Text, die Leiste, ein Menü oder ein Dialog den Fokus hat. Quelltext und Vollbild entfallen.
+
+```js
+const instance = RexTiptap.inline(element, 'tiptap.news', {
+    value: '<p>…</p>',      // Ausgangswert, sonst der Inhalt des Elements
+    label: 'Text',          // Name für Screenreader
+    layer: document.body,   // wohin Leiste und Link-Leiste kommen
+});
+element.addEventListener('rex-tiptap:change', e => save(e.detail.value));
+instance.destroy();         // das Element zeigt danach den aktuellen Wert
+```
+
+Das Profil ist ein Name (aus `<script id="rex-tiptap-profiles">`, siehe `Tiptap::assets(true)`) oder die
+Client-Konfiguration eines Profils (`Tiptap::clientConfig()`). Profile kommen dabei wie immer auch als Klasse
+(`#[AsProfile]`). `RexTiptap.get(element)` liefert die Instanz, `RexTiptap.Inline` die Klasse zum Erweitern.
+
+**Shadow DOM:** Editoren funktionieren auch im Shadow DOM einer Oberfläche (Fokus und Klicks über `getRootNode()` bzw.
+`composedPath()`). Die Oberfläche lädt dann `tiptap.css` in ihren Shadow Root und ruft `RexTiptap.upgrade(root)` für
+neu eingefügte `textarea[data-tiptap]` auf – der Observer des AddOns sieht nur das Dokument.
+
 ## Element `<rex-tiptap>`
 
 ```html

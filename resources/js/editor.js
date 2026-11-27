@@ -22,7 +22,7 @@ import {rexUpload, uploadMethods} from './upload.js';
 
 let uid = 0;
 
-function el(tag, props = {}, ...children) {
+export function el(tag, props = {}, ...children) {
     const node = document.createElement(tag);
     for (const [key, value] of Object.entries(props)) {
         if (null === value || undefined === value || false === value) {
@@ -40,6 +40,12 @@ function el(tag, props = {}, ...children) {
     }
     node.append(...children.filter(Boolean));
     return node;
+}
+
+/** Focused element – also inside a shadow root (document.activeElement is only its host there) */
+function activeElement(node) {
+    const root = node?.getRootNode?.();
+    return (root && 'activeElement' in root ? root.activeElement : null) ?? document.activeElement;
 }
 
 export class RexTiptapEditor {
@@ -68,17 +74,13 @@ export class RexTiptapEditor {
     /* ---------- Aufbau ---------- */
 
     build() {
-        const {root, textarea, config} = this;
-        root.classList.add('rex-tiptap');
-        root.dataset.mode = config.mode;
-        if (config.stickyToolbar) {
-            root.classList.add('rex-tiptap--sticky');
-        }
-        root.style.setProperty('--rex-tiptap-min-height', config.minHeight + 'px');
-        if (config.maxHeight > 0) {
-            root.style.setProperty('--rex-tiptap-max-height', config.maxHeight + 'px');
-        }
+        this.buildToolbar();
+        this.layout();
+        this.listen();
+    }
 
+    buildToolbar() {
+        const {config} = this;
         this.toolbar = el('div', {className: 'rex-tiptap-toolbar', role: 'toolbar', 'aria-label': t('toolbar'), 'aria-controls': this.id});
         this.toolbar.addEventListener('keydown', e => this.toolbarKeydown(e));
         for (const group of config.toolbar) {
@@ -91,6 +93,20 @@ export class RexTiptapEditor {
                 groupEl.append(this.button(item));
             }
             this.toolbar.append(groupEl);
+        }
+    }
+
+    /** Box around toolbar, content and footer; the inline mode (inline.js) keeps the host element instead */
+    layout() {
+        const {root, textarea, config} = this;
+        root.classList.add('rex-tiptap');
+        root.dataset.mode = config.mode;
+        if (config.stickyToolbar) {
+            root.classList.add('rex-tiptap--sticky');
+        }
+        root.style.setProperty('--rex-tiptap-min-height', config.minHeight + 'px');
+        if (config.maxHeight > 0) {
+            root.style.setProperty('--rex-tiptap-max-height', config.maxHeight + 'px');
         }
 
         this.content = el('div', {className: 'rex-tiptap-content' + (config.contentClass ? ' ' + config.contentClass : '')});
@@ -109,9 +125,11 @@ export class RexTiptapEditor {
         const footer = config.backend || config.counter || config.maxLength ? this.footer : null;
 
         root.replaceChildren(...[this.toolbar.childElementCount ? this.toolbar : null, this.body, footer].filter(Boolean));
+    }
 
+    listen() {
         this.onDocClick = e => {
-            if (this.openMenu && !this.openMenu.wrap.contains(e.target)) {
+            if (this.openMenu && !e.composedPath().includes(this.openMenu.wrap)) {
                 this.closeMenu(false);
             }
         };
@@ -484,7 +502,7 @@ export class RexTiptapEditor {
             return;
         }
         const list = this.buttons.map(b => b.btn).filter(b => !b.disabled);
-        const index = list.indexOf(document.activeElement);
+        const index = list.indexOf(activeElement(list[0]));
         if (index < 0) {
             return;
         }
@@ -663,7 +681,7 @@ export class RexTiptapEditor {
 
     menuKeydown(e, menu) {
         const list = [...menu.querySelectorAll('button:not(:disabled)')];
-        const index = list.indexOf(document.activeElement);
+        const index = list.indexOf(activeElement(list[0]));
         const grid = menu.classList.contains('rex-tiptap-menu--grid');
         const step = grid ? 6 : 1;
         const moves = {ArrowDown: step, ArrowUp: -step, ...(grid ? {ArrowRight: 1, ArrowLeft: -1} : {})};
@@ -738,7 +756,7 @@ export class RexTiptapEditor {
         }
         const editor = this.editor;
         const show = !this.sourceMode && editor.isEditable && !this.dialog && !this.openMenu
-            && editor.isActive('link') && (editor.isFocused || bubble.contains(document.activeElement));
+            && editor.isActive('link') && (editor.isFocused || bubble.contains(activeElement(bubble)));
         if (!show) {
             bubble.hidden = true;
             return;
@@ -749,9 +767,11 @@ export class RexTiptapEditor {
             this.describeLink(href);
         }
         bubble.hidden = false;
-        // unter dem Anfang des Links, innerhalb des Editors
-        const {view, state} = editor;
-        const coords = view.coordsAtPos(state.selection.from);
+        this.placeBubble(bubble, editor.view.coordsAtPos(editor.state.selection.from));
+    }
+
+    /** Below the start of the link, inside the editor box */
+    placeBubble(bubble, coords) {
         const box = this.root.getBoundingClientRect();
         const width = bubble.offsetWidth;
         const left = Math.max(8, Math.min(coords.left - box.left, this.root.clientWidth - width - 8));
@@ -1062,7 +1082,7 @@ export class RexTiptapEditor {
             });
             results.addEventListener('keydown', e => {
                 const list = [...results.querySelectorAll('button')];
-                const i = list.indexOf(document.activeElement);
+                const i = list.indexOf(activeElement(list[0]));
                 if ('ArrowDown' === e.key || 'ArrowUp' === e.key) {
                     e.preventDefault();
                     (list[i + ('ArrowDown' === e.key ? 1 : -1)] ?? ('ArrowUp' === e.key ? search : null))?.focus();

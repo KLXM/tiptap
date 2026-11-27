@@ -7,7 +7,9 @@ rex-tiptap {
     display: block;
 }
 
-.rex-tiptap {
+/* tokens also for the parts of the inline mode that live outside the editor box (toolbar, link bar) */
+.rex-tiptap,
+.rex-tiptap-bubble--fixed {
     --_bg: var(--rex-tiptap-bg, var(--rex-color-surface, #fff));
     --_surface: var(--rex-tiptap-surface, var(--rex-color-surface-subtle, #f6f7f9));
     --_raised: var(--rex-tiptap-raised, var(--rex-color-surface-raised, #fff));
@@ -23,7 +25,9 @@ rex-tiptap {
     --_radius: var(--rex-tiptap-radius, var(--rex-radius, 6px));
     --_mono: var(--rex-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
     --_shadow: var(--rex-shadow-md, 0 6px 24px rgb(0 0 0 / .12));
+}
 
+.rex-tiptap {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -1107,4 +1111,32 @@ html.rex-tiptap-has-fullscreen {
     color: var(--_muted);
     font-size: 13px;
     white-space: nowrap;
+}
+
+/* ---------- Inline mode (RexTiptap.inline): editor on an element of the page, toolbar floating above it ---------- */
+
+.rex-tiptap-inline .rex-tiptap-inline-prose {
+    outline: none;
+}
+
+.rex-tiptap-float {
+    position: fixed;
+    z-index: var(--rex-tiptap-float-z, 2147483000);
+    max-width: calc(100vw - 16px);
+    box-shadow: var(--_shadow);
+}
+
+.rex-tiptap-float[hidden] {
+    display: none;
+}
+
+.rex-tiptap-float .rex-tiptap-toolbar {
+    border-bottom: 0;
+    border-radius: var(--_radius);
+}
+
+.rex-tiptap-bubble--fixed {
+    position: fixed;
+    z-index: var(--rex-tiptap-float-z, 2147483000);
+    max-width: min(460px, calc(100vw - 16px));
 }

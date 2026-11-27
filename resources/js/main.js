@@ -7,12 +7,14 @@
 
 import * as core from '@tiptap/core';
 import {RexTiptapEditor} from './editor.js';
+import {RexTiptapInline} from './inline.js';
 import {registry} from './registry.js';
 import {icon, addIcon} from './icons.js';
 import {i18n} from './i18n.js';
 import * as helpers from './extensions.js';
 
 const instances = new WeakMap();
+const inlineInstances = new WeakMap();
 
 function profiles() {
     const node = document.getElementById('rex-tiptap-profiles');
@@ -140,9 +142,31 @@ Object.assign(api, {
     /** TipTap selbst – Erweiterungen anderer AddOns nutzen diese Klassen statt eines eigenen Bundles */
     tiptap: core,
     Editor: RexTiptapEditor,
+    /**
+     * Inline mode: editor on an element of the page (editing in context) with a floating toolbar.
+     * `profile`: name (from <script id="rex-tiptap-profiles">) or the client config of a profile (Tiptap::clientConfig()).
+     * Changes arrive as `rex-tiptap:change` at the element; `destroy()` shows the value in the element again.
+     */
+    inline(element, profile, options = {}) {
+        const config = 'string' === typeof profile ? profiles()[profile] : profile;
+        if (!config) {
+            console.warn('rex-tiptap: Profil nicht gefunden', profile);
+            return null;
+        }
+        inlineInstances.get(element)?.destroy();
+        const instance = new RexTiptapInline(element, config, options);
+        inlineInstances.set(element, instance);
+        const destroy = instance.destroy.bind(instance);
+        instance.destroy = () => {
+            inlineInstances.delete(element);
+            destroy();
+        };
+        return instance;
+    },
+    Inline: RexTiptapInline,
     /** Instanz zu <rex-tiptap>, Textarea oder Element darin */
     get(element) {
-        return element?.closest?.('rex-tiptap')?.instance ?? null;
+        return element?.closest?.('rex-tiptap')?.instance ?? inlineInstances.get(element) ?? null;
     },
     upgrade: upgradeTextareas,
 });
