@@ -99,14 +99,17 @@ final class TiptapAddon extends Addon
             ContentSecurityPolicy::backend()->add('frame-src', ...Oembed::frameHosts());
             Asset::addCssFile($this->assetUrl('tiptap.css'));
             Asset::addJsFile($this->assetUrl('tiptap-loader.js'), [Asset::JS_DEFERED => true]);
-            foreach (Registry::plugins() as $plugin) {
-                if ($plugin->style) {
-                    Asset::addCssFile($plugin->style);
+            // plugins of addons that boot after this one (they require klxm/tiptap) – collected once all addons booted
+            Extension::register('PACKAGES_INCLUDED', static function (): void {
+                foreach (Registry::plugins() as $plugin) {
+                    if ($plugin->style) {
+                        Asset::addCssFile($plugin->style);
+                    }
+                    if ($plugin->script) {
+                        Asset::addJsFile($plugin->script, [Asset::JS_DEFERED => true]);
+                    }
                 }
-                if ($plugin->script) {
-                    Asset::addJsFile($plugin->script, [Asset::JS_DEFERED => true]);
-                }
-            }
+            });
             if (str_starts_with(Request::get('page', 'string'), 'tiptap/')) {
                 Asset::addCssFile($this->assetUrl('builder.css'));
                 Asset::addJsFile($this->assetUrl('builder.js'), [Asset::JS_DEFERED => true]);

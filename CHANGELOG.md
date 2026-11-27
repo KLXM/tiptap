@@ -7,6 +7,8 @@
   am Element, `destroy()` zeigt den Wert wieder im Element. Klasse `RexTiptap.Inline` zum Erweitern.
 - Profil-Option `link.schemes`: weitere Link-Schemata (z. B. `media://`), die das Projekt oder ein AddOn selbst
   auflöst – im Editor und im Sanitizer erlaubt.
+- Fix: Skripte und Stile von Plugins anderer AddOns fehlten im Backend, wenn das AddOn nach TipTap startet (es setzt
+  TipTap voraus) – gesammelt wird jetzt bei `PACKAGES_INCLUDED`.
 - Editoren funktionieren im Shadow DOM (Fokus über `getRootNode()`, Klicks über `composedPath()`).
 - `RexTiptapEditor`: Aufbau in `buildToolbar()`, `layout()`, `listen()` und `placeBubble()` geteilt – überschreibbar.
 
