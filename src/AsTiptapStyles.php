@@ -9,7 +9,7 @@ use Redaxo\Core\Translation\Translatable;
  * Registers text formats of an addon or the project for existing profiles – e.g. a link format of a consent addon or
  * the text colors of a theme.
  *
- *     #[AsStyles('consent_kit.links', 'Consent Kit', profiles: ['tiptap.default', 'tiptap.simple'])]
+ *     #[AsTiptapStyles('consent_kit.links', 'Consent Kit', profiles: ['tiptap.default', 'tiptap.simple'])]
  *     final class ConsentStyles extends StyleDefinition
  *     {
  *         public function styles(): array
@@ -23,7 +23,7 @@ use Redaxo\Core\Translation\Translatable;
  * project replaces one of an addon with the same key.
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-final readonly class AsStyles
+final readonly class AsTiptapStyles
 {
     public function __construct(
         /** Key with the addon's prefix like fluid elements (`fluid.hinweis`): `consent_kit.links`; one class per key */

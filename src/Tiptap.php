@@ -55,7 +55,7 @@ final class Tiptap
         Registry::addPlugin($plugin);
     }
 
-    /** The profile with the text formats of other addons ({@see AsStyles}) – for editor, sanitizer and output */
+    /** The profile with the text formats of other addons ({@see AsTiptapStyles}) – for editor, sanitizer and output */
     public static function profile(string|Profile|null $profile = null): Profile
     {
         return ProfileStyles::apply($profile instanceof Profile ? $profile : Profiles::getOrDefault($profile));

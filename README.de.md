@@ -48,7 +48,7 @@ Ein AddOn von [KLXM Crossmedia](https://klxm.de). · [English](README.md)
   auflöst – im Editor und im Sanitizer erlaubt.
 - **Erweiterbar:** andere AddOns melden Werkzeuge, TipTap-Erweiterungen, Kontextmenü-Einträge, Symbole und Texte
   an (`Tiptap::register(new Plugin(…))`) und liefern eigene Profile als Klasse mit – fluid etwa `tiptap.fluid`.
-  Formate für vorhandene Profile melden sie wie Module per Klasse an: `#[AsStyles('consent_kit.links', …)]`.
+  Formate für vorhandene Profile melden sie wie Module per Klasse an: `#[AsTiptapStyles('consent_kit.links', …)]`.
 
 ## Bilder
 

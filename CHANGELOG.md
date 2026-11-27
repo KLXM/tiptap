@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0-beta.7 – 2026-11-27
+
+- Attribut umbenannt: `#[AsStyles]` heißt jetzt `#[AsTiptapStyles]` (Klasse `Klxm\Tiptap\AsTiptapStyles`).
+
 ## 1.0.0-beta.6 – 2026-11-27
 
 - **Formate anmelden mit `#[AsStyles]`:** AddOns und Projekt geben vorhandenen Profilen eigene Block-, Text-, Listen-

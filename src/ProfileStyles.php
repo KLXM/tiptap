@@ -18,7 +18,7 @@ use function substr;
 use function usort;
 
 /**
- * Adds the text formats registered with {@see AsStyles} to a profile at runtime.
+ * Adds the text formats registered with {@see AsTiptapStyles} to a profile at runtime.
  *
  * @internal
  */
@@ -26,7 +26,7 @@ final class ProfileStyles
 {
     public const array KEYS = ['blockStyles', 'inlineStyles', 'listStyles', 'linkStyles'];
 
-    /** @var list<array{AsStyles, StyleDefinition, class-string}>|null */
+    /** @var list<array{AsTiptapStyles, StyleDefinition, class-string}>|null */
     private static ?array $definitions = null;
 
     /** @var WeakMap<Profile, Profile>|null */
@@ -126,14 +126,14 @@ final class ProfileStyles
         return false;
     }
 
-    /** @return list<array{AsStyles, StyleDefinition, class-string}> */
+    /** @return list<array{AsTiptapStyles, StyleDefinition, class-string}> */
     private static function definitions(): array
     {
         if (null !== self::$definitions) {
             return self::$definitions;
         }
         $byKey = [];
-        foreach (ClassDiscovery::getInstance()->discoverByAttribute(AsStyles::class, StyleDefinition::class) as $class => $attr) {
+        foreach (ClassDiscovery::getInstance()->discoverByAttribute(AsTiptapStyles::class, StyleDefinition::class) as $class => $attr) {
             if (!preg_match(Profile::NAME_PATTERN, $attr->key) || !str_contains($attr->key, '.')) {
                 continue;
             }

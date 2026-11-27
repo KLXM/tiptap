@@ -47,7 +47,7 @@ An addon by [KLXM Crossmedia](https://klxm.de). · [Deutsch](README.de.md)
   allowed in the editor and by the sanitizer.
 - **Extensible:** other addons register tools, TipTap extensions, context menu entries, icons and texts
   (`Tiptap::register(new Plugin(…))`) and ship their own profiles as classes – fluid, for example, `tiptap.fluid`.
-  Formats for existing profiles are registered like modules, as a class: `#[AsStyles('consent_kit.links', …)]`.
+  Formats for existing profiles are registered like modules, as a class: `#[AsTiptapStyles('consent_kit.links', …)]`.
 
 ## Screenshots
 

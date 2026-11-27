@@ -3,7 +3,7 @@
 namespace Klxm\Tiptap;
 
 /**
- * Base class for text formats from code, see {@see AsStyles}.
+ * Base class for text formats from code, see {@see AsTiptapStyles}.
  *
  * `styles()` returns the format keys of a profile config: `blockStyles`, `inlineStyles`, `listStyles`, `linkStyles`
  * (same structure as in {@see Profile::DEFAULTS}). A format only shows where the profile has the tool for it
@@ -19,7 +19,7 @@ abstract class StyleDefinition
      */
     abstract public function styles(): array;
 
-    /** Decides at runtime whether the formats apply to a profile (after the names in {@see AsStyles}) */
+    /** Decides at runtime whether the formats apply to a profile (after the names in {@see AsTiptapStyles}) */
     public function applies(Profile $profile): bool
     {
         return true;
