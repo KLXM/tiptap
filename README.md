@@ -35,10 +35,23 @@ An addon by [KLXM Crossmedia](https://klxm.de). · [Deutsch](README.de.md)
 - **Collections and repeaters:** the web component `<rex-tiptap>` starts on new items by itself and survives
   reordering.
 - **Frontend and guests:** a standalone bundle that loads itself when needed. Input is sanitized on the server per
-  profile.
-- **Extensible:** other addons register tools, TipTap extensions, context menu entries, icons and texts.
+  profile. Logged-in backend users get the same tools on the website as in the backend (linkmap, media pool,
+  records); without a login existing links are kept.
+- **Editing in context (inline mode):** `RexTiptap.inline(element, profile)` turns an element of the page itself into
+  the editor – with a floating toolbar and link bar, shadow DOM included. This is how
+  [fluid](https://github.com/KLXM/fluid) (editing on the website) uses it.
+- **Page and media picker on the website:** an interface like fluid plugs in its own picker (`RexTiptap.pick`); in the
+  backend it stays `rex.pick()`.
+- **Custom link schemes** per profile (`link.schemes`, e.g. `media://`) that the project or an addon resolves itself –
+  allowed in the editor and by the sanitizer.
+- **Extensible:** other addons register tools, TipTap extensions, context menu entries, icons and texts
+  (`Tiptap::register(new Plugin(…))`) and ship their own profiles as classes – fluid, for example, `tiptap.fluid`.
 
 ## Screenshots
+
+| Editing in context (inline mode in fluid) | In a form on the website (fluid's sidebar) |
+| --- | --- |
+| ![Floating toolbar right on the page, text styles menu open](docs/images/inline.png) | ![TipTap in fluid's sidebar](docs/images/frontend-sidebar.jpg) |
 
 | Profile builder | Settings and preview |
 | --- | --- |
@@ -81,6 +94,19 @@ public function output(): string
 - **Any textarea:** `<textarea data-tiptap="tiptap.simple">`
 - **Frontend:** `echo Tiptap::editor('message', $value, 'tiptap.guest');` and on submit
   `Tiptap::sanitize(…, 'tiptap.guest')`.
+
+A profile as a class in the project (code wins over the database and the built-in profiles):
+
+```php
+#[AsProfile('tiptap.news', 'News')]
+final class NewsProfile extends ProfileDefinition
+{
+    public function config(): array
+    {
+        return ['toolbar' => [['bold', 'italic'], ['bulletList', 'orderedList'], ['link', 'unlink']]];
+    }
+}
+```
 
 The documentation (German) is in the backend under **TipTap editor → Docs** and in [`docs/`](docs/).
 

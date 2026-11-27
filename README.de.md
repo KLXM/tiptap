@@ -36,11 +36,23 @@ Ein AddOn von [KLXM Crossmedia](https://klxm.de). · [English](README.md)
 - **Collections und Repeater:** Das Web Component `<rex-tiptap>` startet bei neuen Einträgen von selbst und bleibt
   beim Sortieren erhalten.
 - **Frontend und Gäste:** eigenes Bundle, das sich bei Bedarf selbst lädt. Eingaben werden auf dem Server nach dem
-  Profil bereinigt.
+  Profil bereinigt. Angemeldete Backend-Benutzer haben auf der Website dieselben Werkzeuge wie im Backend (Linkmap,
+  Medienpool, Datensätze); ohne Anmeldung bleiben vorhandene Links erhalten.
+- **Bearbeiten im Kontext (Inline-Modus):** `RexTiptap.inline(element, profil)` macht ein Element der Seite selbst zum
+  Editor – mit schwebender Werkzeugleiste und Link-Leiste, auch im Shadow DOM. So arbeitet z. B.
+  [fluid](https://github.com/KLXM/fluid) (Bearbeiten auf der Website).
+- **Seiten- und Medienauswahl auf der Website:** Eine Oberfläche wie fluid hängt ihre eigene Auswahl ein
+  (`RexTiptap.pick`), im Backend bleibt es `rex.pick()`.
+- **Eigene Link-Schemata** je Profil (`link.schemes`, z. B. `media://`), die das Projekt oder ein AddOn selbst
+  auflöst – im Editor und im Sanitizer erlaubt.
 - **Erweiterbar:** andere AddOns melden Werkzeuge, TipTap-Erweiterungen, Kontextmenü-Einträge, Symbole und Texte
-  an.
+  an (`Tiptap::register(new Plugin(…))`) und liefern eigene Profile als Klasse mit – fluid etwa `tiptap.fluid`.
 
 ## Bilder
+
+| Bearbeiten im Kontext (Inline-Modus in fluid) | Im Formular auf der Website (Seitenleiste von fluid) |
+| --- | --- |
+| ![Schwebende Werkzeugleiste direkt auf der Seite, Menü Textformate geöffnet](docs/images/inline.png) | ![TipTap in der Seitenleiste von fluid](docs/images/frontend-sidebar.jpg) |
 
 | Profil-Builder | Einstellungen und Vorschau |
 | --- | --- |

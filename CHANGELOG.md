@@ -1,6 +1,6 @@
 # Changelog
 
-## Unveröffentlicht
+## 1.0.0-beta.2 – 2026-11-27
 
 - **Inline-Modus** `RexTiptap.inline(element, profil, {value, label, layer})`: Editor direkt auf einem Element der Seite
   (Bearbeiten im Kontext, z. B. fluid), schwebende Werkzeugleiste und Link-Leiste; Änderungen als `rex-tiptap:change`
@@ -15,6 +15,8 @@
   Anmeldung gelten die Link-Arten des Profils (nur ohne Auswahl).
 - Editoren funktionieren im Shadow DOM (Fokus über `getRootNode()`, Klicks über `composedPath()`).
 - `RexTiptapEditor`: Aufbau in `buildToolbar()`, `layout()`, `listen()` und `placeBubble()` geteilt – überschreibbar.
+- Code-Stil wie der Core: php-cs-fixer mit `Config::redaxo6()`, Kommentare im Code englisch.
+- README mit Bildern vom Bearbeiten auf der Website (Inline-Modus, Seitenleiste von fluid) und den neuen Funktionen.
 
 ## 1.0.0-beta.1 – 2026-11-18
 
