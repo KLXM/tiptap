@@ -1,7 +1,7 @@
 /* Eingebaute Werkzeuge der Toolbar. Ein Werkzeug: {label, icon, run?, active?, enabled?, menu?, current?} */
 
 import {t} from './i18n.js';
-import {blockHasClass, CLASS_NODES, mediaSrc, nearestList, nodeOfElement, updateNearestList} from './extensions.js';
+import {blockHasClass, CLASS_NODES, mediaSrc, nearestList, nodeOfElement, picker, updateNearestList} from './extensions.js';
 import {alignMedia, mediaAlignActive, mediaContext, selectedMedia} from './media.js';
 
 const chain = editor => editor.chain().focus();
@@ -312,7 +312,7 @@ export const builtinItems = {
         icon: 'image',
         run: ({ui}) => ui.imageDialog(),
         active: ({editor}) => editor.isActive('image'),
-        enabled: ({config}) => !!(config.backend && window.rex?.pick) || !!config.image.external,
+        enabled: ({config}) => !!picker(config) || !!config.image.external,
         // Rechtsklick auf ein Bild: bearbeiten, Bildformat, Größe, entfernen
         context: ({editor, config, ui}) => {
             if (!editor.isActive('image')) {
@@ -340,7 +340,7 @@ export const builtinItems = {
         icon: 'video',
         run: ({ui}) => ui.videoDialog(),
         active: ({editor}) => editor.isActive('rexVideo'),
-        enabled: ({config}) => !!(config.backend && window.rex?.pick),
+        enabled: ({config}) => !!picker(config),
         context: ({ui}) => mediaContext('rexVideo', ui),
     },
     oembed: {

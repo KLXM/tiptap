@@ -9,6 +9,7 @@
   auflöst – im Editor und im Sanitizer erlaubt.
 - Fix: Skripte und Stile von Plugins anderer AddOns fehlten im Backend, wenn das AddOn nach TipTap startet (es setzt
   TipTap voraus) – gesammelt wird jetzt bei `PACKAGES_INCLUDED`.
+- Seiten- und Medienauswahl auch auf der Website: `RexTiptap.pick` (z. B. fluid), sonst wie bisher `rex.pick()` im Backend.
 - Editoren funktionieren im Shadow DOM (Fokus über `getRootNode()`, Klicks über `composedPath()`).
 - `RexTiptapEditor`: Aufbau in `buildToolbar()`, `layout()`, `listen()` und `placeBubble()` geteilt – überschreibbar.
 

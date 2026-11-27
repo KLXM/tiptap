@@ -12,7 +12,7 @@ import Image from '@tiptap/extension-image';
 
 import {t} from './i18n.js';
 import {icon} from './icons.js';
-import {allowedUrl, BlockClass, InlineStyle, mediaSrc, nearestList, normalizeUrl, rexImage, rexLink, updateNearestList} from './extensions.js';
+import {allowedUrl, BlockClass, InlineStyle, mediaSrc, nearestList, normalizeUrl, picker, rexImage, rexLink, updateNearestList} from './extensions.js';
 import Link from '@tiptap/extension-link';
 import {registry} from './registry.js';
 import {mediaDialogs, rexHtmlEmbed, rexOembed, rexVideo} from './media.js';
@@ -1012,8 +1012,8 @@ export class RexTiptapEditor {
         }
 
         const pickers = [];
-        const pick = window.rex?.pick;
-        if (config.backend && pick && link.internal) {
+        const pick = picker(config);
+        if (pick && link.internal) {
             pickers.push(el('button', {type: 'button', className: 'rex-tiptap-dialog-button', onclick: async () => {
                 const items = await pick('article', {});
                 const [item] = items ?? [];
@@ -1025,7 +1025,7 @@ export class RexTiptapEditor {
                 }
             }}, icon('article'), el('span', {text: t('linkArticle')})));
         }
-        if (config.backend && pick && link.media) {
+        if (pick && link.media) {
             pickers.push(el('button', {type: 'button', className: 'rex-tiptap-dialog-button', onclick: async () => {
                 const items = await pick('media', {});
                 const [item] = items ?? [];
@@ -1173,7 +1173,7 @@ export class RexTiptapEditor {
         // Stelle merken (der Medienpool nimmt dem Editor den Fokus); ein gewähltes Bild bleibt gewählt
         const selection = editor.state.selection;
         const restore = chain => attrs.src ? chain.setNodeSelection(selection.from) : chain.setTextSelection({from: selection.from, to: selection.to});
-        const pick = config.backend && window.rex?.pick;
+        const pick = picker(config);
         let media = attrs.media ?? null;
 
         const src = el('input', {type: 'text', className: 'rex-input', value: attrs.src ?? '', readonly: !image.external, spellcheck: 'false'});

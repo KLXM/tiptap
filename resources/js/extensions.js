@@ -266,3 +266,8 @@ export function normalizeUrl(url) {
     }
     return value;
 }
+
+/** Picker for pages and media: of a website interface (RexTiptap.pick, e.g. fluid) or of the backend (rex.pick) */
+export function picker(config) {
+    return window.RexTiptap?.pick ?? (config.backend ? window.rex?.pick : null) ?? null;
+}

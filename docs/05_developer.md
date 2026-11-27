@@ -202,6 +202,10 @@ Das Profil ist ein Name (aus `<script id="rex-tiptap-profiles">`, siehe `Tiptap:
 Client-Konfiguration eines Profils (`Tiptap::clientConfig()`). Profile kommen dabei wie immer auch als Klasse
 (`#[AsProfile]`). `RexTiptap.get(element)` liefert die Instanz, `RexTiptap.Inline` die Klasse zum Erweitern.
 
+**Auswahl von Seiten und Medien:** Die Dialoge nutzen `RexTiptap.pick(type, options)`, sonst im Backend `rex.pick()`.
+Eine Oberfläche auf der Website setzt eine eigene Auswahl mit derselben Antwort (`[{value, label}]`), z. B. fluid:
+`RexTiptap.pick = (type, options) => FrontendPicker.pick(type, options);`
+
 **Shadow DOM:** Editoren funktionieren auch im Shadow DOM einer Oberfläche (Fokus und Klicks über `getRootNode()` bzw.
 `composedPath()`). Die Oberfläche lädt dann `tiptap.css` in ihren Shadow Root und ruft `RexTiptap.upgrade(root)` für
 neu eingefügte `textarea[data-tiptap]` auf – der Observer des AddOns sieht nur das Dokument.

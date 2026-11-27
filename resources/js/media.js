@@ -12,7 +12,7 @@
 import {Node, mergeAttributes} from '@tiptap/core';
 import {t} from './i18n.js';
 import {icon} from './icons.js';
-import {mediaSrc} from './extensions.js';
+import {mediaSrc, picker} from './extensions.js';
 
 /** Seitenverhältnisse: feste Klassen, CSS liefert das AddOn mit (tiptap-media.css) */
 export const RATIOS = [
@@ -452,7 +452,7 @@ export const mediaDialogs = {
         alignClasses = Object.values(config.align ?? {}).flatMap(tokens);
         const selection = editor.state.selection;
         const attrs = selection.node?.type.name === 'rexVideo' ? selection.node.attrs : {controls: true};
-        const pick = config.backend && window.rex?.pick;
+        const pick = picker(config);
         let media = attrs.media ?? null;
         let poster = attrs.poster ?? null;
 
