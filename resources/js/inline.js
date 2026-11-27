@@ -8,6 +8,8 @@
  */
 
 import {el, RexTiptapEditor} from './editor.js';
+import {t} from './i18n.js';
+import {icon} from './icons.js';
 
 /** Tools that need the box of the normal editor */
 const BOX_ONLY = ['source', 'fullscreen'];
@@ -41,9 +43,95 @@ export class RexTiptapInline extends RexTiptapEditor {
         root.replaceChildren();
         this.float = el('div', {className: 'rex-tiptap rex-tiptap-float', hidden: true});
         if (this.toolbar.childElementCount) {
+            this.buildMore();
             this.float.append(this.toolbar);
         }
         this.layer.append(this.float);
+    }
+
+    /**
+     * The floating toolbar stays on one line: groups that don't fit move into a panel behind „⋯“ (see fit()).
+     * The buttons are moved, not copied – they keep their state and their menus.
+     */
+    buildMore() {
+        this.groups = [...this.toolbar.children];
+        const btn = el('button', {
+            type: 'button',
+            className: 'rex-tiptap-button rex-tiptap-more-button',
+            tabindex: '-1',
+            title: t('more'),
+            'aria-label': t('more'),
+            'aria-haspopup': 'true',
+            'aria-expanded': 'false',
+        }, icon('more'));
+        this.morePanel = el('div', {className: 'rex-tiptap-more-panel', role: 'group', 'aria-label': t('more'), hidden: true});
+        this.more = el('div', {className: 'rex-tiptap-group rex-tiptap-more', role: 'group', hidden: true}, btn, this.morePanel);
+        this.moreButton = btn;
+        btn.addEventListener('mousedown', e => e.preventDefault());
+        // keyboard (detail 0): focus moves into the panel; with the mouse it stays in the text
+        btn.addEventListener('click', e => this.toggleMore(this.morePanel.hidden, 0 === e.detail));
+        // a tool in the panel was used (menu entries and dialogs included): close it; a menu button keeps it open
+        this.morePanel.addEventListener('click', e => {
+            const target = e.target.closest('button');
+            if (target && !target.hasAttribute('aria-haspopup')) {
+                setTimeout(() => this.toggleMore(false), 0);
+            }
+        });
+        this.morePanel.addEventListener('keydown', e => {
+            if ('Escape' === e.key && !this.openMenu) {
+                e.stopPropagation();
+                this.toggleMore(false);
+                btn.focus();
+            }
+        });
+        this.toolbar.append(this.more);
+        this.buttons.push({item: {id: 'more', label: t('more'), always: true}, btn});
+    }
+
+    toggleMore(open, focus = false) {
+        if (!this.more) {
+            return;
+        }
+        if (!open) {
+            this.closeMenu(false);
+        }
+        this.morePanel.hidden = !open;
+        this.moreButton.setAttribute('aria-expanded', String(open));
+        if (open) {
+            // open to the left if the panel would leave the window
+            this.morePanel.classList.remove('is-start');
+            const rect = this.morePanel.getBoundingClientRect();
+            if (rect.left < 8) {
+                this.morePanel.classList.add('is-start');
+            }
+            if (focus) {
+                this.morePanel.querySelector('button:not(:disabled)')?.focus();
+            }
+        }
+    }
+
+    /** Moves groups from the end into the panel until the toolbar fits into the window on one line */
+    fit() {
+        if (!this.more || !this.morePanel.hidden || this.openMenu) {
+            return;
+        }
+        const max = Math.min(innerWidth - 16, parseFloat(getComputedStyle(this.float).maxWidth) || Infinity);
+        if (max === this.fitted) {
+            return;
+        }
+        this.fitted = max;
+        for (const group of this.groups) {
+            this.toolbar.insertBefore(group, this.more);
+        }
+        this.more.hidden = true;
+        if (this.toolbar.scrollWidth <= max) {
+            return;
+        }
+        this.more.hidden = false;
+        const inBar = [...this.groups];
+        while (this.toolbar.scrollWidth > max && inBar.length > 1) {
+            this.morePanel.prepend(inBar.pop());
+        }
     }
 
     listen() {
@@ -54,6 +142,13 @@ export class RexTiptapInline extends RexTiptapEditor {
         this.root.addEventListener('focusin', this.onFocusChange);
         this.root.addEventListener('focusout', this.onFocusChange);
         this.float.addEventListener('focusout', this.onFocusChange);
+        // the overflow panel closes on a click outside the toolbar
+        this.onOutside = e => {
+            if (this.more && !this.morePanel.hidden && !e.composedPath().includes(this.float)) {
+                this.toggleMore(false);
+            }
+        };
+        document.addEventListener('mousedown', this.onOutside);
         addEventListener('scroll', this.onViewport, {passive: true, capture: true});
         addEventListener('resize', this.onViewport, {passive: true});
     }
@@ -89,7 +184,7 @@ export class RexTiptapInline extends RexTiptapEditor {
         }
         const inside = node => node && (this.float.contains(node) || this.root.contains(node) || this.bubble?.contains(node));
         const focused = this.float.getRootNode().activeElement ?? document.activeElement;
-        return this.editor.isFocused || inside(focused) || !!this.openMenu || !!this.dialog?.open;
+        return this.editor.isFocused || inside(focused) || !!this.openMenu || !!this.dialog?.open || (this.more && !this.morePanel.hidden);
     }
 
     /** Above the element, kept in the window while the element is visible; below it if there is no room above */
@@ -97,9 +192,11 @@ export class RexTiptapInline extends RexTiptapEditor {
         const float = this.float;
         if (!float.isConnected || !this.active) {
             float.hidden = true;
+            this.toggleMore(false);
             return;
         }
         float.hidden = false;
+        this.fit();
         const rect = this.root.getBoundingClientRect();
         const height = float.offsetHeight;
         const width = float.offsetWidth;
@@ -120,6 +217,7 @@ export class RexTiptapInline extends RexTiptapEditor {
         const value = this.editor ? this.value() : this.textarea.value;
         removeEventListener('scroll', this.onViewport, {capture: true});
         removeEventListener('resize', this.onViewport);
+        document.removeEventListener('mousedown', this.onOutside);
         this.root.removeEventListener('focusin', this.onFocusChange);
         this.root.removeEventListener('focusout', this.onFocusChange);
         super.destroy();

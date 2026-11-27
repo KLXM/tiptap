@@ -2,7 +2,7 @@
 
 const texts = {
     de: {
-        toolbar: 'Formatierung',
+        toolbar: 'Formatierung', more: 'Weitere Werkzeuge',
         undo: 'Rückgängig', redo: 'Wiederholen',
         heading: 'Absatzformat', paragraph: 'Absatz', headingLevel: 'Überschrift %s',
         blockStyle: 'Blockformat', blockStyleNone: 'Ohne Format',
@@ -49,7 +49,7 @@ const texts = {
         empty: '',
     },
     en: {
-        toolbar: 'Formatting',
+        toolbar: 'Formatting', more: 'More tools',
         undo: 'Undo', redo: 'Redo',
         heading: 'Paragraph format', paragraph: 'Paragraph', headingLevel: 'Heading %s',
         blockStyle: 'Block style', blockStyleNone: 'No style',

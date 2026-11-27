@@ -1122,7 +1122,9 @@ html.rex-tiptap-has-fullscreen {
 .rex-tiptap-float {
     position: fixed;
     z-index: var(--rex-tiptap-float-z, 2147483000);
-    max-width: calc(100vw - 16px);
+    width: max-content;
+    max-width: min(var(--rex-tiptap-float-max, 100vw), calc(100vw - 16px));
+    border-radius: var(--rex-tiptap-float-radius, calc(var(--_radius) + 4px));
     box-shadow: var(--_shadow);
 }
 
@@ -1130,9 +1132,50 @@ html.rex-tiptap-has-fullscreen {
     display: none;
 }
 
+/* one line – what doesn't fit goes into the panel behind „⋯“ (inline.js fit()) */
 .rex-tiptap-float .rex-tiptap-toolbar {
+    flex-wrap: nowrap;
     border-bottom: 0;
-    border-radius: var(--_radius);
+    border-radius: inherit;
+}
+
+.rex-tiptap-float .rex-tiptap-group {
+    flex: none;
+}
+
+.rex-tiptap-more {
+    position: relative;
+}
+
+.rex-tiptap-more[hidden],
+.rex-tiptap-more-panel[hidden] {
+    display: none;
+}
+
+.rex-tiptap-more-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: -6px;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: max-content;
+    max-width: min(360px, calc(100vw - 16px));
+    padding: 6px;
+    border: 1px solid var(--_border-soft);
+    border-radius: var(--rex-tiptap-float-radius, calc(var(--_radius) + 4px));
+    background: var(--_surface);
+    box-shadow: var(--_shadow);
+}
+
+.rex-tiptap-more-panel.is-start {
+    right: auto;
+    left: -6px;
+}
+
+.rex-tiptap-more-panel .rex-tiptap-group:last-child {
+    border-inline-end: 0;
 }
 
 .rex-tiptap-bubble--fixed {

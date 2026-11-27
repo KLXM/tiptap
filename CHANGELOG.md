@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-beta.3 – 2026-11-27
+
+- Inline-Modus: Die schwebende Werkzeugleiste bricht nicht mehr um. Was nicht in eine Zeile passt, liegt hinter „⋯“
+  (Weitere Werkzeuge) – mit Maus und Tastatur, Menüs funktionieren auch dort. Höchstbreite über `--rex-tiptap-float-max`,
+  Rundung über `--rex-tiptap-float-radius` (Standard: Radius + 4px).
+
 ## 1.0.0-beta.2 – 2026-11-27
 
 - **Inline-Modus** `RexTiptap.inline(element, profil, {value, label, layer})`: Editor direkt auf einem Element der Seite

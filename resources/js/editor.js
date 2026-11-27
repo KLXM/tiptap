@@ -503,7 +503,8 @@ export class RexTiptapEditor {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) || e.target.closest('[role="menu"]')) {
             return;
         }
-        const list = this.buttons.map(b => b.btn).filter(b => !b.disabled);
+        // buttons in a closed overflow panel (inline mode) are not reachable
+        const list = this.buttons.map(b => b.btn).filter(b => !b.disabled && b.getClientRects().length);
         const index = list.indexOf(activeElement(list[0]));
         if (index < 0) {
             return;
