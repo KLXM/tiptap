@@ -85,7 +85,7 @@ final readonly class Profile
         public string $description = '',
         /** @var array<string, mixed> normalisiert, siehe {@see self::DEFAULTS} */
         public array $config = self::DEFAULTS,
-        /** @var class-string<ProfileDefinition>|null Class if the profile comes from code ({@see AsProfile}) */
+        /** @var class-string<ProfileDefinition>|null Class if the profile comes from code ({@see AsTiptapProfile}) */
         public ?string $class = null,
         /** Shipped with the addon (customizable in the backend, the customization is then stored in the database) */
         public bool $builtin = false,

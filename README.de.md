@@ -14,7 +14,7 @@ Ein AddOn von [KLXM Crossmedia](https://klxm.de). · [English](README.md)
   HTML bekommt Syntax-Hervorhebung.
 - **Profile ohne Code:** Ein Builder stellt die Toolbar per Klick oder Drag & Drop in Gruppen zusammen, mit Menüs,
   Symbolen und Live-Vorschau. Import und Export laufen über JSON.
-- **Profile als PHP-Klassen** (`#[AsProfile('tiptap.news', …)]`): versioniert mit dem Projekt, ohne Abgleich der
+- **Profile als PHP-Klassen** (`#[AsTiptapProfile('tiptap.news', …)]`): versioniert mit dem Projekt, ohne Abgleich der
   Datenbank zwischen Stage und Live.
 - **REDAXO-Anbindung:**
   - Seiten aus der Linkmap (`redaxo://ID`).
@@ -105,7 +105,7 @@ public function output(): string
 Ein Profil als Klasse im Projekt:
 
 ```php
-#[AsProfile('tiptap.news', 'Meldungen')]
+#[AsTiptapProfile('tiptap.news', 'Meldungen')]
 final class NewsProfile extends ProfileDefinition
 {
     public function config(): array

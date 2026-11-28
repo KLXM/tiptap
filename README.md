@@ -14,7 +14,7 @@ An addon by [KLXM Crossmedia](https://klxm.de). · [Deutsch](README.de.md)
   syntax highlighting.
 - **Profiles without code:** a builder arranges the toolbar in groups by click or drag & drop, with menus, icons
   and a live preview. Import and export use JSON.
-- **Profiles as PHP classes** (`#[AsProfile('tiptap.news', …)]`): versioned with the project, no database sync
+- **Profiles as PHP classes** (`#[AsTiptapProfile('tiptap.news', …)]`): versioned with the project, no database sync
   between stage and live.
 - **REDAXO integration:**
   - Pages from the linkmap (`redaxo://ID`).
@@ -100,7 +100,7 @@ public function output(): string
 A profile as a class in the project (code wins over the database and the built-in profiles):
 
 ```php
-#[AsProfile('tiptap.news', 'News')]
+#[AsTiptapProfile('tiptap.news', 'News')]
 final class NewsProfile extends ProfileDefinition
 {
     public function config(): array

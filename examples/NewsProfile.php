@@ -2,7 +2,7 @@
 
 namespace Project\Tiptap;
 
-use Klxm\Tiptap\AsProfile;
+use Klxm\Tiptap\AsTiptapProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
 
@@ -10,7 +10,7 @@ use Override;
  * Example: editor profile as a PHP class – versioned with the project, no syncing of the database between stage
  * and live. Put it into src/Tiptap of the project; usage: #[Editor('Text', profile: 'tiptap.news')].
  */
-#[AsProfile('tiptap.news', 'Meldungen', description: 'Kurztexte für Meldungen – fett, kursiv, Listen, Links auf Seiten und Datensätze.')]
+#[AsTiptapProfile('tiptap.news', 'Meldungen', description: 'Kurztexte für Meldungen – fett, kursiv, Listen, Links auf Seiten und Datensätze.')]
 final class NewsProfile extends ProfileDefinition
 {
     #[Override]

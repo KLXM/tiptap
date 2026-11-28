@@ -2,14 +2,14 @@
 
 namespace Klxm\Tiptap\Profile;
 
-use Klxm\Tiptap\AsProfile;
+use Klxm\Tiptap\AsTiptapProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
 use Redaxo\Core\Translation\I18n;
 use Redaxo\Core\Translation\Translatable;
 
 /** Shipped: all important tools for editorial texts – also the default when no profile is given. */
-#[AsProfile('tiptap.default', new Translatable('tiptap_profile_default'), description: new Translatable('tiptap_profile_default_desc'), priority: -40)]
+#[AsTiptapProfile('tiptap.default', new Translatable('tiptap_profile_default'), description: new Translatable('tiptap_profile_default_desc'), priority: -40)]
 final class DefaultProfile extends ProfileDefinition
 {
     #[Override]

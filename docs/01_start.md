@@ -15,7 +15,7 @@ Entwickler ihn **mit eigenen Werkzeugen** erweitern können.
   ein Eintrag hinzukommt, und überlebt das Verschieben.
 - **Frontend:** derselbe Editor auf der Website, z. B. in fluid oder für Gäste in minimaler Form. Die Eingaben
   werden auf dem Server nach dem Profil bereinigt.
-- **Import/Export** von Profilen als JSON, dazu **Profile als PHP-Klassen** (`#[AsProfile]`), versioniert mit dem
+- **Import/Export** von Profilen als JSON, dazu **Profile als PHP-Klassen** (`#[AsTiptapProfile]`), versioniert mit dem
   Projekt. Siehe [Profile als PHP-Klassen](04_code.md).
 - **Quelltext mit Auszeichnung:** Markdown sieht aus wie formatierter Text, die Syntax bleibt sichtbar. HTML bekommt
   Syntax-Hervorhebung. Die Ansicht nutzt CodeMirror und wird erst beim Öffnen nachgeladen.

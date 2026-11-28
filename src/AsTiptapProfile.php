@@ -8,7 +8,7 @@ use Redaxo\Core\Translation\Translatable;
 /**
  * Registers an editor profile as a PHP class – versioned with the project instead of in the database.
  *
- *     #[AsProfile('tiptap.news', 'Meldungen', mode: Mode::Html)]
+ *     #[AsTiptapProfile('tiptap.news', 'Meldungen', mode: Mode::Html)]
  *     final class NewsProfile extends ProfileDefinition
  *     {
  *         public function config(): array
@@ -21,7 +21,7 @@ use Redaxo\Core\Translation\Translatable;
  * database profile with the same name and is read-only in the backend.
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-final readonly class AsProfile
+final readonly class AsTiptapProfile
 {
     public function __construct(
         /** Name (key) with the prefix `tiptap.`, as in `#[Editor('Text', profile: 'tiptap.news')]` */

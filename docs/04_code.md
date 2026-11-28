@@ -9,11 +9,11 @@ Live und keinen Abgleich der Datenbank. Eine Änderung am Profil ist ein Diff in
 
 namespace Project\Tiptap;
 
-use Klxm\Tiptap\AsProfile;
+use Klxm\Tiptap\AsTiptapProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
 
-#[AsProfile('tiptap.news', 'Meldungen', description: 'Kurztexte für Meldungen')]
+#[AsTiptapProfile('tiptap.news', 'Meldungen', description: 'Kurztexte für Meldungen')]
 final class NewsProfile extends ProfileDefinition
 {
     #[Override]
@@ -69,11 +69,11 @@ Gibt es mehrere Profile mit demselben Namen, gilt:
 Die mitgelieferten Profile lassen sich deshalb im Backend ganz normal bearbeiten. Beim Speichern entsteht eine
 angepasste Fassung in der Datenbank („Mitgeliefert · angepasst“). **Zurücksetzen** in der Liste stellt das Original
 wieder her. Soll eine Anpassung für alle Installationen gelten, legt man eine Klasse mit demselben Namen ins
-Projekt, z. B. `#[AsProfile('tiptap.default', 'Standard')]`. „Als PHP-Klasse“ erzeugt den Code dafür.
+Projekt, z. B. `#[AsTiptapProfile('tiptap.default', 'Standard')]`. „Als PHP-Klasse“ erzeugt den Code dafür.
 
 ## So funktioniert es
 
-- **Finden:** Die `ClassDiscovery` des Cores findet die Klasse über das Attribut `#[AsProfile]`, wie bei
+- **Finden:** Die `ClassDiscovery` des Cores findet die Klasse über das Attribut `#[AsTiptapProfile]`, wie bei
   `#[AsModule]`. Erlaubt sind alle Orte, die REDAXO durchsucht: das Projekt (`src/`) und AddOns. Ein AddOn oder ein
   fluid-Kit kann also eigene Profile mitbringen.
 - **Inhalt:** `config()` liefert dieselbe Struktur wie der JSON-Export, siehe [Profile](03_profiles.md). Fehlende
@@ -117,7 +117,7 @@ Einen Installationsschritt in der Datenbank braucht es nicht:
 ```php
 namespace MyAddon\Tiptap;
 
-#[AsProfile('tiptap.produkt', 'Produkttexte', priority: 10)]
+#[AsTiptapProfile('tiptap.produkt', 'Produkttexte', priority: 10)]
 final class ShopProfile extends ProfileDefinition
 {
     public function config(): array

@@ -2,13 +2,13 @@
 
 namespace Klxm\Tiptap\Profile;
 
-use Klxm\Tiptap\AsProfile;
+use Klxm\Tiptap\AsTiptapProfile;
 use Klxm\Tiptap\ProfileDefinition;
 use Override;
 use Redaxo\Core\Translation\Translatable;
 
 /** Shipped: minimal, for input by visitors in the frontend. */
-#[AsProfile('tiptap.guest', new Translatable('tiptap_profile_guest'), description: new Translatable('tiptap_profile_guest_desc'), priority: -10)]
+#[AsTiptapProfile('tiptap.guest', new Translatable('tiptap_profile_guest'), description: new Translatable('tiptap_profile_guest_desc'), priority: -10)]
 final class GuestProfile extends ProfileDefinition
 {
     #[Override]

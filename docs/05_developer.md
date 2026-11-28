@@ -256,7 +256,7 @@ instance.destroy();         // das Element zeigt danach den aktuellen Wert
 
 Das Profil ist ein Name (aus `<script id="rex-tiptap-profiles">`, siehe `Tiptap::assets(true)`) oder die
 Client-Konfiguration eines Profils (`Tiptap::clientConfig()`). Profile kommen dabei wie immer auch als Klasse
-(`#[AsProfile]`). `RexTiptap.get(element)` liefert die Instanz, `RexTiptap.Inline` die Klasse zum Erweitern.
+(`#[AsTiptapProfile]`). `RexTiptap.get(element)` liefert die Instanz, `RexTiptap.Inline` die Klasse zum Erweitern.
 
 **Auswahl von Seiten und Medien:** Die Dialoge nutzen `RexTiptap.pick(type, options)`, sonst im Backend `rex.pick()`.
 Eine Oberfläche auf der Website setzt eine eigene Auswahl mit derselben Antwort (`[{value, label}]`), z. B. fluid:

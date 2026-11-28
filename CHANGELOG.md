@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0-beta.9 – 2026-11-28
+
+- **Umbenannt (Bruch):** `#[AsProfile]` → `#[AsTiptapProfile]`, passend zu `#[AsTiptapStyles]`. Eigene Profile bitte anpassen (Attribut und `use`-Zeile).
+
 ## 1.0.0-beta.8 – 2026-11-27
 
 - Mitgelieferte Profile und Formate auf Deutsch und Englisch; `#[AsProfile]` nimmt `Translatable` für Name und Beschreibung.\n- Die Seite kann die Sprache des Editors setzen (`<html data-rex-tiptap-lang>`) – fluid nutzt das für die Sprache der Redakteurin.

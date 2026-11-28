@@ -59,7 +59,7 @@ final class Profiles
     /**
      * All profiles. Order of precedence for equal names:
      *
-     * 1. classes from the project and addons ({@see AsProfile}) – binding, read-only in the backend
+     * 1. classes from the project and addons ({@see AsTiptapProfile}) – binding, read-only in the backend
      * 2. profiles from the database (created or customized in the backend)
      * 3. the profiles shipped with the addon (`tiptap.*`, src/Profile)
      *
@@ -131,7 +131,7 @@ final class Profiles
             return $discovered;
         }
         $found = [];
-        foreach (ClassDiscovery::getInstance()->discoverByAttribute(AsProfile::class, ProfileDefinition::class) as $class => $attr) {
+        foreach (ClassDiscovery::getInstance()->discoverByAttribute(AsTiptapProfile::class, ProfileDefinition::class) as $class => $attr) {
             $found[] = [$attr, $class];
         }
         usort($found, static fn (array $a, array $b) => [$a[0]->priority, $a[0]->name] <=> [$b[0]->priority, $b[0]->name]);
@@ -349,10 +349,10 @@ final class Profiles
         }
 
         return "<?php\n\nnamespace {$namespace};\n\n"
-            . "use Klxm\\Tiptap\\AsProfile;\n"
+            . "use Klxm\\Tiptap\\AsTiptapProfile;\n"
             . (Mode::Html !== $profile->mode ? "use Klxm\\Tiptap\\Mode;\n" : '')
             . "use Klxm\\Tiptap\\ProfileDefinition;\nuse Override;\n\n"
-            . '#[AsProfile(' . implode(', ', $args) . ")]\n"
+            . '#[AsTiptapProfile(' . implode(', ', $args) . ")]\n"
             . "final class {$className} extends ProfileDefinition\n{\n"
             . "    #[Override]\n    public function config(): array\n    {\n"
             . '        return ' . self::phpValue($config, 2) . ";\n"
